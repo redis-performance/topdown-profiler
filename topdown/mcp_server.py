@@ -2,12 +2,21 @@
 
 Exposes TMA collection, querying, and analysis as MCP tools and resources
 for AI-assisted CPU performance analysis.
+
+Auth modes (via TOPDOWN_AUTH_MODE env var):
+- "none" (default): no auth, suitable for stdio transport / local use
+- "api-key": bearer token auth, use `topdown setup` to generate a key
+- "oauth": JWT validation against an external authorization server
 """
 
 from mcp.server.fastmcp import FastMCP
 
+from topdown.auth import AuthConfig, get_mcp_auth_kwargs
 from topdown.config import get_config
 from topdown.storage import get_backend
+
+_auth_config = AuthConfig.from_env()
+_auth_kwargs = get_mcp_auth_kwargs(_auth_config)
 
 mcp = FastMCP(
     "topdown-profiler",
@@ -18,6 +27,7 @@ mcp = FastMCP(
         "Use the available tools to profile processes, query bottlenecks, "
         "compare runs, and explain CPU performance metrics."
     ),
+    **_auth_kwargs,
 )
 
 
@@ -452,6 +462,13 @@ def methodology() -> str:
 def run_server(transport: str = "stdio", host: str = "localhost", port: int = 8000):
     """Start the MCP server."""
     if transport == "stdio":
+        if _auth_config.is_enabled:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Auth mode '%s' is enabled but stdio transport doesn't use HTTP auth. "
+                "Auth is only enforced on HTTP transport.",
+                _auth_config.mode,
+            )
         mcp.run(transport="stdio")
     elif transport == "http":
         mcp.run(transport="streamable-http", host=host, port=port)

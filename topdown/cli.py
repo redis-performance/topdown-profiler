@@ -514,6 +514,73 @@ def install_service(
         raise typer.Exit(1)
 
 
+@app.command()
+def setup(
+    auth: Annotated[str, typer.Option("--auth", help="Auth mode: api-key or oauth")] = "api-key",
+    host: Annotated[str, typer.Option("--host", help="MCP server host")] = "localhost",
+    port: Annotated[int, typer.Option("--port", help="MCP server port")] = 8000,
+    oauth_issuer: Annotated[Optional[str], typer.Option("--oauth-issuer", help="OAuth issuer URL")] = None,
+    oauth_audience: Annotated[Optional[str], typer.Option("--oauth-audience", help="OAuth audience")] = None,
+    show_config: Annotated[bool, typer.Option("--show-config", help="Print MCP client config")] = True,
+):
+    """Set up production MCP server with authentication.
+
+    Generates credentials and prints the config for Claude Code/Desktop.
+    """
+    import json as json_mod
+    from topdown.auth import setup_api_key_auth, get_client_config_snippet
+
+    if auth == "api-key":
+        api_key, key_path = setup_api_key_auth()
+        console.print(f"[green]API key generated and saved to:[/green] {key_path}")
+        console.print(f"[green]API key:[/green] {api_key}")
+        console.print()
+        console.print("[bold]To start the server:[/bold]")
+        console.print(f"  TOPDOWN_AUTH_MODE=api-key topdown mcp-serve --transport http --host {host} --port {port}")
+        console.print()
+
+        if show_config:
+            config = get_client_config_snippet(host=host, port=port, auth_mode="api-key", api_key=api_key)
+            console.print("[bold]Add to your Claude Code/Desktop MCP config:[/bold]")
+            console.print_json(json_mod.dumps(config))
+
+        console.print()
+        console.print("[bold]Environment variables:[/bold]")
+        console.print("  export TOPDOWN_AUTH_MODE=api-key")
+        console.print(f"  export TOPDOWN_API_KEY={api_key}")
+        console.print()
+        console.print("[dim]Or the key is auto-read from {key_path}[/dim]".format(key_path=key_path))
+
+    elif auth == "oauth":
+        if not oauth_issuer:
+            console.print("[red]Error:[/red] --oauth-issuer is required for OAuth mode")
+            raise typer.Exit(1)
+
+        console.print("[green]OAuth configured:[/green]")
+        console.print(f"  Issuer:   {oauth_issuer}")
+        console.print(f"  Audience: {oauth_audience or '(not set)'}")
+        console.print()
+        console.print("[bold]To start the server:[/bold]")
+        console.print("  TOPDOWN_AUTH_MODE=oauth \\")
+        console.print(f"  TOPDOWN_OAUTH_ISSUER={oauth_issuer} \\")
+        if oauth_audience:
+            console.print(f"  TOPDOWN_OAUTH_AUDIENCE={oauth_audience} \\")
+        console.print(f"  topdown mcp-serve --transport http --host {host} --port {port}")
+        console.print()
+
+        if show_config:
+            config = get_client_config_snippet(host=host, port=port, auth_mode="oauth")
+            console.print("[bold]MCP client config:[/bold]")
+            console.print_json(json_mod.dumps(config))
+
+        console.print()
+        console.print("[bold]Required: pip install 'topdown-profiler[oauth]'[/bold]")
+
+    else:
+        console.print(f"[red]Error:[/red] Unknown auth mode '{auth}'. Use 'api-key' or 'oauth'")
+        raise typer.Exit(1)
+
+
 @app.command(name="mcp-serve")
 def mcp_serve(
     transport: Annotated[str, typer.Option("--transport", help="Transport: stdio or http")] = "stdio",
@@ -521,7 +588,16 @@ def mcp_serve(
     port: Annotated[int, typer.Option("--port", help="HTTP port")] = 8000,
 ):
     """Start MCP server for AI-assisted querying."""
+    from topdown.auth import AuthConfig
     from topdown.mcp_server import run_server
+
+    if transport == "http":
+        auth_config = AuthConfig.from_env()
+        if not auth_config.is_enabled:
+            console.print("[yellow]Warning:[/yellow] HTTP transport with no auth. Run 'topdown setup' for production use.")
+        else:
+            console.print(f"[green]Auth:[/green] {auth_config.mode}")
+
     run_server(transport=transport, host=host, port=port)
 
 
