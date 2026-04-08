@@ -95,3 +95,60 @@ def get_unit_file_preview(
         duration=duration,
         service_name=service_name,
     )
+
+
+# ──────────────────────────── MCP Service ────────────────────────────
+
+MCP_UNIT_TEMPLATE = """\
+[Unit]
+Description=Top-Down Profiler MCP Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart={topdown_bin} mcp-serve --transport http --host {host} --port {port}
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier={service_name}
+{env_lines}
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+
+def generate_mcp_unit_file(
+    host: str = "0.0.0.0",
+    port: int = 8000,
+    service_name: str = "topdown-mcp",
+    auth_mode: str | None = None,
+    api_key: str | None = None,
+    backend: str | None = None,
+    dsn: str | None = None,
+    db_path: str | None = None,
+) -> str:
+    """Generate systemd unit file for the MCP server."""
+    topdown_bin = shutil.which("topdown") or f"{sys.executable} -m topdown.cli"
+
+    envs = []
+    if auth_mode:
+        envs.append(f"Environment=TOPDOWN_AUTH_MODE={auth_mode}")
+    if api_key:
+        envs.append(f"Environment=TOPDOWN_API_KEY={api_key}")
+    if backend:
+        envs.append(f"Environment=TOPDOWN_BACKEND={backend}")
+    if dsn:
+        envs.append(f"Environment=TOPDOWN_DSN={dsn}")
+    if db_path:
+        envs.append(f"Environment=TOPDOWN_DB_PATH={db_path}")
+    env_lines = "\n".join(envs)
+
+    return MCP_UNIT_TEMPLATE.format(
+        topdown_bin=topdown_bin,
+        host=host,
+        port=port,
+        service_name=service_name,
+        env_lines=env_lines,
+    )

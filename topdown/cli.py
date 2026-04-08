@@ -514,6 +514,48 @@ def install_service(
         raise typer.Exit(1)
 
 
+@app.command(name="install-mcp-service")
+def install_mcp_service(
+    host: Annotated[str, typer.Option("--host", help="Bind host")] = "0.0.0.0",
+    port: Annotated[int, typer.Option("--port", help="Bind port")] = 8000,
+    service_name: Annotated[str, typer.Option("--service-name", help="Systemd service name")] = "topdown-mcp",
+    auth: Annotated[Optional[str], typer.Option("--auth", help="Auth mode: api-key or oauth")] = None,
+    api_key: Annotated[Optional[str], typer.Option("--api-key", help="API key (reads from env/file if not set)")] = None,
+    backend: Annotated[Optional[str], typer.Option("--backend", help="Storage backend: sqlite or postgresql")] = None,
+    dsn: Annotated[Optional[str], typer.Option("--dsn", help="PostgreSQL DSN")] = None,
+    db_path: Annotated[Optional[str], typer.Option("--db", help="SQLite database path")] = None,
+    preview: Annotated[bool, typer.Option("--preview", help="Show unit file without installing")] = False,
+):
+    """Install MCP server as a systemd service."""
+    from topdown.service.systemd import generate_mcp_unit_file, install_service as do_install
+
+    unit_content = generate_mcp_unit_file(
+        host=host,
+        port=port,
+        service_name=service_name,
+        auth_mode=auth,
+        api_key=api_key,
+        backend=backend,
+        dsn=dsn,
+        db_path=db_path,
+    )
+
+    if preview:
+        console.print(unit_content)
+        return
+
+    try:
+        path = do_install(unit_content, service_name=service_name)
+        console.print(f"[green]Installed:[/green] {path}")
+        console.print(f"  Start:   sudo systemctl start {service_name}")
+        console.print(f"  Status:  sudo systemctl status {service_name}")
+        console.print(f"  Logs:    journalctl -u {service_name} -f")
+        console.print(f"  Restart: sudo systemctl restart {service_name}")
+    except PermissionError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+
+
 @app.command()
 def setup(
     auth: Annotated[str, typer.Option("--auth", help="Auth mode: api-key or oauth")] = "api-key",
