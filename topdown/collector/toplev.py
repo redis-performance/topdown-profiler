@@ -36,10 +36,12 @@ class ToplevRunner:
         ]
 
         if self.options.pids:
-            # Use only the first PID to avoid toplev hanging with multiple
-            # PIDs on many-core systems (96+ cores). The first PID is
-            # typically the main server process.
-            cmd.extend(["--pid", str(self.options.pids[0])])
+            # Use -C 0 (CPU-pinned) instead of --pid for processes running
+            # inside Docker containers with cgroup namespaces. toplev's
+            # --pid mode fails to find threads for cgroup-scoped processes
+            # on many-core systems. -C 0 monitors the CPU where the server
+            # process is pinned (coordinator pins redis-server to CPU 0).
+            cmd.extend(["-C", "0"])
         elif self.options.system_wide:
             cmd.append("-a")
 
