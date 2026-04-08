@@ -45,7 +45,16 @@ class ToplevRunner:
         return cmd
 
     def run(self, duration_seconds: int) -> tuple[str, str]:
-        """Run toplev for a duration, return (stdout, stderr)."""
+        """Run toplev for a duration, return (stdout, stderr).
+
+        toplev needs extra time beyond the collection duration for:
+        - Initial PMU event list download (first run on a new CPU)
+        - perf stat startup and calibration
+        - Output flushing after SIGINT
+
+        We use duration + 60s as the timeout buffer to handle slow starts
+        on many-core systems (96+ cores on Sapphire Rapids, etc.).
+        """
         cmd = self.build_command()
         logger.info("Running: %s (duration=%ds)", " ".join(cmd), duration_seconds)
 
@@ -58,16 +67,24 @@ class ToplevRunner:
             )
 
             try:
-                stdout, stderr = proc.communicate(timeout=duration_seconds + 10)
+                stdout, stderr = proc.communicate(timeout=duration_seconds + 60)
             except subprocess.TimeoutExpired:
                 proc.send_signal(signal.SIGINT)
-                stdout, stderr = proc.communicate(timeout=5)
+                try:
+                    stdout, stderr = proc.communicate(timeout=15)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    stdout, stderr = proc.communicate(timeout=5)
 
             # toplev uses SIGINT to stop collection normally
             time.sleep(0.5)
             if proc.poll() is None:
                 proc.send_signal(signal.SIGINT)
-                stdout, stderr = proc.communicate(timeout=5)
+                try:
+                    stdout, stderr = proc.communicate(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    stdout, stderr = proc.communicate(timeout=5)
 
             return stdout, stderr
 
