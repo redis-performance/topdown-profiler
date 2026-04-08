@@ -19,7 +19,6 @@ import os
 import secrets
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -121,32 +120,37 @@ class TopdownTokenVerifier:
         self.config = auth_config
         self._jwks_client = None
 
-    async def verify_token(self, token: str) -> dict[str, Any] | None:
-        """Verify a bearer token. Returns token info dict or None if invalid."""
+    async def verify_token(self, token: str):
+        """Verify a bearer token. Returns AccessToken or None if invalid."""
+
         if self.config.mode == "api-key":
             return self._verify_api_key(token)
         elif self.config.mode == "oauth":
             return await self._verify_oauth(token)
         return None
 
-    def _verify_api_key(self, token: str) -> dict[str, Any] | None:
+    def _verify_api_key(self, token: str):
         """Verify against stored API key."""
+        from mcp.server.auth.provider import AccessToken
+
         if not self.config.api_key:
             logger.error("API key auth enabled but no key configured")
             return None
 
         if verify_api_key(token, self.config.api_key):
-            return {
-                "sub": "api-key-user",
-                "scope": "topdown:read topdown:write",
-                "auth_mode": "api-key",
-            }
+            return AccessToken(
+                token=token,
+                client_id="api-key-user",
+                scopes=["topdown:read", "topdown:write"],
+            )
 
         logger.warning("Invalid API key presented")
         return None
 
-    async def _verify_oauth(self, token: str) -> dict[str, Any] | None:
+    async def _verify_oauth(self, token: str):
         """Verify a JWT against the OAuth issuer's JWKS."""
+        from mcp.server.auth.provider import AccessToken
+
         try:
             import jwt as pyjwt
         except ImportError:
@@ -182,12 +186,13 @@ class TopdownTokenVerifier:
                 **decode_options,
             )
 
-            return {
-                "sub": claims.get("sub", "unknown"),
-                "scope": claims.get("scope", ""),
-                "auth_mode": "oauth",
-                "claims": claims,
-            }
+            scopes = claims.get("scope", "").split() if claims.get("scope") else ["topdown:read"]
+            return AccessToken(
+                token=token,
+                client_id=claims.get("sub", "unknown"),
+                scopes=scopes,
+                expires_at=claims.get("exp"),
+            )
 
         except Exception as e:
             logger.warning("OAuth token verification failed: %s", e)

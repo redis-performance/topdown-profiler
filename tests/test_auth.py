@@ -100,7 +100,9 @@ class TestTopdownTokenVerifier:
         verifier = TopdownTokenVerifier(config)
         result = await verifier.verify_token("td_testkey123")
         assert result is not None
-        assert result["auth_mode"] == "api-key"
+        assert result.client_id == "api-key-user"
+        assert "topdown:read" in result.scopes
+        assert result.token == "td_testkey123"
 
     @pytest.mark.asyncio
     async def test_api_key_invalid(self):
