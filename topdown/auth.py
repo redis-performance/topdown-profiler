@@ -204,11 +204,11 @@ def setup_api_key_auth() -> tuple[str, Path]:
     return key, path
 
 
-def get_mcp_auth_kwargs(auth_config: AuthConfig | None = None) -> dict:
+def get_mcp_auth_kwargs(auth_config: AuthConfig | None = None, host: str = "localhost", port: int = 8000) -> dict:
     """Get kwargs to pass to FastMCP constructor for auth.
 
     Returns empty dict if auth is disabled, otherwise returns
-    the token_verifier and auth settings.
+    the token_verifier and auth settings required by the MCP SDK.
     """
     if auth_config is None:
         auth_config = AuthConfig.from_env()
@@ -216,10 +216,25 @@ def get_mcp_auth_kwargs(auth_config: AuthConfig | None = None) -> dict:
     if not auth_config.is_enabled:
         return {}
 
+    from mcp.server.auth.settings import AuthSettings
+
     verifier = TopdownTokenVerifier(auth_config)
+
+    # The MCP SDK requires AuthSettings alongside token_verifier.
+    # For API key mode, we use the server's own URL as a placeholder issuer.
+    # For OAuth mode, we use the real issuer.
+    issuer_url = auth_config.oauth_issuer or f"http://{host}:{port}"
+    resource_server_url = f"http://{host}:{port}"
+
+    auth_settings = AuthSettings(
+        issuer_url=issuer_url,
+        resource_server_url=resource_server_url,
+        required_scopes=["topdown:read"],
+    )
 
     return {
         "token_verifier": verifier,
+        "auth": auth_settings,
     }
 
 

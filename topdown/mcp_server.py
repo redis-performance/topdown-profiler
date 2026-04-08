@@ -9,26 +9,40 @@ Auth modes (via TOPDOWN_AUTH_MODE env var):
 - "oauth": JWT validation against an external authorization server
 """
 
+
 from mcp.server.fastmcp import FastMCP
 
-from topdown.auth import AuthConfig, get_mcp_auth_kwargs
 from topdown.config import get_config
 from topdown.storage import get_backend
 
-_auth_config = AuthConfig.from_env()
-_auth_kwargs = get_mcp_auth_kwargs(_auth_config)
-
-mcp = FastMCP(
-    "topdown-profiler",
-    instructions=(
-        "You are connected to the topdown-profiler MCP server. "
-        "This tool wraps Intel's pmu-tools/toplev to collect, store, and query "
-        "Top-Down Microarchitecture Analysis (TMA) data. "
-        "Use the available tools to profile processes, query bottlenecks, "
-        "compare runs, and explain CPU performance metrics."
-    ),
-    **_auth_kwargs,
+_MCP_INSTRUCTIONS = (
+    "You are connected to the topdown-profiler MCP server. "
+    "This tool wraps Intel's pmu-tools/toplev to collect, store, and query "
+    "Top-Down Microarchitecture Analysis (TMA) data. "
+    "Use the available tools to profile processes, query bottlenecks, "
+    "compare runs, and explain CPU performance metrics."
 )
+
+
+def _create_mcp(host: str = "localhost", port: int = 8000) -> FastMCP:
+    """Create FastMCP instance, with auth if configured."""
+    from topdown.auth import AuthConfig, get_mcp_auth_kwargs
+
+    auth_config = AuthConfig.from_env()
+    auth_kwargs = get_mcp_auth_kwargs(auth_config, host=host, port=port)
+
+    return FastMCP(
+        "topdown-profiler",
+        instructions=_MCP_INSTRUCTIONS,
+        host=host,
+        port=port,
+        **auth_kwargs,
+    )
+
+
+# Default instance (no auth) for tool/resource registration.
+# Replaced at server start time if auth is enabled.
+mcp = FastMCP("topdown-profiler", instructions=_MCP_INSTRUCTIONS)
 
 
 def _get_backend():
@@ -459,18 +473,42 @@ def methodology() -> str:
 # ──────────────────────────── Server entry ────────────────────────────
 
 
+def _register_tools_and_resources(target: FastMCP):
+    """Re-register all tools and resources on a new FastMCP instance."""
+    # Tools
+    target.tool()(collect_topdown)
+    target.tool()(query_bottlenecks)
+    target.tool()(query_by_bottleneck)
+    target.tool()(get_funnel)
+    target.tool()(compare_runs)
+    target.tool()(compare_by_labels)
+    target.tool()(explain_metric)
+    target.tool()(list_profiling_runs)
+    # Resources
+    target.resource("topdown://runs/{run_id}/tree")(run_tree)
+    target.resource("topdown://metrics")(all_metrics)
+    target.resource("topdown://methodology")(methodology)
+
+
 def run_server(transport: str = "stdio", host: str = "localhost", port: int = 8000):
     """Start the MCP server."""
+    from topdown.auth import AuthConfig
+
+    auth_config = AuthConfig.from_env()
+
     if transport == "stdio":
-        if _auth_config.is_enabled:
+        if auth_config.is_enabled:
             import logging
             logging.getLogger(__name__).warning(
                 "Auth mode '%s' is enabled but stdio transport doesn't use HTTP auth. "
                 "Auth is only enforced on HTTP transport.",
-                _auth_config.mode,
+                auth_config.mode,
             )
         mcp.run(transport="stdio")
     elif transport == "http":
-        mcp.run(transport="streamable-http", host=host, port=port)
+        # Create a new MCP instance with auth for HTTP transport
+        server = _create_mcp(host=host, port=port)
+        _register_tools_and_resources(server)
+        server.run(transport="streamable-http")
     else:
         mcp.run(transport="stdio")
