@@ -36,8 +36,10 @@ class ToplevRunner:
         ]
 
         if self.options.pids:
-            pid_str = ",".join(str(p) for p in self.options.pids)
-            cmd.extend(["--pid", pid_str])
+            # Use only the first PID to avoid toplev hanging with multiple
+            # PIDs on many-core systems (96+ cores). The first PID is
+            # typically the main server process.
+            cmd.extend(["--pid", str(self.options.pids[0])])
         elif self.options.system_wide:
             cmd.append("-a")
 
