@@ -1,7 +1,6 @@
 """Tests for TMA tree building and traversal."""
 
 from topdown.analysis.topdown_tree import (
-    TreeNode,
     build_tree,
     format_tree_text,
     get_level_nodes,

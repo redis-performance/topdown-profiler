@@ -4,8 +4,6 @@ Toplev has 13+ CSV format variations depending on version/flags.
 We auto-detect based on column count and content patterns.
 """
 
-import csv
-import io
 import re
 import logging
 from dataclasses import dataclass
@@ -57,7 +55,7 @@ class ToplevSample:
 
 def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
     """Detect CSV format from first few non-comment lines."""
-    data_lines = [l for l in lines if l.strip() and not l.startswith("#")]
+    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
     if not data_lines:
         return CsvFormat.UNKNOWN
 
@@ -196,7 +194,7 @@ def parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample 
 def parse_output(text: str, delimiter: str = ",") -> list[ToplevSample]:
     """Parse complete toplev CSV output text."""
     lines = text.strip().splitlines()
-    data_lines = [l for l in lines if l.strip() and not l.startswith("#")]
+    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
     if not data_lines:
         return []
 
@@ -214,7 +212,7 @@ def parse_output(text: str, delimiter: str = ",") -> list[ToplevSample]:
 
 def parse_stream(lines: list[str], delimiter: str = ",") -> list[ToplevSample]:
     """Parse a list of CSV lines (streaming-friendly)."""
-    data_lines = [l for l in lines if l.strip() and not l.startswith("#")]
+    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
     if not data_lines:
         return []
 

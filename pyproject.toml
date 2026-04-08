@@ -24,6 +24,7 @@ postgresql = ["psycopg"]
 pytest = "^8.0.0"
 pytest-cov = "^6.0.0"
 psycopg = {version = ">=3.1.0", extras = ["binary"]}
+ruff = "^0.15.9"
 
 [tool.ruff]
 line-length = 120

@@ -1,7 +1,6 @@
 """Tests for collection agent."""
 
 import signal
-from unittest.mock import patch, MagicMock
 
 from topdown.service.agent import CollectionAgent
 from topdown.config import TopdownConfig

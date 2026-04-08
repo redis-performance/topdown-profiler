@@ -68,8 +68,8 @@ def install_service(
 
     if os.geteuid() != 0:
         raise PermissionError(
-            f"Root required to install systemd service. "
-            f"Run: sudo topdown install-service ..."
+            "Root required to install systemd service. "
+            "Run: sudo topdown install-service ..."
         )
 
     unit_path.write_text(unit_content)

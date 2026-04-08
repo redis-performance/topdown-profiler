@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 
 from topdown.storage.sqlite_backend import SQLiteBackend
-from topdown.storage.models import Run, Sample
+from topdown.storage.models import Run
 
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
 

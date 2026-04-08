@@ -1,6 +1,5 @@
 """Tests for SQLite storage backend."""
 
-import json
 from datetime import datetime, timezone
 
 from topdown.storage.models import Run, Sample

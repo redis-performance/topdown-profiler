@@ -1,10 +1,7 @@
 """Tests for MCP server tools (unit tests calling handler functions directly)."""
 
-import os
-import json
 import pytest
-from unittest.mock import patch, MagicMock
-from pathlib import Path
+from unittest.mock import patch
 
 from topdown.storage.sqlite_backend import SQLiteBackend
 from topdown.storage.models import Run, Sample

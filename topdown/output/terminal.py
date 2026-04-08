@@ -5,7 +5,6 @@ from rich.table import Table
 from rich.tree import Tree as RichTree
 from rich.panel import Panel
 from rich.text import Text
-from rich.markdown import Markdown
 
 from topdown.analysis.topdown_tree import TreeNode
 from topdown.analysis.bottleneck import Bottleneck

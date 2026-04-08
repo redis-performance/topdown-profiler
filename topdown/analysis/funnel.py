@@ -7,7 +7,7 @@ vs wasted in Frontend_Bound, Bad_Speculation, Backend_Bound — then drills down
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from topdown.analysis.topdown_tree import TreeNode, build_tree, get_level_nodes
+from topdown.analysis.topdown_tree import TreeNode, build_tree
 
 
 @dataclass
@@ -105,7 +105,7 @@ def _walk_funnel(node: TreeNode, entries: list[FunnelEntry], max_level: int, ind
 def format_funnel_text(result: FunnelResult) -> str:
     """Format funnel as ASCII text with bars."""
     lines = [
-        f"Pipeline Slots Funnel (100% total)",
+        "Pipeline Slots Funnel (100% total)",
         f"  Useful work (Retiring): {result.useful_work_pct:.1f}%",
         f"  Wasted:                 {result.wasted_pct:.1f}%",
         "",

@@ -1,6 +1,5 @@
 """CLI entry point for topdown-profiler."""
 
-import logging
 import re
 import time
 from datetime import datetime, timezone
@@ -253,7 +252,7 @@ def query(
 ):
     """Query stored Top-Down analysis data."""
     from topdown.analysis.topdown_tree import build_tree
-    from topdown.analysis.bottleneck import find_bottlenecks, find_deepest_bottlenecks, summarize_bottlenecks
+    from topdown.analysis.bottleneck import find_bottlenecks, find_deepest_bottlenecks
     from topdown.analysis.funnel import build_funnel
     from topdown.output.terminal import print_bottlenecks, print_tree, print_funnel, print_by_bottleneck_results
     from topdown.output.export import export_json, export_csv
@@ -355,7 +354,7 @@ def compare(
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ):
     """Compare two profiling runs and show deltas."""
-    from topdown.analysis.compare import compare_runs as do_compare, summarize_comparison
+    from topdown.analysis.compare import compare_runs as do_compare
     from topdown.output.terminal import print_comparison
     from topdown.output.export import export_json
 

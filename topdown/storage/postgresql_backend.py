@@ -1,7 +1,7 @@
 """PostgreSQL storage backend implementation using psycopg v3."""
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 
 import psycopg
 from psycopg.rows import dict_row

@@ -6,7 +6,6 @@ from topdown.collector.csv_parser import (
     CsvFormat,
     detect_format,
     parse_cpu,
-    parse_line,
     parse_output,
     parse_value,
 )
