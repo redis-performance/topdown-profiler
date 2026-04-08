@@ -23,7 +23,11 @@ class PostgreSQLBackend(StorageBackend):
 
     def initialize(self) -> None:
         conn = self._get_conn()
-        conn.execute(POSTGRESQL_SCHEMA)
+        with conn.cursor() as cur:
+            for statement in POSTGRESQL_SCHEMA.split(";"):
+                statement = statement.strip()
+                if statement:
+                    cur.execute(statement)
         conn.commit()
 
     def insert_run(self, run: Run) -> str:
