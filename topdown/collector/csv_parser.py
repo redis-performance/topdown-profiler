@@ -32,6 +32,9 @@ class CsvFormat(Enum):
     PERCPU_6COL = "percpu_6col"
     # metric_name, value, unit (no timestamp, single snapshot)
     SNAPSHOT_3COL = "snapshot_3col"
+    # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
+    # Produced by toplev with -x, --no-desc (10 columns)
+    EXTENDED_10COL = "extended_10col"
     # Fallback
     UNKNOWN = "unknown"
 
@@ -53,9 +56,34 @@ class ToplevSample:
         return self.metric_name.count(".") + 1
 
 
+def _is_data_line(line: str) -> bool:
+    """Check if a line looks like CSV data (starts with a number or metric name)."""
+    stripped = line.strip()
+    if not stripped:
+        return False
+    # Skip comment lines
+    if stripped.startswith("#"):
+        return False
+    # Skip header lines
+    lower = stripped.lower()
+    if lower.startswith("timestamp,") or lower.startswith("area,"):
+        return False
+    # Data lines start with either a timestamp (digit) or a metric name
+    first_char = stripped[0]
+    if first_char.isdigit() or first_char in ("_",):
+        return True
+    # Metric names start with uppercase letters (e.g., Frontend_Bound)
+    if first_char.isupper() and "," in stripped:
+        return True
+    return False
+
+
 def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
     """Detect CSV format from first few non-comment lines."""
-    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
+    data_lines = [
+        ln for ln in lines
+        if _is_data_line(ln)
+    ]
     if not data_lines:
         return CsvFormat.UNKNOWN
 
@@ -82,6 +110,11 @@ def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
 
     if ncols == 6 and has_timestamp:
         return CsvFormat.PERCPU_6COL
+
+    # Extended format: toplev -x, --no-desc produces 10 columns
+    # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
+    if ncols >= 8 and has_timestamp:
+        return CsvFormat.EXTENDED_10COL
 
     # Try harder: check multiple lines for consistency
     if ncols >= 4 and has_timestamp:
@@ -122,7 +155,7 @@ def parse_value(raw: str) -> float:
 def parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample | None:
     """Parse a single CSV line given the detected format."""
     line = line.strip()
-    if not line or line.startswith("#"):
+    if not _is_data_line(line):
         return None
 
     cols = line.split(delimiter)
@@ -184,6 +217,18 @@ def parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample 
                 status="",
             )
 
+        elif fmt == CsvFormat.EXTENDED_10COL:
+            # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
+            bottleneck = cols[8] if len(cols) > 8 else ""
+            return ToplevSample(
+                timestamp=float(cols[0]),
+                cpu=None,
+                metric_name=cols[1],
+                value=parse_value(cols[2]),
+                unit=cols[3],
+                status=bottleneck,
+            )
+
     except (IndexError, ValueError) as e:
         logger.warning("Failed to parse line: %s (%s)", line, e)
         return None
@@ -194,7 +239,10 @@ def parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample 
 def parse_output(text: str, delimiter: str = ",") -> list[ToplevSample]:
     """Parse complete toplev CSV output text."""
     lines = text.strip().splitlines()
-    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
+    data_lines = [
+        ln for ln in lines
+        if _is_data_line(ln)
+    ]
     if not data_lines:
         return []
 
@@ -212,7 +260,10 @@ def parse_output(text: str, delimiter: str = ",") -> list[ToplevSample]:
 
 def parse_stream(lines: list[str], delimiter: str = ",") -> list[ToplevSample]:
     """Parse a list of CSV lines (streaming-friendly)."""
-    data_lines = [ln for ln in lines if ln.strip() and not ln.startswith("#")]
+    data_lines = [
+        ln for ln in lines
+        if _is_data_line(ln)
+    ]
     if not data_lines:
         return []
 
