@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "topdown": {
+      "command": "poetry",
+      "args": ["run", "topdown", "mcp-serve"],
+      "cwd": ".",
+      "env": {
+        "TOPDOWN_DB_PATH": "~/.topdown/data.db"
+      }
+    }
+  }
+}

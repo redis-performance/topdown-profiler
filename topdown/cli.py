@@ -235,6 +235,298 @@ def list_runs(
 
 
 @app.command()
+def query(
+    process: Annotated[Optional[str], typer.Option("--process", "-p", help="Filter by process name")] = None,
+    label: Annotated[Optional[list[str]], typer.Option("--label", "-L", help="Filter by label key=value")] = None,
+    last: Annotated[str, typer.Option("--last", help="Time window (e.g. 24h, 7d)")] = "24h",
+    run_id: Annotated[Optional[str], typer.Option("--run-id", "-r", help="Specific run ID")] = None,
+    bottlenecks: Annotated[bool, typer.Option("--bottlenecks", "-b", help="Show top bottlenecks")] = False,
+    tree: Annotated[bool, typer.Option("--tree", "-t", help="Show full TMA tree")] = False,
+    funnel: Annotated[bool, typer.Option("--funnel", "-f", help="VTune-style pipeline slot funnel")] = False,
+    bottleneck: Annotated[Optional[str], typer.Option("--bottleneck", "-B", help="Find runs with this bottleneck")] = None,
+    min_pct: Annotated[float, typer.Option("--min-pct", help="Minimum percentage threshold")] = 5.0,
+    top_n: Annotated[int, typer.Option("--top-n", help="Number of bottlenecks to show")] = 10,
+    level: Annotated[Optional[int], typer.Option("--level", "-l", help="Max TMA level for tree/funnel")] = None,
+    db_path: Annotated[Optional[str], typer.Option("--db", help="Database path")] = None,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+    csv_output: Annotated[bool, typer.Option("--csv", help="Output as CSV")] = False,
+):
+    """Query stored Top-Down analysis data."""
+    from topdown.analysis.topdown_tree import build_tree
+    from topdown.analysis.bottleneck import find_bottlenecks, find_deepest_bottlenecks, summarize_bottlenecks
+    from topdown.analysis.funnel import build_funnel
+    from topdown.output.terminal import print_bottlenecks, print_tree, print_funnel, print_by_bottleneck_results
+    from topdown.output.export import export_json, export_csv
+
+    filter_labels = parse_label_args(label)
+    config = get_config(db_path)
+    backend = get_backend(config)
+
+    try:
+        # Mode: find runs matching a specific bottleneck
+        if bottleneck:
+            results = backend.query_by_bottleneck(
+                metric_name=bottleneck,
+                min_pct=min_pct,
+                labels=filter_labels if filter_labels else None,
+                last_hours=parse_time_window(last),
+            )
+            if not results:
+                console.print(f"No runs found where {bottleneck} >= {min_pct}%")
+                return
+            if json_output:
+                console.print_json(export_json(results))
+            elif csv_output:
+                console.print(export_csv(results))
+            else:
+                print_by_bottleneck_results(results)
+            return
+
+        # For tree/bottleneck/funnel modes, we need a specific run
+        if run_id:
+            run = backend.get_run(run_id)
+            if not run:
+                console.print(f"[red]Error:[/red] Run '{run_id}' not found")
+                raise typer.Exit(1)
+        else:
+            # Get most recent matching run
+            runs = backend.list_runs(
+                process_name=process,
+                labels=filter_labels if filter_labels else None,
+                last_hours=parse_time_window(last),
+                limit=1,
+            )
+            if not runs:
+                console.print("No runs found matching filters.")
+                return
+            run = runs[0]
+
+        metrics = backend.get_aggregated_metrics(run.run_id)
+        if not metrics:
+            console.print(f"No metrics found for run {run.run_id[:12]}")
+            return
+
+        console.print(f"[dim]Run: {run.run_id[:12]} | {run.process_name} | L{run.level} | {run.started_at.strftime('%Y-%m-%d %H:%M')}[/dim]")
+
+        if funnel:
+            result = build_funnel(metrics, max_level=level or 3)
+            if json_output:
+                console.print_json(export_json(result.to_dict()))
+            else:
+                print_funnel(result)
+
+        elif tree:
+            tree_root = build_tree(metrics)
+            if json_output:
+                console.print_json(export_json(tree_root.to_dict()))
+            else:
+                print_tree(tree_root, title=f"TMA Tree - {run.process_name}")
+
+        elif bottlenecks:
+            found = find_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct, max_level=level)
+            if json_output:
+                console.print_json(export_json([b.to_dict() for b in found]))
+            elif csv_output:
+                console.print(export_csv([b.to_dict() for b in found]))
+            else:
+                print_bottlenecks(found)
+
+        else:
+            # Default: show deepest bottlenecks (most actionable)
+            found = find_deepest_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct)
+            if json_output:
+                console.print_json(export_json([b.to_dict() for b in found]))
+            else:
+                print_bottlenecks(found, title="Deepest Bottlenecks")
+
+    finally:
+        backend.close()
+
+
+@app.command()
+def compare(
+    run_a: Annotated[Optional[str], typer.Argument(help="First run ID (baseline)")] = None,
+    run_b: Annotated[Optional[str], typer.Argument(help="Second run ID (comparison)")] = None,
+    label_a: Annotated[Optional[list[str]], typer.Option("--label-a", help="Labels for baseline run")] = None,
+    label_b: Annotated[Optional[list[str]], typer.Option("--label-b", help="Labels for comparison run")] = None,
+    process: Annotated[Optional[str], typer.Option("--process", "-p", help="Process name filter")] = None,
+    threshold: Annotated[float, typer.Option("--threshold", help="Min delta to show")] = 1.0,
+    db_path: Annotated[Optional[str], typer.Option("--db", help="Database path")] = None,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+):
+    """Compare two profiling runs and show deltas."""
+    from topdown.analysis.compare import compare_runs as do_compare, summarize_comparison
+    from topdown.output.terminal import print_comparison
+    from topdown.output.export import export_json
+
+    config = get_config(db_path)
+    backend = get_backend(config)
+
+    try:
+        # Resolve run A
+        if run_a:
+            found_a = backend.get_run(run_a)
+            if not found_a:
+                console.print(f"[red]Error:[/red] Run '{run_a}' not found")
+                raise typer.Exit(1)
+        elif label_a:
+            labels = parse_label_args(label_a)
+            runs = backend.list_runs(process_name=process, labels=labels, limit=1)
+            if not runs:
+                console.print("[red]Error:[/red] No run found matching --label-a")
+                raise typer.Exit(1)
+            found_a = runs[0]
+        else:
+            console.print("[red]Error:[/red] Provide run IDs or --label-a / --label-b")
+            raise typer.Exit(1)
+
+        # Resolve run B
+        if run_b:
+            found_b = backend.get_run(run_b)
+            if not found_b:
+                console.print(f"[red]Error:[/red] Run '{run_b}' not found")
+                raise typer.Exit(1)
+        elif label_b:
+            labels = parse_label_args(label_b)
+            runs = backend.list_runs(process_name=process, labels=labels, limit=1)
+            if not runs:
+                console.print("[red]Error:[/red] No run found matching --label-b")
+                raise typer.Exit(1)
+            found_b = runs[0]
+        else:
+            console.print("[red]Error:[/red] Provide run IDs or --label-a / --label-b")
+            raise typer.Exit(1)
+
+        metrics_a = backend.get_aggregated_metrics(found_a.run_id)
+        metrics_b = backend.get_aggregated_metrics(found_b.run_id)
+
+        deltas = do_compare(metrics_a, metrics_b, threshold=threshold)
+
+        if not deltas:
+            console.print("No significant differences found.")
+            return
+
+        if json_output:
+            console.print_json(export_json([d.to_dict() for d in deltas]))
+        else:
+            label_str_a = found_a.run_id[:12]
+            label_str_b = found_b.run_id[:12]
+            print_comparison(deltas, label_a=label_str_a, label_b=label_str_b)
+
+    finally:
+        backend.close()
+
+
+@app.command()
+def explain(
+    metric: Annotated[str, typer.Argument(help="Metric name (e.g. 'Backend_Bound.Memory_Bound' or 'DRAM_Bound')")],
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+):
+    """Explain a TMA metric with causes and tuning hints."""
+    from topdown.knowledge.metrics import get_metric_info
+    from topdown.output.terminal import print_metric_explanation
+    from topdown.output.export import export_json
+
+    info = get_metric_info(metric)
+    if not info:
+        console.print(f"[red]Error:[/red] Unknown metric '{metric}'")
+        console.print("Use a full path like 'Backend_Bound.Memory_Bound' or a leaf name like 'DRAM_Bound'")
+        raise typer.Exit(1)
+
+    if json_output:
+        console.print_json(export_json({"metric": metric, **info}))
+    else:
+        print_metric_explanation(metric, info)
+
+
+@app.command()
+def agent(
+    process: Annotated[str, typer.Option("--process", "-p", help="Process name to profile")],
+    level: Annotated[int, typer.Option("--level", "-l", help="TMA level (1-6)")] = 2,
+    every: Annotated[str, typer.Option("--every", "-e", help="Collection interval (e.g. 5m, 1h)")] = "5m",
+    duration: Annotated[str, typer.Option("--duration", "-d", help="Per-collection duration")] = "30s",
+    label: Annotated[Optional[list[str]], typer.Option("--label", "-L", help="Label key=value")] = None,
+    db_path: Annotated[Optional[str], typer.Option("--db", help="Database path")] = None,
+):
+    """Run as continuous collection agent (daemon mode)."""
+    from topdown.service.agent import CollectionAgent
+    from topdown.collector.toplev import check_toplev_available, check_perf_permissions
+
+    config = get_config(db_path)
+
+    if not check_toplev_available(config.toplev_path):
+        console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
+        raise typer.Exit(1)
+
+    ok, msg = check_perf_permissions()
+    if not ok:
+        console.print(f"[red]Error:[/red] {msg}")
+        raise typer.Exit(1)
+
+    interval_secs = parse_duration(every)
+    duration_secs = parse_duration(duration)
+    user_labels = parse_label_args(label)
+
+    console.print(f"Starting agent: process={process} level={level} every={every} duration={duration}")
+    console.print("Press Ctrl+C to stop.\n")
+
+    agent_instance = CollectionAgent(
+        process_name=process,
+        level=level,
+        interval_seconds=interval_secs,
+        duration_seconds=duration_secs,
+        config=config,
+        custom_labels=user_labels,
+    )
+    agent_instance.run()
+
+
+@app.command(name="install-service")
+def install_service(
+    process: Annotated[str, typer.Option("--process", "-p", help="Process name")],
+    level: Annotated[int, typer.Option("--level", "-l", help="TMA level")] = 2,
+    every: Annotated[str, typer.Option("--every", "-e", help="Collection interval")] = "5m",
+    duration: Annotated[str, typer.Option("--duration", "-d", help="Per-collection duration")] = "30s",
+    service_name: Annotated[str, typer.Option("--service-name", help="Systemd service name")] = "topdown-agent",
+    preview: Annotated[bool, typer.Option("--preview", help="Show unit file without installing")] = False,
+):
+    """Generate and install a systemd unit file for continuous collection."""
+    from topdown.service.systemd import generate_unit_file, install_service as do_install
+
+    unit_content = generate_unit_file(
+        process_name=process,
+        level=level,
+        every=every,
+        duration=duration,
+        service_name=service_name,
+    )
+
+    if preview:
+        console.print(unit_content)
+        return
+
+    try:
+        path = do_install(unit_content, service_name=service_name)
+        console.print(f"[green]Installed:[/green] {path}")
+        console.print(f"  Start: sudo systemctl start {service_name}")
+        console.print(f"  Logs:  journalctl -u {service_name} -f")
+    except PermissionError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+
+
+@app.command(name="mcp-serve")
+def mcp_serve(
+    transport: Annotated[str, typer.Option("--transport", help="Transport: stdio or http")] = "stdio",
+    host: Annotated[str, typer.Option("--host", help="HTTP host")] = "localhost",
+    port: Annotated[int, typer.Option("--port", help="HTTP port")] = 8000,
+):
+    """Start MCP server for AI-assisted querying."""
+    from topdown.mcp_server import run_server
+    run_server(transport=transport, host=host, port=port)
+
+
+@app.command()
 def version():
     """Show version."""
     console.print(f"topdown-profiler {__version__}")
