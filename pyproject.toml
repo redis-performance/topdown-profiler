@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "topdown-profiler"
+version = "0.1.0"
+description = "Intel Top-Down Microarchitecture Analysis collector with MCP server, label-based querying, and pluggable SQL backends."
+authors = ["redis-performance"]
+readme = "README.md"
+license = "MIT"
+packages = [{include = "topdown"}]
+keywords = ["pmu", "toplev", "topdown", "profiler", "performance", "mcp"]
+
+[tool.poetry.scripts]
+topdown = "topdown.cli:app_main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+typer = ">=0.9.0"
+rich = ">=13.0.0"
+mcp = {version = ">=1.0.0", extras = ["cli"]}
+
+[tool.poetry.extras]
+postgresql = ["psycopg"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^6.0.0"
+psycopg = {version = ">=3.1.0", extras = ["binary"]}
+
+[tool.ruff]
+line-length = 120
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

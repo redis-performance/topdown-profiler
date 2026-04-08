@@ -1,0 +1,13 @@
+# Toplev basic 4-col format: timestamp, metric, value, unit
+1.001131873,Frontend_Bound,15.2%,%
+1.001131873,Bad_Speculation,10.1%,%
+1.001131873,Backend_Bound,44.6%,%
+1.001131873,Retiring,30.1%,%
+2.002345678,Frontend_Bound,14.8%,%
+2.002345678,Bad_Speculation,9.7%,%
+2.002345678,Backend_Bound,45.2%,%
+2.002345678,Retiring,30.3%,%
+3.003456789,Frontend_Bound,15.5%,%
+3.003456789,Bad_Speculation,10.3%,%
+3.003456789,Backend_Bound,43.9%,%
+3.003456789,Retiring,30.3%,%
