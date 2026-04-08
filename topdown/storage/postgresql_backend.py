@@ -1,6 +1,7 @@
 """PostgreSQL storage backend implementation using psycopg v3."""
 
 import json
+import uuid
 from datetime import datetime
 
 import psycopg
@@ -9,6 +10,14 @@ from psycopg.rows import dict_row
 from topdown.storage.base import StorageBackend
 from topdown.storage.models import Run, Sample
 from topdown.storage.schema import POSTGRESQL_SCHEMA
+
+
+def _is_valid_uuid(val: str) -> bool:
+    try:
+        uuid.UUID(val)
+        return True
+    except (ValueError, AttributeError):
+        return False
 
 
 class PostgreSQLBackend(StorageBackend):
@@ -73,6 +82,8 @@ class PostgreSQLBackend(StorageBackend):
         return len(samples)
 
     def get_run(self, run_id: str) -> Run | None:
+        if not _is_valid_uuid(run_id):
+            return None
         conn = self._get_conn()
         row = conn.execute("SELECT * FROM runs WHERE run_id = %s", (run_id,)).fetchone()
         if not row:
@@ -95,8 +106,8 @@ class PostgreSQLBackend(StorageBackend):
             params.append(process_name)
 
         if last_hours is not None:
-            query += " AND started_at >= NOW() - INTERVAL '%s hours'"
-            params.append(str(last_hours))
+            query += " AND started_at >= NOW() - make_interval(secs => %s)"
+            params.append(last_hours * 3600)
 
         if labels:
             for key, value in labels.items():
@@ -110,6 +121,8 @@ class PostgreSQLBackend(StorageBackend):
         return [self._row_to_run(r) for r in rows]
 
     def get_samples(self, run_id: str, metric_name: str | None = None) -> list[Sample]:
+        if not _is_valid_uuid(run_id):
+            return []
         conn = self._get_conn()
         if metric_name:
             rows = conn.execute(
@@ -124,6 +137,8 @@ class PostgreSQLBackend(StorageBackend):
         return [self._row_to_sample(r) for r in rows]
 
     def get_aggregated_metrics(self, run_id: str) -> list[dict]:
+        if not _is_valid_uuid(run_id):
+            return []
         conn = self._get_conn()
         rows = conn.execute(
             """SELECT metric_name, AVG(value) as avg_value, unit,
@@ -157,8 +172,8 @@ class PostgreSQLBackend(StorageBackend):
             params.append(process_name)
 
         if last_hours is not None:
-            query += " AND r.started_at >= NOW() - INTERVAL '%s hours'"
-            params.append(str(last_hours))
+            query += " AND r.started_at >= NOW() - make_interval(secs => %s)"
+            params.append(last_hours * 3600)
 
         if labels:
             for key, value in labels.items():
@@ -191,8 +206,8 @@ class PostgreSQLBackend(StorageBackend):
         params: list = [f"%{metric_name}%"]
 
         if last_hours is not None:
-            query += " AND r.started_at >= NOW() - INTERVAL '%s hours'"
-            params.append(str(last_hours))
+            query += " AND r.started_at >= NOW() - make_interval(secs => %s)"
+            params.append(last_hours * 3600)
 
         if labels:
             for key, value in labels.items():
