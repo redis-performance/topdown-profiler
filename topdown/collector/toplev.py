@@ -91,7 +91,11 @@ class ToplevRunner:
             )
 
     def run_and_parse(self, duration_seconds: int) -> list[ToplevSample]:
-        """Run toplev and return parsed samples."""
+        """Run toplev and return parsed samples.
+
+        toplev writes CSV data to stderr (via perf stat) and
+        informational text to stdout.
+        """
         stdout, stderr = self.run(duration_seconds)
 
         if stderr:
@@ -99,7 +103,11 @@ class ToplevRunner:
                 if "error" in line.lower() or "warning" in line.lower():
                     logger.warning("toplev: %s", line)
 
-        samples = parse_output(stdout)
+        # toplev outputs CSV data on stderr, not stdout
+        samples = parse_output(stderr)
+        if not samples and stdout:
+            # Fallback: some toplev versions may write to stdout
+            samples = parse_output(stdout)
         logger.info("Parsed %d samples from toplev output", len(samples))
         return samples
 
