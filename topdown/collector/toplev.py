@@ -33,6 +33,7 @@ class ToplevRunner:
             f"-I{self.options.interval_ms}",
             "-x,",  # CSV output with comma delimiter
             "--no-desc",  # Skip metric descriptions in output
+            "-v",  # Show all nodes, not just bottlenecks above threshold
         ]
 
         if self.options.pids:
