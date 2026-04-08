@@ -277,6 +277,55 @@ def get_funnel(
 
 
 @mcp.tool()
+def compare_funnel(
+    run_id_a: str,
+    run_id_b: str,
+    label_a: str = "Baseline",
+    label_b: str = "Comparison",
+    level: int = 2,
+) -> str:
+    """Compare two runs as a side-by-side TMA funnel with deltas.
+
+    Shows the full pipeline slot breakdown for both runs in columns,
+    with a delta column highlighting what changed. This is the best
+    view for understanding how an optimization shifted CPU behavior.
+
+    Args:
+        run_id_a: Baseline run ID
+        run_id_b: Comparison run ID
+        label_a: Column label for baseline (default "Baseline")
+        label_b: Column label for comparison (default "Comparison")
+        level: Max TMA level to drill down to (1-6, default 2)
+    """
+    from topdown.analysis.funnel import build_funnel, format_funnel_comparison
+
+    backend = _get_backend()
+    try:
+        run_a = backend.get_run(run_id_a)
+        run_b = backend.get_run(run_id_b)
+        if not run_a:
+            return f"Run '{run_id_a}' not found."
+        if not run_b:
+            return f"Run '{run_id_b}' not found."
+
+        metrics_a = backend.get_aggregated_metrics(run_a.run_id)
+        metrics_b = backend.get_aggregated_metrics(run_b.run_id)
+
+        funnel_a = build_funnel(metrics_a, max_level=level)
+        funnel_b = build_funnel(metrics_b, max_level=level)
+
+        header = (
+            f"A: {run_a.run_id[:12]} | {run_a.labels.get('git_branch', '?')} | "
+            f"{run_a.labels.get('test_name', '?')}\n"
+            f"B: {run_b.run_id[:12]} | {run_b.labels.get('git_branch', '?')} | "
+            f"{run_b.labels.get('test_name', '?')}\n\n"
+        )
+        return header + format_funnel_comparison(funnel_a, funnel_b, label_a, label_b)
+    finally:
+        backend.close()
+
+
+@mcp.tool()
 def compare_runs(run_id_a: str, run_id_b: str) -> str:
     """Compare two profiling runs and show metric deltas.
 
@@ -480,6 +529,7 @@ def _register_tools_and_resources(target: FastMCP):
     target.tool()(query_bottlenecks)
     target.tool()(query_by_bottleneck)
     target.tool()(get_funnel)
+    target.tool()(compare_funnel)
     target.tool()(compare_runs)
     target.tool()(compare_by_labels)
     target.tool()(explain_metric)
