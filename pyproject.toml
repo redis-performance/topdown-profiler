@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "topdown-profiler"
-version = "0.1.4"
+version = "0.1.5"
 description = "Intel Top-Down Microarchitecture Analysis collector with MCP server, label-based querying, and pluggable SQL backends."
 authors = ["redis-performance"]
 readme = "README.md"

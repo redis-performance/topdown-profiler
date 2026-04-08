@@ -51,16 +51,16 @@ class ToplevRunner:
     def run(self, duration_seconds: int) -> tuple[str, str]:
         """Run toplev for a duration, return (stdout, stderr).
 
-        toplev needs extra time beyond the collection duration for:
-        - Initial PMU event list download (first run on a new CPU)
-        - perf stat startup and calibration
-        - Output flushing after SIGINT
-
-        We use duration + 60s as the timeout buffer to handle slow starts
-        on many-core systems (96+ cores on Sapphire Rapids, etc.).
+        Appends ``-- sleep <duration>`` so toplev exits naturally after the
+        collection window.  The timeout buffer (duration + 120s) handles
+        slow PMU event list downloads on first run and perf stat startup
+        on many-core systems (96+ cores on Sapphire Rapids).
         """
         cmd = self.build_command()
-        logger.info("Running: %s (duration=%ds)", " ".join(cmd), duration_seconds)
+        # Tell toplev how long to collect by running a sleep workload.
+        # Without this, toplev in -C / -a mode runs indefinitely.
+        cmd.extend(["--", "sleep", str(duration_seconds)])
+        logger.info("Running: %s", " ".join(cmd))
 
         try:
             proc = subprocess.Popen(
@@ -71,21 +71,13 @@ class ToplevRunner:
             )
 
             try:
-                stdout, stderr = proc.communicate(timeout=duration_seconds + 60)
+                stdout, stderr = proc.communicate(
+                    timeout=duration_seconds + 120,
+                )
             except subprocess.TimeoutExpired:
                 proc.send_signal(signal.SIGINT)
                 try:
                     stdout, stderr = proc.communicate(timeout=15)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
-                    stdout, stderr = proc.communicate(timeout=5)
-
-            # toplev uses SIGINT to stop collection normally
-            time.sleep(0.5)
-            if proc.poll() is None:
-                proc.send_signal(signal.SIGINT)
-                try:
-                    stdout, stderr = proc.communicate(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
                     stdout, stderr = proc.communicate(timeout=5)
