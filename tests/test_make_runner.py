@@ -2,8 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from topdown.collector import make_runner, resolve_collector
 from topdown.collector.toplev import ToplevRunner
 from topdown.collector.perf_stat import PerfStatRunner

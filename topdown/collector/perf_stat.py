@@ -12,7 +12,6 @@ Metric names appear in the header row; data rows are positional values.
 """
 
 import logging
-import re
 import signal
 import subprocess
 from dataclasses import dataclass, field

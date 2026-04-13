@@ -3,7 +3,6 @@
 import logging
 import signal
 import subprocess
-import time
 from dataclasses import dataclass, field
 
 from topdown.collector.csv_parser import ToplevSample, parse_output
