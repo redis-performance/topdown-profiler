@@ -18,7 +18,7 @@ from topdown.collector.labels import collect_auto_labels, merge_labels, parse_la
 
 app = typer.Typer(
     name="topdown",
-    help="Intel Top-Down Microarchitecture Analysis collector and query tool.",
+    help="Top-Down Microarchitecture Analysis collector and query tool (Intel & ARM Neoverse).",
     no_args_is_help=True,
 )
 console = Console()
@@ -53,23 +53,34 @@ def collect(
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ):
     """Collect Top-Down analysis data for a process."""
-    from topdown.collector.toplev import ToplevRunner, ToplevOptions, check_toplev_available, check_perf_permissions
+    from topdown.collector import make_runner, resolve_collector
+    from topdown.collector.toplev import check_toplev_available, check_perf_permissions
     from topdown.collector.process_resolver import resolve_pids
 
     duration_secs = parse_duration(duration)
     user_labels = parse_label_args(label)
     config = get_config(db_path)
 
-    # Pre-flight checks
-    if not check_toplev_available(config.toplev_path):
-        console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
-        console.print("Install: pip install pmu-tools  or  export TOPDOWN_TOPLEV_PATH=/path/to/toplev.py")
-        raise typer.Exit(1)
+    # Determine collector (auto-detect from arch or use config override)
+    collector = resolve_collector(config)
 
+    # Pre-flight checks
     ok, msg = check_perf_permissions()
     if not ok:
         console.print(f"[red]Error:[/red] {msg}")
         raise typer.Exit(1)
+
+    if collector == "toplev":
+        if not check_toplev_available(config.toplev_path):
+            console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
+            console.print("Install: pip install pmu-tools  or  export TOPDOWN_TOPLEV_PATH=/path/to/toplev.py")
+            raise typer.Exit(1)
+    else:
+        from topdown.collector.perf_stat import check_perf_topdown_supported
+        ok, msg = check_perf_topdown_supported()
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            raise typer.Exit(1)
 
     # Resolve PIDs
     if not system_wide:
@@ -82,7 +93,11 @@ def collect(
         pids = []
 
     # Collect auto labels
-    auto_labels = collect_auto_labels(process, pids, level, config.toplev_path)
+    auto_labels = collect_auto_labels(
+        process, pids, level,
+        collector=collector,
+        toplev_path=config.toplev_path,
+    )
     all_labels = merge_labels(auto_labels, user_labels)
 
     # Create run record
@@ -93,15 +108,10 @@ def collect(
         labels=all_labels,
     )
 
-    # Run toplev
-    options = ToplevOptions(
-        level=level,
-        pids=pids if pids else None,
-        system_wide=system_wide,
-    )
-    runner = ToplevRunner(config.toplev_path, options)
+    # Run collection (toplev on Intel, perf stat on ARM)
+    runner = make_runner(config, pids=pids if pids else None, system_wide=system_wide, level=level)
 
-    console.print(f"Collecting level {level} data for {duration}...")
+    console.print(f"Collecting level {level} data for {duration} (collector: {collector})...")
     start_time = time.time()
 
     try:
@@ -449,18 +459,27 @@ def agent(
 ):
     """Run as continuous collection agent (daemon mode)."""
     from topdown.service.agent import CollectionAgent
+    from topdown.collector import resolve_collector
     from topdown.collector.toplev import check_toplev_available, check_perf_permissions
 
     config = get_config(db_path)
-
-    if not check_toplev_available(config.toplev_path):
-        console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
-        raise typer.Exit(1)
+    collector = resolve_collector(config)
 
     ok, msg = check_perf_permissions()
     if not ok:
         console.print(f"[red]Error:[/red] {msg}")
         raise typer.Exit(1)
+
+    if collector == "toplev":
+        if not check_toplev_available(config.toplev_path):
+            console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
+            raise typer.Exit(1)
+    else:
+        from topdown.collector.perf_stat import check_perf_topdown_supported
+        ok, msg = check_perf_topdown_supported()
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            raise typer.Exit(1)
 
     interval_secs = parse_duration(every)
     duration_secs = parse_duration(duration)

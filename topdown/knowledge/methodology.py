@@ -68,12 +68,31 @@ is better. A perfectly efficient workload would show 100% Retiring.
 
 - **Multiplexing:** PMU counters are limited. Deeper levels require multiplexing, which \
 introduces measurement error. Use `--no-multiplex` or `--drilldown` to mitigate.
-- **Intel only:** TMA is specific to Intel CPUs (Sandy Bridge and newer). AMD has a similar \
-but different methodology.
+- **pmu-tools/toplev is Intel-only** (Sandy Bridge and newer). ``perf stat --topdown`` is \
+available on both Intel and ARM Neoverse. AMD has a similar but different methodology.
 - **System load matters:** Run benchmarks in a controlled environment. Background load will \
 affect results.
 - **Multiple runs:** Always take multiple measurements and look at averages to account for \
 variance.
+
+## ARM Neoverse Support
+
+ARM Neoverse V1 (Graviton3) and V2 (Graviton4) support the same four L1 TMA categories \
+via ``perf stat --topdown``:
+
+| Aspect | Intel (pmu-tools/toplev) | ARM Neoverse (perf stat) |
+|--------|--------------------------|--------------------------|
+| Tool | pmu-tools/toplev.py | perf stat --topdown |
+| L1 categories | Frontend_Bound, Bad_Speculation, Backend_Bound, Retiring | Same |
+| Deeper levels | L2-L6 (30+ metrics) | L1 only on most Neoverse generations |
+| Kernel requirement | Linux 4.x+ | Linux 5.15+ with ARM PMU support |
+
+- **L1 only:** ARM Neoverse does not expose deeper TMA levels via ``perf stat --topdown``. \
+The four L1 categories provide the high-level breakdown of where pipeline slots go.
+- **Same analysis tools:** The ``explain``, ``query``, ``compare``, and ``funnel`` commands \
+work identically on ARM L1 data.
+- **Auto-detected:** The tool automatically selects ``perf stat --topdown`` on aarch64 and \
+``toplev`` on x86_64. Override with ``TOPDOWN_COLLECTOR`` environment variable.
 """
 
 

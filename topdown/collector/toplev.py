@@ -140,3 +140,5 @@ def check_perf_permissions() -> tuple[bool, str]:
         )
     except (FileNotFoundError, PermissionError, ValueError):
         return False, "Cannot read /proc/sys/kernel/perf_event_paranoid"
+
+

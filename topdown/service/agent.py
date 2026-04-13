@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 from topdown.collector.labels import collect_auto_labels, merge_labels
 from topdown.collector.process_resolver import resolve_pids
-from topdown.collector.toplev import ToplevRunner, ToplevOptions
+from topdown.collector import make_runner, resolve_collector
 from topdown.config import TopdownConfig
 from topdown.storage import get_backend
 from topdown.storage.models import Run, Sample
@@ -70,8 +70,11 @@ class CollectionAgent:
         logger.info("Resolved %d PID(s) for '%s': %s", len(pids), self.process_name, pids)
 
         # Collect labels
+        collector = resolve_collector(self.config)
         auto_labels = collect_auto_labels(
-            self.process_name, pids, self.level, self.config.toplev_path,
+            self.process_name, pids, self.level,
+            collector=collector,
+            toplev_path=self.config.toplev_path,
         )
         all_labels = merge_labels(auto_labels, self.custom_labels)
 
@@ -82,9 +85,8 @@ class CollectionAgent:
             labels=all_labels,
         )
 
-        # Run toplev
-        options = ToplevOptions(level=self.level, pids=pids)
-        runner = ToplevRunner(self.config.toplev_path, options)
+        # Run collection (toplev on Intel, perf stat on ARM)
+        runner = make_runner(self.config, pids=pids, system_wide=False, level=self.level)
 
         start = time.time()
         toplev_samples = runner.run_and_parse(self.duration_seconds)

@@ -1,0 +1,9 @@
+# time,counter-value,unit,event,event-runtime,pcnt-running
+1.001234,25.30,%,topdown-retiring,1002345678,100.00
+1.001234,15.20,%,topdown-fe-bound,1002345678,100.00
+1.001234,49.40,%,topdown-be-bound,1002345678,100.00
+1.001234,10.10,%,topdown-bad-spec,1002345678,100.00
+2.002345,28.10,%,topdown-retiring,1002345678,100.00
+2.002345,12.90,%,topdown-fe-bound,1002345678,100.00
+2.002345,48.80,%,topdown-be-bound,1002345678,100.00
+2.002345,10.20,%,topdown-bad-spec,1002345678,100.00

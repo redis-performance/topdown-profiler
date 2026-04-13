@@ -63,3 +63,31 @@ def sample_metrics():
         {"metric_name": "Bad_Speculation", "value": 10.0, "unit": "%"},
         {"metric_name": "Retiring", "value": 30.0, "unit": "%"},
     ]
+
+
+@pytest.fixture
+def arm_sample_run():
+    """Sample run from ARM Neoverse (perf stat --topdown)."""
+    return Run(
+        run_id="test-run-arm-001",
+        process_name="redis-server",
+        level=1,
+        labels={
+            "arch": "aarch64",
+            "collector": "perf_stat",
+            "tma_level": "1",
+            "cpu": "Neoverse-V2",
+            "platform": "aarch64-aws-m7g.metal",
+        },
+    )
+
+
+@pytest.fixture
+def arm_sample_metrics():
+    """Simulated L1 perf stat --topdown output (ARM only has L1)."""
+    return [
+        {"metric_name": "Frontend_Bound", "value": 15.2, "unit": "%"},
+        {"metric_name": "Backend_Bound", "value": 49.4, "unit": "%"},
+        {"metric_name": "Bad_Speculation", "value": 10.1, "unit": "%"},
+        {"metric_name": "Retiring", "value": 25.3, "unit": "%"},
+    ]

@@ -2,7 +2,8 @@
 Comprehensive knowledge base of Intel TMA (Top-Down Microarchitecture Analysis) metrics.
 
 Covers the full superset across Skylake (SKL), Ice Lake (ICL), Sapphire Rapids (SPR),
-Granite Rapids (GNR), and Panther Lake (PTL) microarchitectures (120+ nodes).
+Granite Rapids (GNR), and Panther Lake (PTL) microarchitectures (120+ nodes), plus
+ARM Neoverse V1/V2 L1 metrics (collected via ``perf stat --topdown``).
 
 Each metric entry contains:
     - description: what the metric measures

@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "topdown-profiler"
-version = "0.1.9"
-description = "Intel Top-Down Microarchitecture Analysis collector with MCP server, label-based querying, and pluggable SQL backends."
+version = "0.2.0"
+description = "CPU Top-Down Microarchitecture Analysis (Intel & ARM Neoverse) collector with MCP server, label-based querying, and pluggable SQL backends."
 authors = ["redis-performance"]
 readme = "README.md"
 license = "MIT"
 packages = [{include = "topdown"}]
-keywords = ["pmu", "toplev", "topdown", "profiler", "performance", "mcp"]
+keywords = ["pmu", "toplev", "topdown", "profiler", "performance", "mcp", "arm", "neoverse", "graviton"]
 
 [tool.poetry.scripts]
 topdown = "topdown.cli:app_main"

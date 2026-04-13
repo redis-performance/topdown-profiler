@@ -1,0 +1,4 @@
+time,percent of slots  bad_speculation,percent of slots  retiring,percent of slots  frontend_bound,percent of slots  backend_bound,
+1.000839140,1.4,31.6,16.9,50.0,
+2.012833700,4.6,25.6,18.0,51.4,
+3.020834677,3.3,32.1,20.0,44.4,

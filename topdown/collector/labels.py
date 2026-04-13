@@ -14,10 +14,19 @@ logger = logging.getLogger(__name__)
 def collect_auto_labels(
     process_name: str,
     pids: list[int],
-    toplev_level: int,
+    level: int,
+    collector: str = "toplev",
     toplev_path: str = "toplev.py",
 ) -> dict[str, str]:
-    """Collect all auto-detected system labels."""
+    """Collect all auto-detected system labels.
+
+    Args:
+        process_name: Name of the process being profiled.
+        pids: Resolved PIDs for the process.
+        level: TMA analysis level requested.
+        collector: Which collector is being used ("toplev" or "perf_stat").
+        toplev_path: Path to toplev.py (only used when collector="toplev").
+    """
     labels: dict[str, str] = {}
 
     # System
@@ -40,8 +49,13 @@ def collect_auto_labels(
             pass
 
     # Topdown
-    labels["toplev_level"] = str(toplev_level)
-    labels["pmu_tools_version"] = _get_toplev_version(toplev_path)
+    labels["collector"] = collector
+    labels["tma_level"] = str(level)
+    if collector == "toplev":
+        labels["toplev_level"] = str(level)  # backward compat
+        labels["pmu_tools_version"] = _get_toplev_version(toplev_path)
+    else:
+        labels["perf_version"] = _get_perf_version()
 
     return labels
 
@@ -125,6 +139,22 @@ def _detect_platform() -> str:
         pass
 
     return f"{platform.machine()}-{platform.node()}"
+
+
+def _get_perf_version() -> str:
+    """Get perf tool version string."""
+    try:
+        result = subprocess.run(
+            ["perf", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip() or result.stderr.strip()
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    return "unknown"
 
 
 def _get_toplev_version(toplev_path: str) -> str:

@@ -1,8 +1,8 @@
 # topdown-profiler
 
-Intel Top-Down Microarchitecture Analysis (TMA) collector with MCP server, label-based querying, and pluggable SQL backends.
+CPU Top-Down Microarchitecture Analysis (TMA) collector for Intel and ARM Neoverse, with MCP server, label-based querying, and pluggable SQL backends.
 
-Wraps [pmu-tools/toplev](https://github.com/andikleen/pmu-tools) to collect, store, and query CPU performance data — like [Polar Signals](https://www.polarsignals.com/) but for hardware performance counters.
+Wraps [pmu-tools/toplev](https://github.com/andikleen/pmu-tools) on Intel or `perf stat --topdown` on ARM to collect, store, and query CPU performance data — like [Polar Signals](https://www.polarsignals.com/) but for hardware performance counters.
 
 [![CI](https://github.com/redis-performance/topdown-profiler/actions/workflows/ci.yml/badge.svg)](https://github.com/redis-performance/topdown-profiler/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/topdown-profiler)](https://pypi.org/project/topdown-profiler/)
@@ -40,8 +40,8 @@ poetry install
 ### Prerequisites
 
 - Linux with `perf` tools installed
-- Intel CPU (Sandy Bridge or newer)
-- [pmu-tools](https://github.com/andikleen/pmu-tools) installed (`pip install pmu-tools`)
+- Intel CPU (Sandy Bridge or newer) **or** ARM Neoverse (Graviton3/4)
+- [pmu-tools](https://github.com/andikleen/pmu-tools) installed (`pip install pmu-tools`) — Intel only
 - `perf_event_paranoid <= 1` (or run as root)
 
 ```bash
@@ -50,6 +50,14 @@ cat /proc/sys/kernel/perf_event_paranoid
 # If > 1, fix with:
 sudo sysctl kernel.perf_event_paranoid=1
 ```
+
+### ARM Neoverse Prerequisites
+
+- Linux kernel 5.15+ with ARM PMU perf support
+- `perf` tools installed (`apt install linux-tools-$(uname -r)` or `yum install perf`)
+- `perf_event_paranoid <= 1` (same as Intel)
+- No pmu-tools required — uses `perf stat --topdown` directly
+- L1 topdown metrics only (Frontend_Bound, Backend_Bound, Bad_Speculation, Retiring)
 
 ## Quick Start
 
@@ -214,7 +222,7 @@ topdown query --bottleneck DRAM_Bound --min-pct 10
 Every run is tagged with auto-detected system labels plus user-supplied benchmark labels:
 
 ### Auto-detected (zero config)
-`arch`, `kernel_version`, `node`, `cpu`, `pmu_name`, `platform`, `comm`, `pid`, `toplev_level`, `pmu_tools_version`
+`arch`, `kernel_version`, `node`, `cpu`, `pmu_name`, `platform`, `comm`, `pid`, `collector`, `tma_level`, `pmu_tools_version` (Intel) / `perf_version` (ARM)
 
 ### User-supplied (via `--label key=value`)
 `git_branch`, `git_hash`, `build_variant`, `compiler`, `test_name`, `client_tool`, `topology`, `dataset_name`, `tested_commands`, `tested_groups`, `github_org`, `github_repo`, `role`, `coordinator_version`, `thread_name`
@@ -306,9 +314,20 @@ export TOPDOWN_DSN="postgresql://user:pass@host:5432/topdown"
 topdown collect --process redis-server --level 2 --duration 30s
 ```
 
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TOPDOWN_BACKEND` | Storage backend (`sqlite` or `postgresql`) | `sqlite` |
+| `TOPDOWN_DSN` | PostgreSQL connection string | — |
+| `TOPDOWN_DB_PATH` | SQLite database path | `~/.topdown/data.db` |
+| `TOPDOWN_TOPLEV_PATH` | Path to toplev.py (Intel only) | `toplev.py` |
+| `TOPDOWN_PMU_TOOLS_DIR` | pmu-tools directory (Intel only) | — |
+| `TOPDOWN_COLLECTOR` | Collector backend: `toplev` (Intel), `perf_stat` (ARM), or auto-detect | auto |
+
 ## Knowledge Base
 
-120+ TMA metrics with descriptions, causes, and tuning hints covering Intel Skylake through Panther Lake:
+120+ TMA metrics with descriptions, causes, and tuning hints covering Intel Skylake through Panther Lake and ARM Neoverse L1:
 
 ```bash
 topdown explain Frontend_Bound.Fetch_Latency.ICache_Misses

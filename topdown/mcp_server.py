@@ -17,10 +17,11 @@ from topdown.storage import get_backend
 
 _MCP_INSTRUCTIONS = (
     "You are connected to the topdown-profiler MCP server. "
-    "This tool wraps Intel's pmu-tools/toplev to collect, store, and query "
-    "Top-Down Microarchitecture Analysis (TMA) data. "
-    "Use the available tools to profile processes, query bottlenecks, "
-    "compare runs, and explain CPU performance metrics."
+    "This tool collects, stores, and queries Top-Down Microarchitecture "
+    "Analysis (TMA) data using pmu-tools/toplev on Intel or perf stat "
+    "--topdown on ARM Neoverse. Use the available tools to profile "
+    "processes, query bottlenecks, compare runs, and explain CPU "
+    "performance metrics."
 )
 
 
@@ -61,34 +62,42 @@ def collect_topdown(
     system_wide: bool = False,
     labels: dict[str, str] | None = None,
 ) -> str:
-    """Collect Intel Top-Down Microarchitecture Analysis data for a process.
+    """Collect Top-Down Microarchitecture Analysis data for a process.
 
-    Runs toplev for the specified duration and stores results.
+    Uses pmu-tools/toplev on Intel or perf stat --topdown on ARM Neoverse.
     Returns a summary of the collection run with top bottlenecks.
 
     Args:
         process_name: Process name to profile (e.g. 'redis-server')
-        level: TMA analysis level 1-6 (default 2)
+        level: TMA analysis level 1-6 (default 2, ARM is L1 only)
         duration_seconds: How long to collect data
         system_wide: If true, profile all CPUs system-wide
         labels: Optional dict of labels (e.g. {"git_branch": "unstable", "test_name": "set-get-100"})
     """
     import time
     from datetime import datetime, timezone
-    from topdown.collector.toplev import ToplevRunner, ToplevOptions, check_toplev_available, check_perf_permissions
+    from topdown.collector import make_runner, resolve_collector
+    from topdown.collector.toplev import check_toplev_available, check_perf_permissions
     from topdown.collector.process_resolver import resolve_pids
     from topdown.collector.labels import collect_auto_labels, merge_labels
     from topdown.storage.models import Run, Sample
     from topdown.analysis.bottleneck import find_bottlenecks, summarize_bottlenecks
 
     config = get_config()
-
-    if not check_toplev_available(config.toplev_path):
-        return f"Error: toplev not found at '{config.toplev_path}'. Install pmu-tools."
+    collector = resolve_collector(config)
 
     ok, msg = check_perf_permissions()
     if not ok:
         return f"Error: {msg}"
+
+    if collector == "toplev":
+        if not check_toplev_available(config.toplev_path):
+            return f"Error: toplev not found at '{config.toplev_path}'. Install pmu-tools."
+    else:
+        from topdown.collector.perf_stat import check_perf_topdown_supported
+        ok, msg = check_perf_topdown_supported()
+        if not ok:
+            return f"Error: {msg}"
 
     pids = []
     if not system_wide:
@@ -96,18 +105,21 @@ def collect_topdown(
         if not pids:
             return f"Error: No process found matching '{process_name}'"
 
-    auto_labels = collect_auto_labels(process_name, pids, level, config.toplev_path)
+    auto_labels = collect_auto_labels(
+        process_name, pids, level,
+        collector=collector,
+        toplev_path=config.toplev_path,
+    )
     all_labels = merge_labels(auto_labels, labels or {})
 
     run = Run(process_name=process_name, level=level, system_wide=system_wide, labels=all_labels)
-    options = ToplevOptions(level=level, pids=pids or None, system_wide=system_wide)
-    runner = ToplevRunner(config.toplev_path, options)
+    runner = make_runner(config, pids=pids or None, system_wide=system_wide, level=level)
 
     start_time = time.time()
     try:
         toplev_samples = runner.run_and_parse(duration_seconds)
     except RuntimeError as e:
-        return f"Error running toplev: {e}"
+        return f"Error running collection: {e}"
 
     elapsed = time.time() - start_time
     run.ended_at = datetime.now(timezone.utc)
