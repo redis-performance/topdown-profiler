@@ -95,11 +95,15 @@ class PerfStatRunner:
     def run(self, duration_seconds: int) -> tuple[str, str]:
         """Run perf stat for a duration, return (stdout, stderr).
 
-        Uses ``-- sleep <duration>`` so perf stat exits naturally.
-        Timeout buffer is shorter than toplev (no PMU event downloads).
+        When monitoring specific PIDs (``-p``), runs perf stat without a
+        workload command and sends SIGINT after the duration to collect
+        results. When system-wide (``-a``) or no target, uses
+        ``-- sleep <duration>`` so perf stat exits naturally.
         """
         cmd = self.build_command()
-        cmd.extend(["--", "sleep", str(duration_seconds)])
+        use_sleep_workload = not self.options.pids
+        if use_sleep_workload:
+            cmd.extend(["--", "sleep", str(duration_seconds)])
         logger.info("Running: %s", " ".join(cmd))
 
         try:
@@ -109,6 +113,12 @@ class PerfStatRunner:
                 stderr=subprocess.PIPE,
                 text=True,
             )
+
+            if not use_sleep_workload:
+                # PID mode: let perf collect for the duration, then SIGINT
+                import time
+                time.sleep(duration_seconds)
+                proc.send_signal(signal.SIGINT)
 
             try:
                 stdout, stderr = proc.communicate(
