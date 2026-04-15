@@ -74,7 +74,15 @@ class PerfStatRunner:
         self.options = options
 
     def build_command(self) -> list[str]:
-        """Build the perf stat --topdown command line."""
+        """Build the perf stat --topdown command line.
+
+        On ARM (aarch64), perf stat --topdown -p <pid> produces empty
+        values — only system-wide (-a) works. Force system-wide on ARM
+        even when PIDs are specified. The benchmark coordinator runs on
+        a dedicated machine so system-wide is equivalent to per-process.
+        """
+        import platform
+
         cmd = [
             "perf",
             "stat",
@@ -83,7 +91,11 @@ class PerfStatRunner:
             "-x,",  # CSV output with comma delimiter
         ]
 
-        if self.options.pids:
+        is_arm = platform.machine() in ("aarch64", "arm64")
+        if is_arm:
+            # ARM: always system-wide — per-PID topdown is broken
+            cmd.append("-a")
+        elif self.options.pids:
             pid_str = ",".join(str(p) for p in self.options.pids)
             cmd.extend(["-p", pid_str])
         elif self.options.system_wide:
