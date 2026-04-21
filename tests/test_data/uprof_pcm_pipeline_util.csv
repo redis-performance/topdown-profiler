@@ -1,0 +1,9 @@
+TSC_Frequency,100,Mhz
+Socket count,1
+NPS,1
+Group_Type,pipeline_util
+
+Timestamp,Total_Dispatch_Slots,Frontend_Bound,Frontend_Bound.Latency,Frontend_Bound.BW,Bad_Speculation,Bad_Speculation.Mispredicts,Bad_Speculation.Pipeline_Restarts,Backend_Bound,Backend_Bound.Memory,Backend_Bound.CPU,Retiring,Retiring.Fastpath,Retiring.Microcode,IPC
+09:12:08.123,1234567,15.2,10.3,4.9,5.1,4.2,0.9,44.6,30.2,14.4,35.1,30.4,4.7,1.85
+09:12:09.123,1234678,14.9,9.8,5.1,4.8,3.9,0.9,45.1,30.9,14.2,35.2,30.6,4.6,1.86
+09:12:10.123,1234700,15.5,10.5,5.0,5.0,4.1,0.9,44.3,29.8,14.5,35.2,30.5,4.7,1.87

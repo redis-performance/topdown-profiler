@@ -1,8 +1,8 @@
 # topdown-profiler
 
-CPU Top-Down Microarchitecture Analysis (TMA) collector for Intel and ARM Neoverse, with MCP server, label-based querying, and pluggable SQL backends.
+CPU Top-Down Microarchitecture Analysis (TMA) collector for Intel, AMD Zen, and ARM Neoverse, with MCP server, label-based querying, and pluggable SQL backends.
 
-Wraps [pmu-tools/toplev](https://github.com/andikleen/pmu-tools) on Intel or `perf stat --topdown` on ARM to collect, store, and query CPU performance data — like [Polar Signals](https://www.polarsignals.com/) but for hardware performance counters.
+Wraps [pmu-tools/toplev](https://github.com/andikleen/pmu-tools) on Intel, [AMD uProf](https://www.amd.com/en/developer/uprof.html) (`AMDuProfPcm`) on AMD Zen, or `perf stat --topdown` on ARM to collect, store, and query CPU performance data — like [Polar Signals](https://www.polarsignals.com/) but for hardware performance counters.
 
 [![CI](https://github.com/redis-performance/topdown-profiler/actions/workflows/ci.yml/badge.svg)](https://github.com/redis-performance/topdown-profiler/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/topdown-profiler)](https://pypi.org/project/topdown-profiler/)
@@ -40,8 +40,8 @@ poetry install
 ### Prerequisites
 
 - Linux with `perf` tools installed
-- Intel CPU (Sandy Bridge or newer) **or** ARM Neoverse (Graviton3/4)
-- [pmu-tools](https://github.com/andikleen/pmu-tools) installed (`pip install pmu-tools`) — Intel only
+- Intel CPU (Sandy Bridge or newer), AMD Zen (EPYC 7xx1 / 7xx2 / 7xx3 / 9xx4), **or** ARM Neoverse (Graviton3/4)
+- Per-vendor tooling (see below)
 - `perf_event_paranoid <= 1` (or run as root)
 
 ```bash
@@ -51,6 +51,30 @@ cat /proc/sys/kernel/perf_event_paranoid
 sudo sysctl kernel.perf_event_paranoid=1
 ```
 
+### Intel Prerequisites
+
+- [pmu-tools](https://github.com/andikleen/pmu-tools) installed (`pip install pmu-tools`)
+- Optional: export `TOPDOWN_TOPLEV_PATH=/path/to/toplev.py` if not on `PATH`
+- L1-L4 TMA metrics (30+ metrics across Skylake/Ice Lake/Sapphire Rapids)
+
+### AMD Zen Prerequisites
+
+- [AMD uProf](https://www.amd.com/en/developer/uprof.html) installed (`.deb`, `.rpm`, or `.tar.bz2`)
+- `AMDuProfPcm` binary on `PATH` (or export `TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_X.Y-ZZZ/bin/AMDuProfPcm`)
+- Root required for system-wide collection (IBS / PMU driver access)
+- Richest metric coverage on Zen 4+ (EPYC 9xx4 Genoa/Bergamo); older Zen families produce a subset
+- Uses `AMDuProfPcm -m pipeline_util -a -d <sec> -o <csv>` under the hood
+- L1 + L2 pipeline utilization (Frontend/Backend/Bad_Spec/Retiring and their sub-categories)
+
+```bash
+# Install on Debian/Ubuntu
+wget https://www.amd.com/.../amduprof_X.Y-ZZZ_amd64.deb
+sudo dpkg -i amduprof_*_amd64.deb
+# Add to PATH (version-specific)
+export PATH="/opt/AMDuProf_$(ls /opt | grep AMDuProf | head -1 | sed 's/AMDuProf_//')/bin:$PATH"
+AMDuProfPcm --help  # sanity check
+```
+
 ### ARM Neoverse Prerequisites
 
 - Linux kernel 5.15+ with ARM PMU perf support
@@ -58,6 +82,16 @@ sudo sysctl kernel.perf_event_paranoid=1
 - `perf_event_paranoid <= 1` (same as Intel)
 - No pmu-tools required — uses `perf stat --topdown` directly
 - L1 topdown metrics only (Frontend_Bound, Backend_Bound, Bad_Speculation, Retiring)
+
+### Collector auto-detection
+
+| CPU vendor / arch | Default collector | Override env var |
+|---|---|---|
+| `x86_64` + `GenuineIntel` | `toplev` | `TOPDOWN_COLLECTOR=toplev` |
+| `x86_64` + `AuthenticAMD` | `uprof_pcm` | `TOPDOWN_COLLECTOR=uprof_pcm` |
+| `aarch64` | `perf_stat` | `TOPDOWN_COLLECTOR=perf_stat` |
+
+`/proc/cpuinfo` `vendor_id` drives the Intel vs AMD split on x86_64.
 
 ## Quick Start
 

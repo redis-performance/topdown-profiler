@@ -75,6 +75,14 @@ def collect(
             console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
             console.print("Install: pip install pmu-tools  or  export TOPDOWN_TOPLEV_PATH=/path/to/toplev.py")
             raise typer.Exit(1)
+    elif collector == "uprof_pcm":
+        from topdown.collector.uprof_pcm import check_uprof_pcm_available
+        ok, msg = check_uprof_pcm_available(config.uprof_pcm_path)
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            console.print("Install AMD uProf: https://www.amd.com/en/developer/uprof.html")
+            console.print("or  export TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_X.Y-ZZZ/bin/AMDuProfPcm")
+            raise typer.Exit(1)
     else:
         from topdown.collector.perf_stat import check_perf_topdown_supported
         ok, msg = check_perf_topdown_supported()
@@ -473,6 +481,12 @@ def agent(
     if collector == "toplev":
         if not check_toplev_available(config.toplev_path):
             console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
+            raise typer.Exit(1)
+    elif collector == "uprof_pcm":
+        from topdown.collector.uprof_pcm import check_uprof_pcm_available
+        ok, msg = check_uprof_pcm_available(config.uprof_pcm_path)
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
             raise typer.Exit(1)
     else:
         from topdown.collector.perf_stat import check_perf_topdown_supported

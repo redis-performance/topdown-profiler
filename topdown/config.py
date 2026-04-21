@@ -13,7 +13,8 @@ class TopdownConfig:
     db_path: Path = field(default_factory=lambda: DEFAULT_DB_PATH)
     toplev_path: str = "toplev.py"
     pmu_tools_dir: str | None = None
-    collector: str | None = None  # "toplev", "perf_stat", or None (auto-detect from arch)
+    uprof_pcm_path: str | None = None  # explicit path to AMDuProfPcm (optional)
+    collector: str | None = None  # "toplev", "perf_stat", "uprof_pcm", or None (auto-detect)
 
     @classmethod
     def from_env(cls) -> "TopdownConfig":
@@ -23,6 +24,7 @@ class TopdownConfig:
             db_path=Path(os.environ.get("TOPDOWN_DB_PATH", str(DEFAULT_DB_PATH))),
             toplev_path=os.environ.get("TOPDOWN_TOPLEV_PATH", "toplev.py"),
             pmu_tools_dir=os.environ.get("TOPDOWN_PMU_TOOLS_DIR"),
+            uprof_pcm_path=os.environ.get("TOPDOWN_UPROF_PCM_PATH"),
             collector=os.environ.get("TOPDOWN_COLLECTOR"),
         )
 
