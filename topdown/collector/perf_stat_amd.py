@@ -235,7 +235,9 @@ def _compute_l1(pack: dict[str, float]) -> dict[str, float] | None:
         return None
 
     retired = pack.get("retired", 0.0)
-    br_misp = pack.get("br_misp", 0.0)
+    # br_misp is collected for future use (e.g. weighted Bad_Speculation) but
+    # the current approximation derives Bad_Speculation from the residual.
+    _br_misp = pack.get("br_misp", 0.0)  # noqa: F841
     fe_no_disp = pack.get("fe_no_disp", 0.0)
     be_stall = pack.get("be_stall", 0.0)
 

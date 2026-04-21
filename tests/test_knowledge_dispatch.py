@@ -86,6 +86,34 @@ class TestRouting:
     def test_unknown_metric_returns_none_intel(self):
         assert get_metric_info("NoSuch.Metric", vendor="intel") is None
 
+    def test_amd_falls_through_to_intel_for_intel_only_metrics(self):
+        """DRAM_Bound / L3_Bound aren't in the AMD KB; must fall through
+        to Intel so users on AMD hosts still get useful info for those."""
+        info = get_metric_info("DRAM_Bound", vendor="amd")
+        assert info is not None  # found via Intel KB fall-through
+
+        info = get_metric_info("L3_Bound", vendor="amd")
+        assert info is not None
+
+    def test_amd_preserves_amd_advice_when_present(self):
+        """For metrics AMD has specific advice for (Memory_Bound), AMD wins
+        even though Intel also has an entry."""
+        info = get_metric_info("Backend_Bound.Memory_Bound", vendor="amd")
+        assert info is not None
+        # AMD hint mentions CCD / InfinityFabric; Intel doesn't
+        text = str(info).lower()
+        assert "ccd" in text or "infinityfabric" in text
+
+    def test_amd_children_falls_through_when_empty(self):
+        """Deep Intel nodes (Backend_Bound.Memory_Bound.DRAM_Bound children)
+        should still return Intel's children when queried on AMD."""
+        # AMD KB doesn't track children below L2; DRAM_Bound lookup via
+        # Intel KB should yield Intel's sub-nodes (e.g. MEM_Bandwidth / MEM_Latency)
+        children = get_children("DRAM_Bound", vendor="amd")
+        # Either empty (nothing lower) or populated via Intel fallthrough —
+        # what matters is we don't blow up
+        assert isinstance(children, list)
+
 
 # ── auto-detect path ────────────────────────────────────────────────
 

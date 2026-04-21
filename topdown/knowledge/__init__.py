@@ -64,20 +64,33 @@ def get_metric_info(metric_name: str, vendor: str | None = None) -> Optional[Dic
     Auto-selects the Intel or AMD knowledge base via ``/proc/cpuinfo``
     vendor_id, unless ``vendor`` is passed explicitly.
 
+    On AMD hosts the AMD KB is tried first; if the metric isn't present
+    (e.g. deep Intel-specific L3/L4 nodes like ``DRAM_Bound``), we fall
+    through to the Intel KB — its descriptions are architecture-neutral
+    enough to still help when AMD-specific advice isn't available.
+
     Returns the same shape as the underlying KB: either a single metric
     dict, a dict of ``{full_path: metric_dict}`` if the leaf name is
-    ambiguous, or ``None`` if nothing matches.
+    ambiguous, or ``None`` if nothing matches either KB.
     """
     v = _resolve_vendor(vendor)
     if v == "amd":
         from topdown.knowledge import metrics_amd
-        return metrics_amd.get_metric_info(metric_name)
+        info = metrics_amd.get_metric_info(metric_name)
+        if info is not None:
+            return info
     from topdown.knowledge import metrics
     return metrics.get_metric_info(metric_name)
 
 
 def list_all_metrics(vendor: str | None = None) -> List[str]:
-    """Return a sorted list of known metric names for the active vendor."""
+    """Return a sorted list of known metric names for the active vendor.
+
+    On AMD, returns the AMD-specific names. On Intel, returns the full
+    Intel KB.  The dispatcher does NOT merge — list scopes are intentionally
+    per-vendor so callers can surface vendor-appropriate metric lists
+    (the merged union would mislead users about what is AMD-native).
+    """
     v = _resolve_vendor(vendor)
     if v == "amd":
         from topdown.knowledge import metrics_amd
@@ -87,11 +100,18 @@ def list_all_metrics(vendor: str | None = None) -> List[str]:
 
 
 def get_children(metric_name: str, vendor: str | None = None) -> List[str]:
-    """Return direct children of a TMA node for the active vendor."""
+    """Return direct children of a TMA node for the active vendor.
+
+    On AMD: if the node has children in the AMD KB, return those; else
+    fall back to the Intel KB (so queries for deeper Intel nodes still
+    produce useful hierarchy on AMD hosts).
+    """
     v = _resolve_vendor(vendor)
     if v == "amd":
         from topdown.knowledge import metrics_amd
-        return metrics_amd.get_children(metric_name)
+        children = metrics_amd.get_children(metric_name)
+        if children:
+            return children
     from topdown.knowledge import metrics
     return metrics.get_children(metric_name)
 
