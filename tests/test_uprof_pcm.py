@@ -8,7 +8,6 @@ import pytest
 from topdown.collector.uprof_pcm import (
     UprofPcmOptions,
     UprofPcmRunner,
-    _AMD_NAME_MAP,
     _canonicalize_amd_metric,
     _parse_timestamp,
     check_uprof_pcm_available,

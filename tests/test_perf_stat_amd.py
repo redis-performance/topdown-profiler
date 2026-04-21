@@ -335,4 +335,3 @@ class TestComputeL1Edge:
         assert result["Bad_Speculation"] == pytest.approx(100.0)
 
 
-from topdown.collector.perf_stat_amd import _compute_l1  # noqa: E402
