@@ -428,7 +428,7 @@ def explain_metric(metric_name: str) -> str:
     Args:
         metric_name: TMA metric name to explain
     """
-    from topdown.knowledge.metrics import get_metric_info
+    from topdown.knowledge import get_metric_info
 
     info = get_metric_info(metric_name)
     if not info:
@@ -513,12 +513,21 @@ def run_tree(run_id: str) -> str:
 
 @mcp.resource("topdown://metrics")
 def all_metrics() -> str:
-    """List of all known TMA metrics with short descriptions."""
-    from topdown.knowledge.metrics import METRICS_KB
+    """List of all known TMA metrics with short descriptions.
 
-    lines = ["All known TMA metrics:\n"]
-    for name in sorted(METRICS_KB.keys()):
-        info = METRICS_KB[name]
+    Selects the Intel or AMD knowledge base automatically via
+    ``/proc/cpuinfo`` vendor_id.
+    """
+    from topdown.knowledge import active_vendor, list_all_metrics, get_metric_info
+
+    vendor = active_vendor()
+    names = list_all_metrics()
+    header = f"All known TMA metrics (vendor={vendor}):\n"
+    lines = [header]
+    for name in names:
+        info = get_metric_info(name)
+        if not isinstance(info, dict) or "description" not in info:
+            continue
         desc = info.get("description", "")[:80]
         lines.append(f"  L{info.get('level', '?')} {name}: {desc}")
     return "\n".join(lines)

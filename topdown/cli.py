@@ -75,6 +75,20 @@ def collect(
             console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
             console.print("Install: pip install pmu-tools  or  export TOPDOWN_TOPLEV_PATH=/path/to/toplev.py")
             raise typer.Exit(1)
+    elif collector == "uprof_pcm":
+        from topdown.collector.uprof_pcm import check_uprof_pcm_available
+        ok, msg = check_uprof_pcm_available(config.uprof_pcm_path)
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            console.print("Install AMD uProf: https://www.amd.com/en/developer/uprof.html")
+            console.print("or  export TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_X.Y-ZZZ/bin/AMDuProfPcm")
+            raise typer.Exit(1)
+    elif collector == "perf_stat_amd":
+        from topdown.collector.perf_stat_amd import check_perf_stat_amd_supported
+        ok, msg = check_perf_stat_amd_supported()
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            raise typer.Exit(1)
     else:
         from topdown.collector.perf_stat import check_perf_topdown_supported
         ok, msg = check_perf_topdown_supported()
@@ -125,7 +139,7 @@ def collect(
     run.duration_seconds = elapsed
 
     if not toplev_samples:
-        console.print("[yellow]Warning:[/yellow] No samples collected. Check toplev output.")
+        console.print(f"[yellow]Warning:[/yellow] No samples collected. Check {collector} output and perf_event_paranoid.")
         raise typer.Exit(1)
 
     # Store results
@@ -431,8 +445,11 @@ def explain(
     metric: Annotated[str, typer.Argument(help="Metric name (e.g. 'Backend_Bound.Memory_Bound' or 'DRAM_Bound')")],
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ):
-    """Explain a TMA metric with causes and tuning hints."""
-    from topdown.knowledge.metrics import get_metric_info
+    """Explain a TMA metric with causes and tuning hints.
+
+    Auto-selects the Intel or AMD knowledge base based on CPU vendor.
+    """
+    from topdown.knowledge import get_metric_info
     from topdown.output.terminal import print_metric_explanation
     from topdown.output.export import export_json
 
@@ -473,6 +490,12 @@ def agent(
     if collector == "toplev":
         if not check_toplev_available(config.toplev_path):
             console.print(f"[red]Error:[/red] toplev not found at '{config.toplev_path}'")
+            raise typer.Exit(1)
+    elif collector == "uprof_pcm":
+        from topdown.collector.uprof_pcm import check_uprof_pcm_available
+        ok, msg = check_uprof_pcm_available(config.uprof_pcm_path)
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
             raise typer.Exit(1)
     else:
         from topdown.collector.perf_stat import check_perf_topdown_supported
