@@ -343,11 +343,24 @@ def _passthrough_amd_metric(header_col: str) -> str | None:
 def parse_uprof_pcm_output(text: str, passthrough_unmapped: bool = False) -> list[ToplevSample]:
     """Parse AMDuProfPcm pipeline_util CSV into ToplevSample objects.
 
-    The CSV has a short preamble (TSC_Frequency, Socket count, NPS,
-    Group_Type), then a blank line, then a header row starting with
-    "Timestamp", then one data row per interval. Preamble and blank
-    lines are skipped; we locate the header by its first column being
-    "timestamp" (case-insensitive).
+    Two header formats are supported:
+
+    **v5 format (observed on uProf 5.2.606 / EPYC Zen 5):**
+      CSV has a long preamble (processor name, CCX topology, sample
+      interval, "CORE METRICS" / "System (Aggregated)" section markers),
+      then a header row of comma-separated metric names (no "Timestamp"
+      column), then one data row per multiplex/sample interval. Row 0
+      starts with ``Total_Dispatch_Slots``. Sample interval is parsed
+      from the preamble (``Sample interval (ms): 1000`` → synthetic
+      relative timestamps 0, 1.0, 2.0 s).
+
+    **Legacy / docs format (v4.x user guide example):**
+      Preamble, blank line, header row starting with ``Timestamp``, data
+      rows with HH:MM:SS.fff in first column.
+
+    The parser auto-detects by looking for a header row that has at
+    least one canonical TMA column recognisable via
+    :func:`_canonicalize_amd_metric`.
 
     When ``passthrough_unmapped`` is True (default False), cache/memory
     columns from ``-m l1,l2,l3,memory`` that look like metrics are emitted
@@ -358,19 +371,51 @@ def parse_uprof_pcm_output(text: str, passthrough_unmapped: bool = False) -> lis
     if not text or not text.strip():
         return []
 
-    # Find header row
     lines = text.splitlines()
+
+    # Extract sample interval from preamble for synthetic timestamps (v5 format).
+    sample_interval_s = 1.0
+    for line in lines:
+        low = line.strip().lower()
+        if low.startswith("sample interval (ms)"):
+            m = re.search(r"(\d+(?:\.\d+)?)", line.split(":", 1)[-1])
+            if m:
+                try:
+                    sample_interval_s = float(m.group(1)) / 1000.0
+                except ValueError:
+                    pass
+            break
+
+    # Find header row: first comma-separated line whose columns include a
+    # recognisable canonical TMA metric. This handles both the v5 format
+    # (header like "Total_Dispatch_Slots,..,Frontend_Bound,..") and the
+    # legacy format (header starting with "Timestamp,..,Frontend_Bound,..").
     header_idx = None
     for i, line in enumerate(lines):
-        first = line.split(",", 1)[0].strip().strip('"').lower()
-        if first == "timestamp":
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "," not in stripped:
+            continue
+        cols = [c.strip().strip('"') for c in stripped.split(",")]
+        # Quick reject: section markers like "CORE METRICS" or "System (Aggregated)"
+        # are single-token comma-padded lines (rest empty). Require at least
+        # 3 non-empty tokens.
+        non_empty = [c for c in cols if c]
+        if len(non_empty) < 3:
+            continue
+        # Is this a header row? Check for any canonical TMA metric in it.
+        if any(_canonicalize_amd_metric(c) for c in cols):
             header_idx = i
             break
+
     if header_idx is None:
-        logger.warning("AMDuProfPcm output: could not locate Timestamp header row")
+        logger.warning("AMDuProfPcm output: could not locate header row with TMA metrics")
         return []
 
     header_cols = [c.strip().strip('"') for c in lines[header_idx].split(",")]
+    first_col_lower = header_cols[0].strip().lower() if header_cols else ""
+    has_explicit_timestamp = first_col_lower == "timestamp"
 
     # Map column index -> canonical metric name (skip metadata columns).
     # First pass: canonical TMA. Second pass (optional): AMD passthrough.
@@ -394,11 +439,15 @@ def parse_uprof_pcm_output(text: str, passthrough_unmapped: bool = False) -> lis
         )
         return []
 
-    logger.debug("AMD uProf column mapping: %s", col_metrics)
+    logger.debug(
+        "AMD uProf column mapping (has_ts=%s): %s",
+        has_explicit_timestamp, col_metrics,
+    )
 
     # Parse data rows
     samples: list[ToplevSample] = []
     t0: float | None = None
+    row_idx = 0  # used for synthetic timestamps in v5 format
     for line in lines[header_idx + 1:]:
         line = line.strip()
         if not line or line.startswith("#"):
@@ -406,12 +455,24 @@ def parse_uprof_pcm_output(text: str, passthrough_unmapped: bool = False) -> lis
         cols = [c.strip().strip('"') for c in line.split(",")]
         if not cols or not cols[0]:
             continue
-        ts = _parse_timestamp(cols[0])
-        if ts is None:
-            continue
-        if t0 is None:
-            t0 = ts
-        rel_ts = ts - t0
+
+        if has_explicit_timestamp:
+            ts = _parse_timestamp(cols[0])
+            if ts is None:
+                continue
+            if t0 is None:
+                t0 = ts
+            rel_ts = ts - t0
+        else:
+            # v5 format: rows don't include a timestamp; synthesize from row
+            # index × sample interval. But reject rows that don't look like
+            # numeric data (section markers etc. would land here).
+            try:
+                float(cols[0])
+            except ValueError:
+                continue
+            rel_ts = row_idx * sample_interval_s
+            row_idx += 1
 
         for col_idx, metric_name in col_metrics.items():
             if col_idx >= len(cols):

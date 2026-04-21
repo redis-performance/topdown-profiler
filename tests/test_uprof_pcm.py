@@ -86,6 +86,92 @@ class TestParseFixture:
         assert "total_dispatch_slots" not in names
 
 
+# ── v5 format: real AMDuProfPcm 5.2.606 output from EPYC Zen 5 ──────
+
+
+class TestRealV5Format:
+    """Parse actual AMDuProfPcm 5.2.606 CSV from EPYC 9R45 (Zen 5)."""
+
+    def _load(self):
+        return (TEST_DATA_DIR / "uprof_pcm_5.2_real.csv").read_text()
+
+    def test_parser_accepts_v5_format(self):
+        """No 'Timestamp' column; parser must auto-detect by matching
+        canonical TMA column names in the header."""
+        samples = parse_uprof_pcm_output(self._load())
+        assert len(samples) > 0, "v5 format should produce samples"
+
+    def test_all_l1_metrics_extracted(self):
+        samples = parse_uprof_pcm_output(self._load())
+        names = {s.metric_name for s in samples}
+        assert "Frontend_Bound" in names
+        assert "Backend_Bound" in names
+        assert "Bad_Speculation" in names
+        assert "Retiring" in names
+
+    def test_all_l2_metrics_extracted(self):
+        samples = parse_uprof_pcm_output(self._load())
+        names = {s.metric_name for s in samples}
+        # Zen 5 pipeline_util exposes all 8 L2 sub-categories
+        assert "Frontend_Bound.Fetch_Latency" in names
+        assert "Frontend_Bound.Fetch_Bandwidth" in names
+        assert "Bad_Speculation.Branch_Mispredicts" in names
+        assert "Bad_Speculation.Machine_Clears" in names
+        assert "Backend_Bound.Memory_Bound" in names
+        assert "Backend_Bound.Core_Bound" in names
+        assert "Retiring.Light_Operations" in names
+        assert "Retiring.Heavy_Operations" in names
+
+    def test_total_dispatch_slots_not_emitted(self):
+        """Data row starts with Total_Dispatch_Slots value but that
+        column must be skipped (metadata, not a TMA %)."""
+        samples = parse_uprof_pcm_output(self._load())
+        names = {s.metric_name for s in samples}
+        assert "Total_Dispatch_Slots" not in names
+        assert "SMT_Disp_contention" not in names
+
+    def test_synthetic_timestamps(self):
+        """v5 format has no Timestamp column. Parser assigns 0.0s to first
+        row and increments by the sample interval read from preamble."""
+        samples = parse_uprof_pcm_output(self._load())
+        timestamps = sorted({s.timestamp for s in samples})
+        assert timestamps[0] == pytest.approx(0.0)
+        # Second interval at sample_interval_s (1.0 in our fixture's preamble)
+        if len(timestamps) > 1:
+            assert timestamps[1] == pytest.approx(1.0)
+
+    def test_values_are_reasonable_percentages(self):
+        """All TMA samples should be 0-100%."""
+        samples = parse_uprof_pcm_output(self._load())
+        for s in samples:
+            assert 0.0 <= s.value <= 100.0, f"{s.metric_name}={s.value}"
+
+    def test_values_sum_roughly_to_100(self):
+        """L1 categories should sum to ~100% per timestamp (per AMD spec)."""
+        samples = parse_uprof_pcm_output(self._load())
+        # Group by timestamp
+        by_ts: dict[float, dict[str, float]] = {}
+        for s in samples:
+            by_ts.setdefault(s.timestamp, {})[s.metric_name] = s.value
+        for ts, metrics in by_ts.items():
+            l1_sum = (
+                metrics.get("Frontend_Bound", 0)
+                + metrics.get("Backend_Bound", 0)
+                + metrics.get("Bad_Speculation", 0)
+                + metrics.get("Retiring", 0)
+            )
+            # AMD pipeline_util may not sum to exactly 100 (see uProf docs —
+            # sub-slot accounting has a small rounding drift). Allow ±5%.
+            assert 95.0 <= l1_sum <= 105.0, f"ts={ts} L1 sum={l1_sum}"
+
+    def test_ipc_column_not_present_in_pipeline_util(self):
+        """v5.2 pipeline_util does not include IPC (unlike some older versions).
+        Our parser must still not emit IPC even if it appears in another group."""
+        samples = parse_uprof_pcm_output(self._load())
+        names = {s.metric_name for s in samples}
+        assert "IPC" not in names
+
+
 # ── canonicalization: individual column headers ─────────────────────
 
 
