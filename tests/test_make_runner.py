@@ -3,8 +3,9 @@
 from unittest.mock import patch
 
 from topdown.collector import make_runner, resolve_collector
-from topdown.collector.toplev import ToplevRunner
 from topdown.collector.perf_stat import PerfStatRunner
+from topdown.collector.perf_stat_amd import PerfStatAmdRunner
+from topdown.collector.toplev import ToplevRunner
 from topdown.collector.uprof_pcm import UprofPcmRunner
 from topdown.config import TopdownConfig
 
@@ -18,11 +19,19 @@ class TestResolveCollector:
         config = TopdownConfig()
         assert resolve_collector(config) == "toplev"
 
+    @patch("topdown.collector.uprof_pcm.check_uprof_pcm_available", return_value=(True, "ok"))
     @patch("topdown.collector.uprof_pcm.detect_amd_vendor", return_value=True)
     @patch("platform.machine", return_value="x86_64")
-    def test_x86_64_amd_defaults_to_uprof_pcm(self, _mock_mach, _mock_vendor):
+    def test_x86_64_amd_with_uprof_defaults_to_uprof_pcm(self, _mock_mach, _mock_vendor, _mock_avail):
         config = TopdownConfig()
         assert resolve_collector(config) == "uprof_pcm"
+
+    @patch("topdown.collector.uprof_pcm.check_uprof_pcm_available", return_value=(False, "not installed"))
+    @patch("topdown.collector.uprof_pcm.detect_amd_vendor", return_value=True)
+    @patch("platform.machine", return_value="x86_64")
+    def test_x86_64_amd_without_uprof_falls_back_to_perf_stat_amd(self, _mock_mach, _mock_vendor, _mock_avail):
+        config = TopdownConfig()
+        assert resolve_collector(config) == "perf_stat_amd"
 
     @patch("platform.machine", return_value="aarch64")
     def test_aarch64_defaults_to_perf_stat(self, _mock):
@@ -58,13 +67,23 @@ class TestMakeRunner:
         runner = make_runner(config, pids=[1234], system_wide=False, level=2)
         assert isinstance(runner, ToplevRunner)
 
+    @patch("topdown.collector.uprof_pcm.check_uprof_pcm_available", return_value=(True, "ok"))
     @patch("topdown.collector.uprof_pcm.detect_amd_vendor", return_value=True)
     @patch("platform.machine", return_value="x86_64")
-    def test_x86_64_amd_returns_uprof_pcm_runner(self, _mock_mach, _mock_vendor):
+    def test_x86_64_amd_with_uprof_returns_uprof_pcm_runner(self, _mock_mach, _mock_vendor, _mock_avail):
         config = TopdownConfig()
         runner = make_runner(config, pids=None, system_wide=True, level=2)
         assert isinstance(runner, UprofPcmRunner)
         assert runner.options.system_wide is True
+
+    @patch("topdown.collector.uprof_pcm.check_uprof_pcm_available", return_value=(False, "not installed"))
+    @patch("topdown.collector.uprof_pcm.detect_amd_vendor", return_value=True)
+    @patch("platform.machine", return_value="x86_64")
+    def test_x86_64_amd_without_uprof_returns_perf_stat_amd_runner(self, _mock_mach, _mock_vendor, _mock_avail):
+        config = TopdownConfig()
+        runner = make_runner(config, pids=[1234], system_wide=False, level=1)
+        assert isinstance(runner, PerfStatAmdRunner)
+        assert runner.options.pids == [1234]
 
     @patch("platform.machine", return_value="aarch64")
     def test_aarch64_returns_perf_stat_runner(self, _mock):

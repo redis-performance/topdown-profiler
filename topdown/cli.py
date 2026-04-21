@@ -83,6 +83,12 @@ def collect(
             console.print("Install AMD uProf: https://www.amd.com/en/developer/uprof.html")
             console.print("or  export TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_X.Y-ZZZ/bin/AMDuProfPcm")
             raise typer.Exit(1)
+    elif collector == "perf_stat_amd":
+        from topdown.collector.perf_stat_amd import check_perf_stat_amd_supported
+        ok, msg = check_perf_stat_amd_supported()
+        if not ok:
+            console.print(f"[red]Error:[/red] {msg}")
+            raise typer.Exit(1)
     else:
         from topdown.collector.perf_stat import check_perf_topdown_supported
         ok, msg = check_perf_topdown_supported()

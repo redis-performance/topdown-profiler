@@ -9,12 +9,15 @@ logger = logging.getLogger(__name__)
 def resolve_collector(config) -> str:
     """Determine which collector to use based on config and platform.
 
-    Returns ``"toplev"``, ``"perf_stat"``, or ``"uprof_pcm"``.
+    Returns ``"toplev"``, ``"perf_stat"``, ``"uprof_pcm"``, or
+    ``"perf_stat_amd"``.
 
     Dispatch order:
       * explicit ``config.collector`` wins
       * aarch64 -> ``perf_stat``
-      * x86_64 + AuthenticAMD -> ``uprof_pcm``
+      * x86_64 + AuthenticAMD + AMDuProfPcm installed -> ``uprof_pcm``
+      * x86_64 + AuthenticAMD + no AMDuProfPcm -> ``perf_stat_amd``
+        (TMA-analog via stock perf Zen events; less accurate than uProf)
       * x86_64 default -> ``toplev``
     """
     if config.collector:
@@ -25,10 +28,23 @@ def resolve_collector(config) -> str:
         return "perf_stat"
 
     # x86_64: split Intel vs AMD via /proc/cpuinfo vendor_id.
-    from topdown.collector.uprof_pcm import detect_amd_vendor
+    from topdown.collector.uprof_pcm import (
+        detect_amd_vendor,
+        check_uprof_pcm_available,
+    )
 
     if detect_amd_vendor():
-        return "uprof_pcm"
+        uprof_path = getattr(config, "uprof_pcm_path", None)
+        ok, _msg = check_uprof_pcm_available(uprof_path)
+        if ok:
+            return "uprof_pcm"
+        # Fallback: AMD perf-stat events — less accurate but needs no extra install
+        logger.info(
+            "AuthenticAMD detected but AMDuProfPcm not installed; "
+            "falling back to perf-stat AMD Zen events collector."
+        )
+        return "perf_stat_amd"
+
     return "toplev"
 
 
@@ -73,6 +89,19 @@ def make_runner(
             uprof_pcm_path=getattr(config, "uprof_pcm_path", None),
         )
         return UprofPcmRunner(options)
+
+    if collector == "perf_stat_amd":
+        from topdown.collector.perf_stat_amd import (
+            PerfStatAmdRunner, PerfStatAmdOptions,
+        )
+
+        if level > 1:
+            logger.warning(
+                "perf-stat AMD events produce L1 metrics only; ignoring level=%d",
+                level,
+            )
+        options = PerfStatAmdOptions(pids=pids, system_wide=system_wide)
+        return PerfStatAmdRunner(options)
 
     # default: toplev (Intel)
     from topdown.collector.toplev import ToplevRunner, ToplevOptions
