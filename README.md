@@ -59,21 +59,31 @@ sudo sysctl kernel.perf_event_paranoid=1
 
 ### AMD Zen Prerequisites
 
+Two collectors are supported; the tool picks the best available automatically:
+
+**Preferred — AMD uProf (L1+L2 pipeline utilization):**
 - [AMD uProf](https://www.amd.com/en/developer/uprof.html) installed (`.deb`, `.rpm`, or `.tar.bz2`)
 - `AMDuProfPcm` binary on `PATH` (or export `TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_X.Y-ZZZ/bin/AMDuProfPcm`)
-- Root required for system-wide collection (IBS / PMU driver access)
-- Richest metric coverage on Zen 4+ (EPYC 9xx4 Genoa/Bergamo); older Zen families produce a subset
+- Root typically required for system-wide collection (IBS / PMU driver access)
+- Richest metric coverage on Zen 4+ (EPYC 9xx4 Genoa/Bergamo/Turin); older Zen families produce a subset
 - Uses `AMDuProfPcm -m pipeline_util -a -d <sec> -o <csv>` under the hood
-- L1 + L2 pipeline utilization (Frontend/Backend/Bad_Spec/Retiring and their sub-categories)
+- L1 + L2 categories (Frontend/Backend/Bad_Spec/Retiring + sub-categories)
 
 ```bash
-# Install on Debian/Ubuntu
-wget https://www.amd.com/.../amduprof_X.Y-ZZZ_amd64.deb
-sudo dpkg -i amduprof_*_amd64.deb
-# Add to PATH (version-specific)
-export PATH="/opt/AMDuProf_$(ls /opt | grep AMDuProf | head -1 | sed 's/AMDuProf_//')/bin:$PATH"
+# Install (download requires accepting AMD's EULA on the website)
+wget <URL-from-https://www.amd.com/en/developer/uprof.html>
+tar -xjf AMDuProf_Linux_x64_*.tar.bz2 -C /opt
+export PATH="/opt/AMDuProf_Linux_x64_*/bin:$PATH"
 AMDuProfPcm --help  # sanity check
 ```
+
+**Fallback — stock `perf stat -e <zen-events>` (L1 only, no extra install):**
+- Activates automatically on AMD hosts when AMDuProfPcm is missing
+- Uses Zen 4/5 PMU events (`de_src_op_disp.all`, `ex_ret_ops`, `ex_ret_brn_misp`,
+  `de_no_dispatch_per_slot.no_ops_from_frontend`, `.backend_stalls`, `cpu-cycles`)
+- Linux kernel 6.7+ for Zen 4 events; 6.10+ for Zen 5 (EPYC 9R45)
+- `perf_event_paranoid <= -1` for `--system-wide` (or run as root)
+- Bad_Speculation is best-effort (AMD exposes no "mis-speculated slots" counter)
 
 ### ARM Neoverse Prerequisites
 
@@ -88,10 +98,36 @@ AMDuProfPcm --help  # sanity check
 | CPU vendor / arch | Default collector | Override env var |
 |---|---|---|
 | `x86_64` + `GenuineIntel` | `toplev` | `TOPDOWN_COLLECTOR=toplev` |
-| `x86_64` + `AuthenticAMD` | `uprof_pcm` | `TOPDOWN_COLLECTOR=uprof_pcm` |
+| `x86_64` + `AuthenticAMD` (uProf installed) | `uprof_pcm` | `TOPDOWN_COLLECTOR=uprof_pcm` |
+| `x86_64` + `AuthenticAMD` (no uProf) | `perf_stat_amd` | `TOPDOWN_COLLECTOR=perf_stat_amd` |
 | `aarch64` | `perf_stat` | `TOPDOWN_COLLECTOR=perf_stat` |
 
 `/proc/cpuinfo` `vendor_id` drives the Intel vs AMD split on x86_64.
+On AMD, the presence of `AMDuProfPcm` in `PATH` (or `TOPDOWN_UPROF_PCM_PATH`)
+decides between `uprof_pcm` and the `perf_stat_amd` fallback.
+
+### Troubleshooting
+
+**`No samples collected.`** — check `kernel.perf_event_paranoid`:
+```bash
+cat /proc/sys/kernel/perf_event_paranoid
+# For --system-wide AMD collection, need -1:
+sudo sysctl -w kernel.perf_event_paranoid=-1
+```
+
+**AMDuProfPcm not found on AMD host** — tool auto-falls back to `perf_stat_amd`.
+Force uprof if you know it's installed:
+```bash
+export TOPDOWN_UPROF_PCM_PATH=/opt/AMDuProf_Linux_x64_X.Y.Z/bin/AMDuProfPcm
+```
+
+**`Topdown requested but the topdown metric groups aren't present`** — means
+`perf stat --topdown` was invoked on AMD. Shouldn't happen now; if it does,
+force the right collector: `TOPDOWN_COLLECTOR=perf_stat_amd`.
+
+**Zen 5 events missing from `perf list`** — kernel older than 6.10. Upgrade
+kernel or use `TOPDOWN_COLLECTOR=perf_stat_amd` anyway (raw event numbers
+fall through) — or install AMDuProfPcm which has its own event knowledge.
 
 ## Quick Start
 

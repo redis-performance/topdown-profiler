@@ -139,7 +139,7 @@ def collect(
     run.duration_seconds = elapsed
 
     if not toplev_samples:
-        console.print("[yellow]Warning:[/yellow] No samples collected. Check toplev output.")
+        console.print(f"[yellow]Warning:[/yellow] No samples collected. Check {collector} output and perf_event_paranoid.")
         raise typer.Exit(1)
 
     # Store results
