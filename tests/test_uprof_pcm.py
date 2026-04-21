@@ -206,6 +206,80 @@ class TestDefensive:
         assert names == {"Frontend_Bound", "Retiring"}
 
 
+# ── passthrough of cache/memory columns (-m l1,l2,l3,memory) ─────────
+
+
+class TestPassthroughUnmapped:
+    def test_passthrough_off_by_default(self):
+        text = (
+            "Timestamp,Frontend_Bound,L3_Miss_Rate,Op_Cache_Fetch_Miss_Rate\n"
+            "09:00:00.000,15.2,0.12,0.03\n"
+        )
+        samples = parse_uprof_pcm_output(text)
+        names = {s.metric_name for s in samples}
+        assert names == {"Frontend_Bound"}
+
+    def test_passthrough_on_emits_amd_namespace(self):
+        text = (
+            "Timestamp,Frontend_Bound,L3_Miss_Rate,Op_Cache_Fetch_Miss_Rate\n"
+            "09:00:00.000,15.2,0.12,0.03\n"
+        )
+        samples = parse_uprof_pcm_output(text, passthrough_unmapped=True)
+        names = {s.metric_name for s in samples}
+        assert "Frontend_Bound" in names
+        assert any(n.startswith("AMD.") and "L3" in n for n in names)
+        assert any(n.startswith("AMD.") and "Op_Cache" in n for n in names)
+
+    def test_passthrough_preserves_tma_columns(self):
+        """Canonical TMA columns should not get double-emitted under AMD.*"""
+        text = (
+            "Timestamp,Frontend_Bound,Backend_Bound\n"
+            "09:00:00.000,15.2,44.6\n"
+        )
+        samples = parse_uprof_pcm_output(text, passthrough_unmapped=True)
+        names = {s.metric_name for s in samples}
+        assert names == {"Frontend_Bound", "Backend_Bound"}
+        assert not any(n.startswith("AMD.") for n in names)
+
+    def test_passthrough_ignores_random_text(self):
+        """Arbitrary header tokens without metric hints should still be dropped."""
+        text = (
+            "Timestamp,Frontend_Bound,RandomNonsense,Notes\n"
+            "09:00:00.000,15.2,abc,xyz\n"
+        )
+        samples = parse_uprof_pcm_output(text, passthrough_unmapped=True)
+        names = {s.metric_name for s in samples}
+        assert "Frontend_Bound" in names
+        assert not any("RandomNonsense" in n for n in names)
+        assert not any("Notes" in n for n in names)
+
+
+# ── metric-group configurability ────────────────────────────────────
+
+
+class TestMetricGroupOption:
+    def test_default_is_pipeline_util(self):
+        opts = UprofPcmOptions()
+        assert opts.metric_group == "pipeline_util"
+
+    def test_multi_group_string(self, tmp_path):
+        fake = tmp_path / "AMDuProfPcm"
+        fake.write_text("#!/bin/sh\n")
+        fake.chmod(0o755)
+        runner = UprofPcmRunner(
+            UprofPcmOptions(
+                uprof_pcm_path=str(fake),
+                metric_group="pipeline_util,l1,l2,l3,memory",
+            )
+        )
+        cmd = runner.build_command("/tmp/out.csv", duration_seconds=30)
+        m_idx = cmd.index("-m")
+        assert cmd[m_idx + 1] == "pipeline_util,l1,l2,l3,memory"
+
+    def test_passthrough_option_default_off(self):
+        assert UprofPcmOptions().passthrough_unmapped is False
+
+
 # ── vendor detection ────────────────────────────────────────────────
 
 

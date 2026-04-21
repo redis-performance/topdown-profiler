@@ -69,7 +69,21 @@ _AMD_NAME_MAP: dict[str, str] = {
 }
 
 # Columns we skip (metadata / non-TMA quantities in pipeline_util group).
-_SKIP_COLUMNS = {"timestamp", "total_dispatch_slots", "smt_disp_contention", "ipc", "time", ""}
+_SKIP_COLUMNS = {"timestamp", "total_dispatch_slots", "smt_disp_contention", "time", ""}
+
+# When ``passthrough_unmapped=True`` on the parser, these groups' columns
+# (case-insensitive substring match on the header) are emitted with their
+# raw AMD names under the ``AMD.`` prefix, so cache/memory counters from
+# ``-m l1,l2,l3,memory`` are queryable without polluting the canonical TMA
+# hierarchy. Callers that only want canonical TMA metrics get unchanged
+# behaviour (default).
+_PASSTHROUGH_HINTS = (
+    "access_rate", "miss_rate", "hit_rate",
+    "access", "miss", "hit",
+    "ic_", "op_cache", "l1_", "l2_", "l3_",
+    "bw_", "bandwidth", "memory_bw",
+    "ipc",
+)
 
 
 @dataclass
@@ -83,6 +97,10 @@ class UprofPcmOptions:
     # breakdown. Extend with "l1,l2,l3,memory" for cache/memory metrics.
     metric_group: str = "pipeline_util"
     uprof_pcm_path: str | None = None  # None => search $PATH and /opt/AMDuProf_*/bin/
+    # When True, non-TMA columns from -m l1/l2/l3/memory are emitted under
+    # an ``AMD.`` prefix so they can be queried / charted alongside TMA.
+    # Default off for backward compatibility with pipeline_util-only use.
+    passthrough_unmapped: bool = False
     extra_args: list[str] = field(default_factory=list)
 
 
@@ -232,7 +250,9 @@ class UprofPcmRunner:
             except OSError:
                 pass
 
-        samples = parse_uprof_pcm_output(text)
+        samples = parse_uprof_pcm_output(
+            text, passthrough_unmapped=self.options.passthrough_unmapped,
+        )
         logger.info("Parsed %d samples from AMDuProfPcm output", len(samples))
         return samples
 
@@ -293,7 +313,35 @@ def _canonicalize_amd_metric(header_col: str) -> str | None:
     return None
 
 
-def parse_uprof_pcm_output(text: str) -> list[ToplevSample]:
+def _passthrough_amd_metric(header_col: str) -> str | None:
+    """Emit an ``AMD.<raw_name>`` canonical name for cache/memory columns.
+
+    Used when ``passthrough_unmapped=True`` in the parser. Returns ``None``
+    for columns that look like metadata / timestamps, otherwise returns a
+    namespaced passthrough label (e.g. ``AMD.L3_Miss_Rate``).
+    """
+    raw = header_col.strip().strip('"').strip()
+    if not raw:
+        return None
+    low = raw.lower()
+    if low in _SKIP_COLUMNS:
+        return None
+    # Already-mapped TMA columns should never passthrough
+    if _canonicalize_amd_metric(raw) is not None:
+        return None
+    # Only passthrough if the column looks like a metric (not random free-text)
+    for hint in _PASSTHROUGH_HINTS:
+        if hint in low:
+            # Sanitise: keep alnum + underscore + dot; drop other chars
+            clean = re.sub(r"[^A-Za-z0-9_.]", "_", raw.strip())
+            clean = re.sub(r"_+", "_", clean).strip("_")
+            if clean:
+                return f"AMD.{clean}"
+            return None
+    return None
+
+
+def parse_uprof_pcm_output(text: str, passthrough_unmapped: bool = False) -> list[ToplevSample]:
     """Parse AMDuProfPcm pipeline_util CSV into ToplevSample objects.
 
     The CSV has a short preamble (TSC_Frequency, Socket count, NPS,
@@ -301,6 +349,12 @@ def parse_uprof_pcm_output(text: str) -> list[ToplevSample]:
     "Timestamp", then one data row per interval. Preamble and blank
     lines are skipped; we locate the header by its first column being
     "timestamp" (case-insensitive).
+
+    When ``passthrough_unmapped`` is True (default False), cache/memory
+    columns from ``-m l1,l2,l3,memory`` that look like metrics are emitted
+    with their raw AMD names under an ``AMD.`` prefix (e.g.
+    ``AMD.L3_Miss_Rate``) so they're queryable without polluting the
+    canonical TMA hierarchy.
     """
     if not text or not text.strip():
         return []
@@ -319,12 +373,20 @@ def parse_uprof_pcm_output(text: str) -> list[ToplevSample]:
 
     header_cols = [c.strip().strip('"') for c in lines[header_idx].split(",")]
 
-    # Map column index -> canonical metric name (skip metadata columns)
+    # Map column index -> canonical metric name (skip metadata columns).
+    # First pass: canonical TMA. Second pass (optional): AMD passthrough.
     col_metrics: dict[int, str] = {}
     for i, col in enumerate(header_cols):
         name = _canonicalize_amd_metric(col)
         if name:
             col_metrics[i] = name
+    if passthrough_unmapped:
+        for i, col in enumerate(header_cols):
+            if i in col_metrics:
+                continue
+            name = _passthrough_amd_metric(col)
+            if name:
+                col_metrics[i] = name
 
     if not col_metrics:
         logger.warning(

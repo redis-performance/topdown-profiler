@@ -439,8 +439,11 @@ def explain(
     metric: Annotated[str, typer.Argument(help="Metric name (e.g. 'Backend_Bound.Memory_Bound' or 'DRAM_Bound')")],
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ):
-    """Explain a TMA metric with causes and tuning hints."""
-    from topdown.knowledge.metrics import get_metric_info
+    """Explain a TMA metric with causes and tuning hints.
+
+    Auto-selects the Intel or AMD knowledge base based on CPU vendor.
+    """
+    from topdown.knowledge import get_metric_info
     from topdown.output.terminal import print_metric_explanation
     from topdown.output.export import export_json
 
