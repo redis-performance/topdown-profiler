@@ -1,7 +1,7 @@
 """Tests for the AMDuProfPcm collector (AMD Zen)."""
 
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import MagicMock, patch, mock_open
 
 import pytest
 
@@ -376,3 +376,95 @@ class TestUprofPcmRunnerCommand:
             runner = UprofPcmRunner(UprofPcmOptions())
             with pytest.raises(RuntimeError, match="AMDuProfPcm not found"):
                 runner.build_command("/tmp/x.csv", duration_seconds=10)
+
+    def test_build_command_configured_path_missing(self):
+        runner = UprofPcmRunner(UprofPcmOptions(uprof_pcm_path="/nonexistent/AMDuProfPcm"))
+        with pytest.raises(RuntimeError, match="AMDuProfPcm not found at configured path"):
+            runner.build_command("/tmp/x.csv", duration_seconds=10)
+
+    def test_build_command_discovers_in_opt(self, tmp_path):
+        """Binary discovery via /opt/AMDuProf_*/bin/ glob fallback."""
+        fake_dir = tmp_path / "AMDuProf_Linux_x64_5.0.1630" / "bin"
+        fake_dir.mkdir(parents=True)
+        fake_bin = fake_dir / "AMDuProfPcm"
+        fake_bin.write_text("#!/bin/sh\n")
+        fake_bin.chmod(0o755)
+        with patch("topdown.collector.uprof_pcm.shutil.which", return_value=None), \
+             patch("topdown.collector.uprof_pcm.Path") as mock_Path:
+            mock_Path.return_value.glob.return_value = [fake_dir.parent]
+            mock_Path.side_effect = lambda p=None: Path(p) if p is not None else None
+            # Path("/opt").glob(...) → returns our tmp AMDuProf_* dir
+            mock_root = MagicMock()
+            mock_root.glob.return_value = [fake_dir.parent]
+            mock_Path.side_effect = lambda x: mock_root if x == "/opt" else Path(x)
+            runner = UprofPcmRunner(UprofPcmOptions())
+            cmd = runner.build_command("/tmp/x.csv", duration_seconds=10)
+            assert str(fake_bin) == cmd[0]
+
+
+# ── run() subprocess wrapping ───────────────────────────────────────
+
+
+class TestRunSubprocess:
+    def _make_runner(self, tmp_path, **kwargs):
+        fake = tmp_path / "AMDuProfPcm"
+        fake.write_text("#!/bin/sh\n")
+        fake.chmod(0o755)
+        kwargs.setdefault("uprof_pcm_path", str(fake))
+        return UprofPcmRunner(UprofPcmOptions(**kwargs))
+
+    def test_run_logs_pid_mode_and_falls_back_system_wide(self, tmp_path, caplog):
+        """PIDs requested → logs warning + continues system-wide."""
+        runner = self._make_runner(tmp_path, pids=[1234, 5678])
+        fake_proc = MagicMock()
+        fake_proc.returncode = 0
+        fake_proc.communicate.return_value = ("", "")
+        with patch("topdown.collector.uprof_pcm.subprocess.Popen", return_value=fake_proc), \
+             patch("topdown.collector.uprof_pcm.tempfile.NamedTemporaryFile") as nt:
+            nt.return_value.name = str(tmp_path / "out.csv")
+            import logging
+            with caplog.at_level(logging.WARNING, logger="topdown.collector.uprof_pcm"):
+                runner.run(5)
+            assert any("does not support per-PID" in r.message for r in caplog.records)
+
+    def test_run_nonzero_returncode_raises_with_permission_hint(self, tmp_path):
+        runner = self._make_runner(tmp_path)
+        fake_proc = MagicMock()
+        fake_proc.returncode = 126
+        fake_proc.communicate.return_value = ("", "permission denied opening PMU")
+        with patch("topdown.collector.uprof_pcm.subprocess.Popen", return_value=fake_proc), \
+             patch("topdown.collector.uprof_pcm.tempfile.NamedTemporaryFile") as nt:
+            nt.return_value.name = str(tmp_path / "out.csv")
+            with pytest.raises(RuntimeError) as exc:
+                runner.run(5)
+            assert "root" in str(exc.value).lower() or "permission" in str(exc.value).lower()
+
+    def test_run_popen_file_not_found_raises_install_hint(self, tmp_path):
+        runner = self._make_runner(tmp_path)
+        with patch(
+            "topdown.collector.uprof_pcm.subprocess.Popen",
+            side_effect=FileNotFoundError("no such file"),
+        ), patch("topdown.collector.uprof_pcm.tempfile.NamedTemporaryFile") as nt:
+            nt.return_value.name = str(tmp_path / "out.csv")
+            with pytest.raises(RuntimeError, match="failed to launch"):
+                runner.run(5)
+
+    def test_run_and_parse_cleans_up_tempfile(self, tmp_path):
+        """Happy path: run() produces a CSV, parser returns samples, file is deleted."""
+        runner = self._make_runner(tmp_path)
+        csv_path = tmp_path / "uprof_run.csv"
+        csv_path.write_text(
+            "Timestamp,Frontend_Bound,Retiring\n"
+            "09:00:00.000,15.2,50.0\n"
+            "09:00:01.000,14.8,52.0\n"
+        )
+        fake_proc = MagicMock()
+        fake_proc.returncode = 0
+        fake_proc.communicate.return_value = ("", "")
+        nt_instance = MagicMock()
+        nt_instance.name = str(csv_path)
+        with patch("topdown.collector.uprof_pcm.subprocess.Popen", return_value=fake_proc), \
+             patch("topdown.collector.uprof_pcm.tempfile.NamedTemporaryFile", return_value=nt_instance):
+            samples = runner.run_and_parse(5)
+        assert len(samples) == 4  # 2 metrics x 2 rows
+        assert not csv_path.exists(), "tempfile should be cleaned up"
