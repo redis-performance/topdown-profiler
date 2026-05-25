@@ -1,170 +1,71 @@
-# AGENTS.md — topdown-profiler MCP Agent
+# Agent guidelines
 
-## Overview
+Instructions for AI coding agents (Claude Code, Copilot, Cursor, etc.) working in this repo.
 
-topdown-profiler exposes an MCP (Model Context Protocol) server that enables AI assistants to collect, query, and analyze Intel Top-Down Microarchitecture Analysis (TMA) data.
+## Project overview
 
-## Setup
+`topdown-profiler` is a Python tool and MCP (Model Context Protocol) server that collects, stores, and analyzes Intel Top-Down Microarchitecture Analysis (TMA) data for profiling CPU-bound workloads. The tool supports multiple storage backends (SQLite and PostgreSQL) and provides both CLI commands and an MCP server interface for analyzing CPU bottlenecks in Redis and other performance-critical services.
 
-### Claude Code
+## Local setup
 
-Add to your project's `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "topdown": {
-      "command": "topdown",
-      "args": ["mcp-serve"]
-    }
-  }
-}
+```bash
+git clone https://github.com/redis-performance/topdown-profiler.git
+cd topdown-profiler
+poetry install
 ```
 
-### Claude Desktop
+Python 3.10 or newer is required. [Poetry](https://python-poetry.org/docs/#installation) manages the virtual environment and dependencies — install it first if you don't have it:
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `~/.config/Claude/claude_desktop_config.json` (Linux):
-
-```json
-{
-  "mcpServers": {
-    "topdown": {
-      "command": "topdown",
-      "args": ["mcp-serve"],
-      "env": {
-        "TOPDOWN_DB_PATH": "/path/to/your/data.db"
-      }
-    }
-  }
-}
+```bash
+pipx install poetry   # recommended
+# or: curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-### HTTP Transport (remote/shared)
+To add the optional PostgreSQL backend:
 
-```json
-{
-  "mcpServers": {
-    "topdown": {
-      "command": "topdown",
-      "args": ["mcp-serve", "--transport", "http", "--port", "8000"]
-    }
-  }
-}
+```bash
+poetry install -E postgresql
 ```
 
-## Available Tools
+## Branch naming
 
-### collect_topdown
+Same as human contributors: `<type>/<short-description>` (e.g. `fix/off-by-one-in-pipeline`).
 
-Run a TMA collection for a process.
+## Coding standards
 
-**Parameters:**
-- `process_name` (str, required): Process name to profile (e.g. `redis-server`)
-- `level` (int, default 2): TMA analysis level 1-6
-- `duration_seconds` (int, default 30): Collection duration
-- `system_wide` (bool, default false): Profile all CPUs
-- `labels` (dict, optional): Labels like `{"git_branch": "unstable", "test_name": "set-get-100"}`
+- Match the style already in the file you are editing.
+- Prefer clear, minimal changes over large refactors unless explicitly asked.
+- Do not add comments that describe *what* the code does — only add comments when the *why* is non-obvious.
+- Do not introduce new dependencies without checking with the maintainer.
 
-**Example prompt:** *"Profile redis-server for 30 seconds at level 3 with labels git_branch=unstable and test_name=set-get-100"*
+## Running tests
 
-### query_bottlenecks
+All new behaviour must be covered by tests. Existing tests must pass before declaring a task complete.
 
-Find ranked CPU bottlenecks from stored data.
+```bash
+make test
+# equivalent: poetry run pytest tests/ -v
+```
 
-**Parameters:**
-- `process_name` (str, optional): Filter by process
-- `labels` (dict, optional): Filter by labels
-- `last_hours` (float, default 24): Time window
-- `min_percentage` (float, default 5): Minimum threshold
-- `top_n` (int, default 10): Max results
+To also run linting:
 
-**Example prompt:** *"What are the top bottlenecks for redis-server on branch unstable?"*
+```bash
+make lint
+# equivalent: poetry run ruff check topdown/ tests/
+```
 
-### query_by_bottleneck
+Coverage should not decrease. CI runs the test matrix across Python 3.10, 3.11, 3.12, and 3.13.
 
-Find which benchmarks/runs hit a specific TMA bottleneck.
+## How to submit changes
 
-**Parameters:**
-- `metric_name` (str, required): TMA metric (e.g. `DRAM_Bound`, `L3_Bound`)
-- `min_pct` (float, default 5): Minimum percentage
-- `labels` (dict, optional): Label filters
-- `last_hours` (float, default 24): Time window
+1. Create a branch: `git checkout -b <type>/<description>`.
+2. Commit with a clear message focused on *why*, not *what*.
+3. Open a pull request against `main`.
+4. Do **not** push directly to `main`.
 
-**Example prompt:** *"Which benchmarks are DRAM-bound above 15%?"*
+## What to avoid
 
-### get_funnel
-
-VTune-style pipeline slot funnel showing where 100% of CPU slots go.
-
-**Parameters:**
-- `run_id` (str, optional): Specific run
-- `process_name` (str, optional): Filter by process
-- `labels` (dict, optional): Filter by labels
-- `level` (int, default 3): Max drill-down depth
-
-**Example prompt:** *"Show me the pipeline funnel for redis-server running set-get-100"*
-
-### compare_runs
-
-Compare two profiling runs by ID.
-
-**Parameters:**
-- `run_id_a` (str, required): Baseline run ID
-- `run_id_b` (str, required): Comparison run ID
-
-**Example prompt:** *"Compare run abc123 with run def456"*
-
-### compare_by_labels
-
-Compare latest runs matching two different label sets.
-
-**Parameters:**
-- `label_a` (dict, required): Baseline labels (e.g. `{"build_variant": "release"}`)
-- `label_b` (dict, required): Comparison labels (e.g. `{"build_variant": "debug"}`)
-- `process_name` (str, optional): Process filter
-
-**Example prompt:** *"Compare release vs debug builds of redis-server"*
-
-### explain_metric
-
-Explain a TMA metric with description, typical causes, and tuning hints.
-
-**Parameters:**
-- `metric_name` (str, required): Full path or leaf name (e.g. `DRAM_Bound` or `Backend_Bound.Memory_Bound.DRAM_Bound`)
-
-**Example prompt:** *"Explain what L3_Bound means and how to fix it"*
-
-### list_profiling_runs
-
-List recent profiling runs.
-
-**Parameters:**
-- `process_name` (str, optional): Filter by process
-- `labels` (dict, optional): Filter by labels
-- `last_hours` (float, default 24): Time window
-
-**Example prompt:** *"Show me all profiling runs from the last 24 hours"*
-
-## Available Resources
-
-| URI | Description |
-|-----|-------------|
-| `topdown://runs/{run_id}/tree` | Full TMA hierarchy for a run |
-| `topdown://metrics` | All 120+ known TMA metrics |
-| `topdown://methodology` | Intel TMA methodology overview |
-
-## Label System
-
-Runs are tagged with auto-detected labels (arch, kernel, cpu, hostname) and user-supplied labels. The AI can filter queries by any combination:
-
-- *"What are the bottlenecks for branch unstable on test set-get-100?"* → filters by `git_branch` + `test_name`
-- *"Compare oss-standalone vs oss-cluster topology"* → filters by `topology`
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `TOPDOWN_DB_PATH` | SQLite database path | `~/.topdown/data.db` |
-| `TOPDOWN_BACKEND` | Storage backend (`sqlite` or `postgresql`) | `sqlite` |
-| `TOPDOWN_DSN` | PostgreSQL connection string | - |
-| `TOPDOWN_TOPLEV_PATH` | Path to toplev.py | `toplev.py` |
+- Do not reformat files unrelated to your change.
+- Do not remove error handling or tests.
+- Do not commit secrets, credentials, or large binary files.
+- Do not amend published commits.
