@@ -15,7 +15,8 @@ topdown = "topdown.cli:app_main"
 python = "^3.10"
 typer = ">=0.9.0"
 rich = ">=13.0.0"
-mcp = {version = ">=1.0.0", extras = ["cli"]}
+# mcp 2.0 moved FastMCP out of mcp.server.fastmcp; 1.10 adds the TokenVerifier auth API.
+mcp = {version = ">=1.10.0,<2", extras = ["cli"]}
 
 [tool.poetry.extras]
 postgresql = ["psycopg"]

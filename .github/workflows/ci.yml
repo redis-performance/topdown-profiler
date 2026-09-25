@@ -50,6 +50,34 @@ jobs:
           name: test-results-py${{ matrix.python-version }}
           path: junit.xml
 
+  test-mcp-floor:
+    # There is no lock file, so the matrix above always resolves the newest
+    # mcp 1.x. This keeps the declared lower bound honest.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies at the mcp lower bound
+        run: |
+          poetry install --no-interaction
+          poetry run pip install "mcp[cli]==1.10.0"
+          poetry run pip check
+
+      - name: Run tests
+        run: poetry run pytest tests/ -q --tb=short
+
   lint:
     runs-on: ubuntu-latest
     steps:
