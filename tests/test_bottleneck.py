@@ -59,11 +59,11 @@ class TestFindBottlenecks:
 
 
 class TestFindDeepestBottlenecks:
-    def test_finds_deepest_per_root(self, sample_metrics):
+    def test_finds_deepest_per_branch(self, sample_metrics):
         found = find_deepest_bottlenecks(sample_metrics, min_percentage=5.0)
-        # Should find at most one per L1 root
-        roots = [b.metric_name.split(".")[0] for b in found]
-        assert len(roots) == len(set(roots))
+        # At most one per Level-2 branch
+        branches = [".".join(b.metric_name.split(".")[:2]) for b in found]
+        assert len(branches) == len(set(branches))
 
     def test_prefers_deeper_levels(self):
         metrics = [

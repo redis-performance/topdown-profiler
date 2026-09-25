@@ -46,6 +46,14 @@ def _create_mcp(host: str = "localhost", port: int = 8000) -> FastMCP:
 mcp = FastMCP("topdown-profiler", instructions=_MCP_INSTRUCTIONS)
 
 
+def _comparison_mux_note(metrics_a: list[dict], metrics_b: list[dict]) -> str:
+    """MUX note for a comparison, using the noisier of the two runs."""
+    from topdown.units import lowest_mux, mux_note
+
+    muxes = [m for m in (lowest_mux(metrics_a), lowest_mux(metrics_b)) if m is not None]
+    return f"\n\n{mux_note(min(muxes))}" if muxes else ""
+
+
 def _get_backend():
     config = get_config()
     return get_backend(config)
@@ -81,7 +89,8 @@ def collect_topdown(
     from topdown.collector.process_resolver import resolve_pids
     from topdown.collector.labels import collect_auto_labels, merge_labels
     from topdown.storage.models import Run, Sample
-    from topdown.analysis.bottleneck import find_bottlenecks, summarize_bottlenecks
+    from topdown.analysis.bottleneck import find_bottlenecks, find_detail_bottlenecks, summarize_bottlenecks
+    from topdown.units import lowest_mux
 
     config = get_config()
     collector = resolve_collector(config)
@@ -142,8 +151,9 @@ def collect_topdown(
         backend.update_run(run.run_id, run.ended_at, run.duration_seconds)
 
         metrics = backend.get_aggregated_metrics(run.run_id)
-        bottleneck_list = find_bottlenecks(metrics, top_n=5)
-        summary = summarize_bottlenecks(bottleneck_list)
+        summary = summarize_bottlenecks(
+            find_bottlenecks(metrics, top_n=5), find_detail_bottlenecks(metrics, top_n=5), lowest_mux(metrics)
+        )
 
         return (
             f"Collection complete.\n"
@@ -174,7 +184,12 @@ def query_bottlenecks(
         min_percentage: Minimum bottleneck percentage to include
         top_n: Maximum number of results
     """
-    from topdown.analysis.bottleneck import find_bottlenecks, summarize_bottlenecks
+    from topdown.analysis.bottleneck import (
+        find_bottlenecks,
+        find_detail_bottlenecks,
+        summarize_bottlenecks,
+    )
+    from topdown.units import lowest_mux
 
     backend = _get_backend()
     try:
@@ -185,15 +200,16 @@ def query_bottlenecks(
         run = runs[0]
         metrics = backend.get_aggregated_metrics(run.run_id)
         found = find_bottlenecks(metrics, top_n=top_n, min_percentage=min_percentage)
+        details = find_detail_bottlenecks(metrics, top_n=top_n, min_percentage=min_percentage)
 
-        if not found:
+        if not found and not details:
             return f"No bottlenecks above {min_percentage}% found."
 
         lines = [
-            f"Run: {run.run_id[:12]} | {run.process_name} | L{run.level} | {run.started_at.strftime('%Y-%m-%d %H:%M')}",
+            f"Run: {run.run_id} | {run.process_name} | L{run.level} | {run.started_at.strftime('%Y-%m-%d %H:%M')}",
             f"Labels: {', '.join(f'{k}={v}' for k, v in run.labels.items() if k in ('git_branch', 'test_name', 'topology', 'build_variant'))}",
             "",
-            summarize_bottlenecks(found),
+            summarize_bottlenecks(found, details, lowest_mux(metrics)),
         ]
         return "\n".join(lines)
     finally:
@@ -212,23 +228,30 @@ def query_by_bottleneck(
     Returns runs where the specified metric exceeds the threshold, with their labels.
 
     Args:
-        metric_name: TMA metric name (e.g. 'DRAM_Bound', 'L3_Bound', 'Branch_Mispredicts')
-        min_pct: Minimum percentage threshold
+        metric_name: TMA node name, matched exactly at any depth (e.g. 'DRAM_Bound',
+            'L3_Bound', 'Backend_Bound.Memory_Bound'). If no node has that exact name,
+            falls back to a case-insensitive substring match and says so.
+        min_pct: Minimum value, in the node's own unit (slots, clocks, stalls...)
         labels: Optional label filters
         last_hours: Time window in hours
     """
     import json
 
+    from topdown.storage.base import DEFAULT_NODE_LIMIT, MATCH_SUBSTRING
+    from topdown.units import format_value, node_query_empty_message, node_query_header, truncated_note
+
+    if not metric_name:
+        return "metric_name is required (e.g. 'DRAM_Bound')."
     backend = _get_backend()
     try:
-        results = backend.query_by_bottleneck(
-            metric_name=metric_name, min_pct=min_pct,
-            labels=labels, last_hours=last_hours,
+        results, match, truncated = backend.find_runs_by_node(
+            metric_name, min_pct=min_pct, labels=labels, last_hours=last_hours,
         )
+        substring = match == MATCH_SUBSTRING
         if not results:
-            return f"No runs found where {metric_name} >= {min_pct}%"
+            return node_query_empty_message(metric_name, min_pct, substring)
 
-        lines = [f"Runs where {metric_name} >= {min_pct}%:\n"]
+        lines = [node_query_header(metric_name, min_pct, substring) + "\n"]
         for r in results:
             run_labels = r.get("labels", "{}")
             if isinstance(run_labels, str):
@@ -237,9 +260,12 @@ def query_by_bottleneck(
                           if k in ("git_branch", "git_hash", "test_name", "topology", "build_variant", "client_tool")}
             label_str = ", ".join(f"{k}={v}" for k, v in interesting.items())
             lines.append(
-                f"  {r['run_id'][:12]} | {r.get('avg_value', 0):.1f}% | "
+                f"  {r['run_id']} | {r.get('metric_name', '')} "
+                f"{format_value(r.get('avg_value', 0), r.get('unit'))} | "
                 f"{r.get('process_name', '')} | {label_str}"
             )
+        if truncated:
+            lines.append("\n" + truncated_note(DEFAULT_NODE_LIMIT))
         return "\n".join(lines)
     finally:
         backend.close()
@@ -282,7 +308,7 @@ def get_funnel(
             return "No metrics found for this run."
 
         result = build_funnel(metrics, max_level=level)
-        header = f"Run: {run.run_id[:12]} | {run.process_name} | L{run.level}\n\n"
+        header = f"Run: {run.run_id} | {run.process_name} | L{run.level}\n\n"
         return header + format_funnel_text(result)
     finally:
         backend.close()
@@ -327,9 +353,9 @@ def compare_funnel(
         funnel_b = build_funnel(metrics_b, max_level=level)
 
         header = (
-            f"A: {run_a.run_id[:12]} | {run_a.labels.get('git_branch', '?')} | "
+            f"A: {run_a.run_id} | {run_a.labels.get('git_branch', '?')} | "
             f"{run_a.labels.get('test_name', '?')}\n"
-            f"B: {run_b.run_id[:12]} | {run_b.labels.get('git_branch', '?')} | "
+            f"B: {run_b.run_id} | {run_b.labels.get('git_branch', '?')} | "
             f"{run_b.labels.get('test_name', '?')}\n\n"
         )
         return header + format_funnel_comparison(funnel_a, funnel_b, label_a, label_b)
@@ -363,11 +389,12 @@ def compare_runs(run_id_a: str, run_id_b: str) -> str:
 
         deltas = do_compare(metrics_a, metrics_b)
         if not deltas:
-            return "No significant differences found."
+            return "No significant differences found." + _comparison_mux_note(metrics_a, metrics_b)
 
         return (
-            f"Comparing {run_a.run_id[:12]} (baseline) vs {run_b.run_id[:12]}\n\n"
+            f"Comparing {run_a.run_id} (baseline) vs {run_b.run_id}\n\n"
             + summarize_comparison(deltas)
+            + _comparison_mux_note(metrics_a, metrics_b)
         )
     finally:
         backend.close()
@@ -406,13 +433,14 @@ def compare_by_labels(
 
         deltas = do_compare(metrics_a, metrics_b)
         if not deltas:
-            return "No significant differences found."
+            return "No significant differences found." + _comparison_mux_note(metrics_a, metrics_b)
 
         label_str_a = ", ".join(f"{k}={v}" for k, v in label_a.items())
         label_str_b = ", ".join(f"{k}={v}" for k, v in label_b.items())
         return (
             f"Comparing [{label_str_a}] vs [{label_str_b}]\n\n"
             + summarize_comparison(deltas)
+            + _comparison_mux_note(metrics_a, metrics_b)
         )
     finally:
         backend.close()
@@ -429,7 +457,10 @@ def explain_metric(metric_name: str) -> str:
         metric_name: TMA metric name to explain
     """
     from topdown.knowledge import get_metric_info
+    from topdown.units import MUX_EXPLANATION, is_quality_metric
 
+    if is_quality_metric(metric_name):
+        return f"## {metric_name}\nData-quality indicator, not a TMA node.\n\n{MUX_EXPLANATION}"
     info = get_metric_info(metric_name)
     if not info:
         return f"Unknown metric '{metric_name}'. Use a full path like 'Backend_Bound.Memory_Bound' or a leaf name like 'DRAM_Bound'."
@@ -483,7 +514,7 @@ def list_profiling_runs(
                           if k in ("git_branch", "test_name", "topology", "build_variant")}
             label_str = ", ".join(f"{k}={v}" for k, v in interesting.items()) if interesting else ""
             lines.append(
-                f"  {r.run_id[:12]} | {r.started_at.strftime('%Y-%m-%d %H:%M')} | "
+                f"  {r.run_id} | {r.started_at.strftime('%Y-%m-%d %H:%M')} | "
                 f"{r.process_name} | L{r.level} | {r.duration_seconds:.1f}s"
                 + (f" | {label_str}" if label_str else "")
             )
@@ -505,8 +536,11 @@ def run_tree(run_id: str) -> str:
         metrics = backend.get_aggregated_metrics(run_id)
         if not metrics:
             return f"No metrics for run {run_id}"
-        tree = build_tree(metrics)
-        return format_tree_text(tree)
+        from topdown.units import lowest_mux, mux_note
+
+        text = format_tree_text(build_tree(metrics))
+        mux = lowest_mux(metrics)
+        return f"{text}\n\n{mux_note(mux)}" if mux is not None else text
     finally:
         backend.close()
 

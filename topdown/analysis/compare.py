@@ -4,6 +4,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from topdown.units import (
+    COMPOSITION_NOTE,
+    OTHER_DENOMINATOR_TITLE,
+    UNCHANGED_BELOW,
+    USEFUL_MIX_TITLE,
+    delta_arrow,
+    delta_direction,
+    format_delta,
+    format_value,
+    is_quality_metric,
+    is_slot_unit,
+    normalize_unit,
+    unit_class,
+)
+
+# Rows listed per group by summarize_comparison.
+SUMMARY_ROWS = 5
+
 
 @dataclass
 class MetricDelta:
@@ -13,8 +31,8 @@ class MetricDelta:
     value_a: float
     value_b: float
     delta: float  # value_b - value_a
-    delta_percent: float  # relative change as percentage
-    direction: str  # "improved", "regressed", "unchanged"
+    delta_percent: float | None  # relative change as percentage; None when value_a is 0
+    direction: str  # "improved", "regressed", "unchanged", or "changed" (not judged)
     unit: str
     level: int
 
@@ -29,11 +47,6 @@ class MetricDelta:
             "unit": self.unit,
             "level": self.level,
         }
-
-
-# For most TMA metrics, lower is better (less stalled).
-# Exception: Retiring — higher is better (more useful work).
-_HIGHER_IS_BETTER = {"Retiring", "Light_Operations", "Heavy_Operations"}
 
 
 def compare_runs(
@@ -62,26 +75,25 @@ def compare_runs(
     for name in common_names:
         val_a = lookup_a[name]["value"]
         val_b = lookup_b[name]["value"]
-        unit = lookup_a[name].get("unit", "%")
+        unit = lookup_a[name]["unit"]
+        if unit_class(unit) != unit_class(lookup_b[name]["unit"]):
+            continue  # different denominators (e.g. another microarchitecture)
 
         delta = val_b - val_a
         if abs(delta) < threshold:
             continue
 
         # Relative change
-        delta_pct = (delta / val_a * 100) if val_a != 0 else 0.0
+        delta_pct = (delta / val_a * 100) if val_a != 0 else None
 
-        # Determine direction
-        root = name.split(".")[0]
-        leaf = name.split(".")[-1]
-        higher_is_better = root in _HIGHER_IS_BETTER or leaf in _HIGHER_IS_BETTER
-
-        if abs(delta) < threshold:
+        # Only slot shares have a better/worse reading; see delta_direction.
+        better_when = delta_direction(name, unit)
+        if abs(delta) < UNCHANGED_BELOW:
             direction = "unchanged"
-        elif higher_is_better:
-            direction = "improved" if delta > 0 else "regressed"
+        elif better_when == 0:
+            direction = "changed"
         else:
-            direction = "improved" if delta < 0 else "regressed"
+            direction = "improved" if delta * better_when > 0 else "regressed"
 
         deltas.append(
             MetricDelta(
@@ -96,7 +108,9 @@ def compare_runs(
             )
         )
 
-    deltas.sort(key=lambda d: abs(d.delta), reverse=True)
+    # Slot shares first: a clocks/stalls delta isn't comparable with them.
+    # Name breaks ties so the order doesn't depend on set iteration.
+    deltas.sort(key=lambda d: (not is_slot_unit(d.unit), -abs(d.delta), d.metric_name))
     return deltas
 
 
@@ -107,18 +121,36 @@ def summarize_comparison(deltas: list[MetricDelta]) -> str:
 
     improved = [d for d in deltas if d.direction == "improved"]
     regressed = [d for d in deltas if d.direction == "regressed"]
+    changed = [d for d in deltas if d.direction == "changed"]
+    other_denominators = [d for d in changed if not is_slot_unit(d.unit)]
+    useful_mix = [d for d in changed if is_slot_unit(d.unit)]
 
     lines = []
-    if regressed:
-        lines.append(f"Regressions ({len(regressed)}):")
-        for d in regressed[:5]:
-            lines.append(f"  ↑ {d.metric_name}: {d.value_a:.1f}% -> {d.value_b:.1f}% ({d.delta:+.1f}%)")
-    if improved:
-        lines.append(f"Improvements ({len(improved)}):")
-        for d in improved[:5]:
-            lines.append(f"  ↓ {d.metric_name}: {d.value_a:.1f}% -> {d.value_b:.1f}% ({d.delta:+.1f}%)")
+    for title, group in (
+        ("Regressions", regressed),
+        ("Improvements", improved),
+        (OTHER_DENOMINATOR_TITLE, other_denominators),
+        (USEFUL_MIX_TITLE, useful_mix),
+    ):
+        if group:
+            lines.append(f"{title} ({len(group)}):")
+            lines.extend(_delta_line(d) for d in group[:SUMMARY_ROWS])
+            if len(group) > SUMMARY_ROWS:
+                lines.append(f"  ... +{len(group) - SUMMARY_ROWS} more")
+    if regressed or improved:
+        lines.append(COMPOSITION_NOTE)
+    if not lines:
+        return "No significant differences found."
 
     return "\n".join(lines)
+
+
+def _delta_line(d: MetricDelta) -> str:
+    return (
+        f"  {delta_arrow(d.delta)} {d.metric_name}: "
+        f"{format_value(d.value_a, d.unit)} -> {format_value(d.value_b, d.unit)} "
+        f"({format_delta(d.delta, d.unit)})"
+    )
 
 
 def _build_lookup(metrics: list[dict]) -> dict[str, dict]:
@@ -126,8 +158,8 @@ def _build_lookup(metrics: list[dict]) -> dict[str, dict]:
     lookup = {}
     for m in metrics:
         name = m.get("metric_name", "")
-        if not name:
+        if not name or is_quality_metric(name):
             continue
         value = m.get("value", m.get("avg_value", 0.0))
-        lookup[name] = {**m, "value": value}
+        lookup[name] = {**m, "value": value, "unit": normalize_unit(m.get("unit", "%"))}
     return lookup

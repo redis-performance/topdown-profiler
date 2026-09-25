@@ -161,3 +161,15 @@ class TestSetupApiKeyAuth:
         assert key.startswith("td_")
         assert path.exists()
         assert path.read_text() == key
+
+
+class TestAuthenticatedServer:
+    """Build the real authenticated server: needs mcp's TokenVerifier API (1.10+)."""
+
+    def test_api_key_server_builds(self, monkeypatch):
+        from topdown.mcp_server import _create_mcp
+
+        monkeypatch.setenv("TOPDOWN_AUTH_MODE", "api-key")
+        monkeypatch.setenv("TOPDOWN_API_KEY", "td_test_key")
+        server = _create_mcp(host="127.0.0.1", port=8765)
+        assert server.settings.auth is not None

@@ -236,24 +236,28 @@ topdown query --funnel --label test_name=set-get-50-50
 #   Useful work (Retiring): 31.2%
 #   Wasted:                 68.8%
 #
-#   Frontend_Bound              12.3%  █████ ✗
-#     Fetch_Latency              8.1%  ███ ✗
-#       ICache_Misses            3.2%  █ ✗
-#       Branch_Resteers          3.8%  █ ✗
-#     Fetch_Bandwidth            4.2%  █ ✗
-#   Bad_Speculation              8.5%  ███ ✗
-#     Branch_Mispredicts         6.2%  ██ ✗
-#   Backend_Bound               48.0%  ███████████████████ ✗
-#     Memory_Bound              32.1%  ████████████ ✗
-#       L1_Bound                 5.3%  ██ ✗
-#       L3_Bound                12.8%  █████ ✗
-#       DRAM_Bound               8.7%  ███ ✗
-#       Store_Bound              3.1%  █ ✗
-#     Core_Bound                15.9%  ██████ ✗
-#       Ports_Utilization       13.2%  █████ ✗
-#   Retiring                    31.2%  ████████████ ✓
+#   Backend_Bound               48.0%                    ███████████████████ ✗
+#     Memory_Bound              32.1%                    ████████████ ✗
+#       L3_Bound                12.8% of Stalls           ✗
+#       DRAM_Bound               8.7% of Stalls           ✗
+#       L1_Bound                 5.3% of Stalls           ✗
+#       Store_Bound              3.1% of Stalls           ✗
+#     Core_Bound                15.9%                    ██████ ✗
+#       Ports_Utilization       13.2% of Clocks           ✗
+#   Retiring                    31.2%                    ████████████ ✓
+#   Frontend_Bound              12.3%                    █████ ✗
+#     Fetch_Latency              8.1%                    ███ ✗
+#       Branch_Resteers          3.8% of Clocks           ✗
+#       ICache_Misses            3.2% of Clocks           ✗
+#     Fetch_Bandwidth            4.2%                    █ ✗
+#   Bad_Speculation              8.5%                    ███ ✗
+#     Branch_Mispredicts         6.2%                    ██ ✗
+#
+# Rows marked 'of Stalls' / 'of Clocks' are fractions of that denominator, not
+# of pipeline slots (toplev reports them that way), so they get no bar.
 
-# 4. The workload is Backend_Bound (48%) → Memory_Bound (32%) → L3_Bound (12.8%)
+# 4. The workload is Backend_Bound (48%) → Memory_Bound (32% of slots), and within
+#    Memory_Bound the largest stall share is L3_Bound (12.8% of Stalls).
 #    Let's understand what L3_Bound means:
 topdown explain L3_Bound
 
@@ -269,22 +273,30 @@ topdown compare \
   --label-b build_variant=release-io-threads-4 \
   --process redis-server
 
-# Comparison: 7f3a2b1c vs 9e4d5f6a
+#   Comparison: A = 7f3a2b1c-0d4e-4f5a-9b6c-7d8e9f0a1b2c
+#          vs B = 9e4d5f6a-1b2c-4d3e-8f9a-0b1c2d3e4f5a
+#   Metric                                   A       B     Delta   Direction
+#   Retiring                             31.2%   38.5%   +7.3 pp   ↑ improved
+#   Backend_Bound.Memory_Bound           32.1%   26.5%   -5.6 pp   ↓ improved
+#   Backend_Bound.Core_Bound             15.9%   11.3%   -4.6 pp   ↓ improved
+#   Frontend_Bound                       12.3%   14.1%   +1.8 pp   ↑ regressed
+#   Backend_Bound.Memory_Bound.L3_Bound  12.8%    7.2%   -5.6 pp   ↓ changed
+#     of Stalls
+#   Data quality: MUX 9.0% (lowest per-interval event-multiplexing ratio). ...
 #
-# Regressions (1):
-#   ↑ Frontend_Bound: 12.3% -> 14.1% (+1.8%)
-# Improvements (3):
-#   ↓ Backend_Bound.Memory_Bound.L3_Bound: 12.8% -> 7.2% (-5.6%)
-#   ↓ Backend_Bound.Core_Bound: 15.9% -> 11.3% (-4.6%)
-#   ↑ Retiring: 31.2% -> 38.5% (+7.3%)   ← more useful work!
+#   Only slot shares get a better/worse reading; L3_Bound is a share of stall
+#   cycles, so it is listed but not judged.
 
 # 7. Which of your benchmarks are DRAM-bound?
+#    --bottleneck matches the TMA node name at any depth, ignoring case; if no
+#    node has that name it falls back to a substring match and says so.
 topdown query --bottleneck DRAM_Bound --min-pct 10
 
-# Runs where DRAM_Bound >= 10%:
-#   RUN ID       | VALUE  | PROCESS       | LABELS
-#   7f3a2b1c     | 18.7%  | redis-server  | test_name=hset-hget, topology=oss-cluster
-#   3c8d9e2f     | 12.1%  | redis-server  | test_name=zadd-zrange, topology=oss-standalone
+# Runs where DRAM_Bound >= 10.0% (in the node's own unit):
+# 7f3a2b1c-0d4e-4f5a-9b6c-7d8e9f0a1b2c  18.7% of Stalls  Backend_Bound.Memory_Bound.DRAM_Bound
+#     2026-04-08 15:57 redis-server; test_name=hset-hget, topology=oss-cluster
+# 3c8d9e2f-5a6b-4c7d-8e9f-0a1b2c3d4e5f  12.1% of Stalls  Backend_Bound.Memory_Bound.DRAM_Bound
+#     2026-04-08 16:02 redis-server; test_name=zadd-zrange, topology=oss-standalone
 ```
 
 ## Labels

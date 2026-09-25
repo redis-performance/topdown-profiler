@@ -8,6 +8,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 from typing_extensions import Annotated
 
 from topdown import __version__
@@ -22,6 +23,21 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 console = Console()
+
+
+# Below this width a table with a full run ID column has no room for the rest.
+WIDE_TABLE_COLUMNS = 120
+
+
+def emit(text: str) -> None:
+    """Machine-readable output (JSON/CSV) straight to stdout: no Rich wrapping or markup."""
+    typer.echo(text.rstrip("\n"))
+
+
+def emit_note(text: str | None) -> None:
+    """A caveat that goes with machine-readable output: stderr, so stdout stays parseable."""
+    if text:
+        typer.echo(text, err=True)
 
 
 def parse_duration(s: str) -> int:
@@ -171,7 +187,7 @@ def collect(
                 "duration": elapsed,
                 "labels": all_labels,
             }
-            console.print_json(json.dumps(result))
+            emit(json.dumps(result, indent=2))
         else:
             console.print(f"[green]Done.[/green] Run ID: {run.run_id}")
             console.print(f"  Samples: {count} | Duration: {elapsed:.1f}s")
@@ -222,11 +238,32 @@ def list_runs(
                 }
                 for r in runs
             ]
-            console.print_json(json.dumps(data))
+            emit(json.dumps(data, indent=2))
+            return
+
+        def label_str(r):
+            # Show a subset of interesting labels
+            interesting = {
+                k: v
+                for k, v in r.labels.items()
+                if k in ("git_branch", "git_hash", "test_name", "topology", "build_variant", "client_tool")
+            }
+            return ", ".join(f"{k}={v}" for k, v in interesting.items()) if interesting else "-"
+
+        if console.width < WIDE_TABLE_COLUMNS:
+            # A full run ID leaves no room for the other columns: one record per run.
+            console.print(f"Recent Runs (last {last})", style="bold")
+            for r in runs:
+                console.print(Text.assemble((r.run_id, "cyan"), "  ", r.started_at.strftime("%Y-%m-%d %H:%M")))
+                console.print(
+                    f"    {r.process_name} L{r.level} {r.duration_seconds:.1f}s; {label_str(r)}",
+                    style="dim",
+                    markup=False,
+                )
             return
 
         table = Table(title=f"Recent Runs (last {last})")
-        table.add_column("Run ID", style="cyan", max_width=12)
+        table.add_column("Run ID", style="cyan", no_wrap=True)
         table.add_column("Started", style="green")
         table.add_column("Process", style="yellow")
         table.add_column("Level")
@@ -234,21 +271,13 @@ def list_runs(
         table.add_column("Key Labels", max_width=50)
 
         for r in runs:
-            # Show a subset of interesting labels
-            interesting = {
-                k: v
-                for k, v in r.labels.items()
-                if k in ("git_branch", "git_hash", "test_name", "topology", "build_variant", "client_tool")
-            }
-            label_str = ", ".join(f"{k}={v}" for k, v in interesting.items()) if interesting else "-"
-
             table.add_row(
-                r.run_id[:12],
+                r.run_id,
                 r.started_at.strftime("%Y-%m-%d %H:%M"),
-                r.process_name,
+                Text(r.process_name),
                 str(r.level),
                 f"{r.duration_seconds:.1f}s",
-                label_str,
+                Text(label_str(r)),
             )
 
         console.print(table)
@@ -276,9 +305,28 @@ def query(
 ):
     """Query stored Top-Down analysis data."""
     from topdown.analysis.topdown_tree import build_tree
-    from topdown.analysis.bottleneck import find_bottlenecks, find_deepest_bottlenecks
+    from topdown.analysis.bottleneck import (
+        find_bottlenecks,
+        find_deepest_bottlenecks,
+        find_detail_bottlenecks,
+    )
     from topdown.analysis.funnel import build_funnel
-    from topdown.output.terminal import print_bottlenecks, print_tree, print_funnel, print_by_bottleneck_results
+    from topdown.output.terminal import (
+        print_bottlenecks,
+        print_by_bottleneck_results,
+        print_funnel,
+        print_mux_note,
+        print_tree,
+    )
+    from topdown.storage.base import DEFAULT_NODE_LIMIT, MATCH_SUBSTRING
+    from topdown.units import (
+        DETAIL_TITLE,
+        lowest_mux,
+        mux_note,
+        node_query_empty_message,
+        node_query_header,
+        truncated_note,
+    )
     from topdown.output.export import export_json, export_csv
 
     filter_labels = parse_label_args(label)
@@ -288,22 +336,33 @@ def query(
     try:
         # Mode: find runs matching a specific bottleneck
         if bottleneck:
-            results = backend.query_by_bottleneck(
-                metric_name=bottleneck,
+            results, match, truncated = backend.find_runs_by_node(
+                bottleneck,
                 min_pct=min_pct,
                 labels=filter_labels if filter_labels else None,
                 last_hours=parse_time_window(last),
             )
-            if not results:
-                console.print(f"No runs found where {bottleneck} >= {min_pct}%")
+            substring = match == MATCH_SUBSTRING
+            if json_output or csv_output:
+                rows = [{**r, "match": match, "truncated": truncated} for r in results]
+                emit(export_json(rows) if json_output else export_csv(rows))
+                if not results:
+                    emit_note(node_query_empty_message(bottleneck, min_pct, substring))
+                if truncated:
+                    emit_note(truncated_note(DEFAULT_NODE_LIMIT))
                 return
-            if json_output:
-                console.print_json(export_json(results))
-            elif csv_output:
-                console.print(export_csv(results))
-            else:
-                print_by_bottleneck_results(results)
+            if not results:
+                console.print(node_query_empty_message(bottleneck, min_pct, substring), markup=False)
+                return
+            console.print(node_query_header(bottleneck, min_pct, substring), markup=False)
+            print_by_bottleneck_results(results)
+            if truncated:
+                console.print(f"[dim]{truncated_note(DEFAULT_NODE_LIMIT)}[/dim]")
             return
+
+        if csv_output and (funnel or tree):
+            typer.echo("Error: --csv is supported for --bottlenecks, --bottleneck and the default view", err=True)
+            raise typer.Exit(2)
 
         # For tree/bottleneck/funnel modes, we need a specific run
         if run_id:
@@ -326,41 +385,62 @@ def query(
 
         metrics = backend.get_aggregated_metrics(run.run_id)
         if not metrics:
-            console.print(f"No metrics found for run {run.run_id[:12]}")
+            console.print(f"No metrics found for run {run.run_id}")
             return
 
-        console.print(f"[dim]Run: {run.run_id[:12]} | {run.process_name} | L{run.level} | {run.started_at.strftime('%Y-%m-%d %H:%M')}[/dim]")
+        if not (json_output or csv_output):
+            console.print(
+                f"[dim]Run: {run.run_id} | {run.process_name} | L{run.level} | "
+                f"{run.started_at.strftime('%Y-%m-%d %H:%M')}[/dim]"
+            )
+        mux = lowest_mux(metrics)
 
         if funnel:
             result = build_funnel(metrics, max_level=level or 3)
             if json_output:
-                console.print_json(export_json(result.to_dict()))
+                emit(export_json(result.to_dict()))
             else:
                 print_funnel(result)
 
         elif tree:
             tree_root = build_tree(metrics)
             if json_output:
-                console.print_json(export_json(tree_root.to_dict()))
+                emit(export_json(tree_root.to_dict()))
+                emit_note(mux_note(mux) if mux is not None else None)
             else:
                 print_tree(tree_root, title=f"TMA Tree - {run.process_name}")
+                print_mux_note(mux)
 
         elif bottlenecks:
             found = find_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct, max_level=level)
+            details = find_detail_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct, max_level=level)
             if json_output:
-                console.print_json(export_json([b.to_dict() for b in found]))
+                emit(export_json([b.to_dict() for b in found + details]))
+                emit_note(mux_note(mux) if mux is not None else None)
             elif csv_output:
-                console.print(export_csv([b.to_dict() for b in found]))
+                emit(export_csv([b.to_dict() for b in found + details]))
+                emit_note(mux_note(mux) if mux is not None else None)
             else:
                 print_bottlenecks(found)
+                if details:
+                    print_bottlenecks(details, title=DETAIL_TITLE)
+                print_mux_note(mux)
 
         else:
             # Default: show deepest bottlenecks (most actionable)
             found = find_deepest_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct)
+            details = find_detail_bottlenecks(metrics, top_n=top_n, min_percentage=min_pct)
             if json_output:
-                console.print_json(export_json([b.to_dict() for b in found]))
+                emit(export_json([b.to_dict() for b in found + details]))
+                emit_note(mux_note(mux) if mux is not None else None)
+            elif csv_output:
+                emit(export_csv([b.to_dict() for b in found + details]))
+                emit_note(mux_note(mux) if mux is not None else None)
             else:
                 print_bottlenecks(found, title="Deepest Bottlenecks")
+                if details:
+                    print_bottlenecks(details, title=DETAIL_TITLE)
+                print_mux_note(mux)
 
     finally:
         backend.close()
@@ -379,7 +459,8 @@ def compare(
 ):
     """Compare two profiling runs and show deltas."""
     from topdown.analysis.compare import compare_runs as do_compare
-    from topdown.output.terminal import print_comparison
+    from topdown.output.terminal import print_comparison, print_mux_note
+    from topdown.units import lowest_mux, mux_note
     from topdown.output.export import export_json
 
     config = get_config(db_path)
@@ -425,16 +506,17 @@ def compare(
 
         deltas = do_compare(metrics_a, metrics_b, threshold=threshold)
 
+        muxes = [m for m in (lowest_mux(metrics_a), lowest_mux(metrics_b)) if m is not None]
+        mux = min(muxes) if muxes else None
+        if json_output:
+            emit(export_json([d.to_dict() for d in deltas]))
+            emit_note(mux_note(mux) if mux is not None else None)
+            return
         if not deltas:
             console.print("No significant differences found.")
-            return
-
-        if json_output:
-            console.print_json(export_json([d.to_dict() for d in deltas]))
         else:
-            label_str_a = found_a.run_id[:12]
-            label_str_b = found_b.run_id[:12]
-            print_comparison(deltas, label_a=label_str_a, label_b=label_str_b)
+            print_comparison(deltas, label_a=found_a.run_id, label_b=found_b.run_id)
+        print_mux_note(mux)
 
     finally:
         backend.close()
@@ -453,14 +535,22 @@ def explain(
     from topdown.output.terminal import print_metric_explanation
     from topdown.output.export import export_json
 
+    from topdown.units import MUX_EXPLANATION, is_quality_metric
+
+    if is_quality_metric(metric):
+        if json_output:
+            emit(export_json({"metric": metric, "kind": "data-quality", "description": MUX_EXPLANATION}))
+        else:
+            console.print(f"[bold]{metric}[/bold]: data-quality indicator, not a TMA node.\n\n{MUX_EXPLANATION}")
+        return
     info = get_metric_info(metric)
     if not info:
-        console.print(f"[red]Error:[/red] Unknown metric '{metric}'")
-        console.print("Use a full path like 'Backend_Bound.Memory_Bound' or a leaf name like 'DRAM_Bound'")
+        typer.echo(f"Error: Unknown metric '{metric}'", err=True)
+        typer.echo("Use a full path like 'Backend_Bound.Memory_Bound' or a leaf name like 'DRAM_Bound'", err=True)
         raise typer.Exit(1)
 
     if json_output:
-        console.print_json(export_json({"metric": metric, **info}))
+        emit(export_json({"metric": metric, **info}))
     else:
         print_metric_explanation(metric, info)
 

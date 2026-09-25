@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 
 from topdown.storage.sqlite_backend import SQLiteBackend
-from topdown.storage.models import Run
+from topdown.storage.models import Run, Sample
 
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
 
@@ -91,3 +91,34 @@ def arm_sample_metrics():
         {"metric_name": "Bad_Speculation", "value": 10.1, "unit": "%"},
         {"metric_name": "Retiring", "value": 25.3, "unit": "%"},
     ]
+
+
+# Two Intel-style runs (toplev units, " <" markers, MUX) with full UUIDs.
+INTEL_RUN_A = "6914975b-b08b-4f0e-9d2a-0123456789ab"
+INTEL_RUN_B = "7a25086c-c19c-4a1f-8e3b-123456789abc"
+
+
+def intel_samples(run_id: str, core: float, serializing: float = 61.0, mux: float = 3.0) -> list[Sample]:
+    rows = [
+        ("Backend_Bound", 40.0, "% Slots <"),
+        ("Backend_Bound.Core_Bound", core, "% Slots"),
+        ("Backend_Bound.Core_Bound.Serializing_Operation", serializing, "% Clocks <"),
+        ("Backend_Bound.Memory_Bound", 10.0, "% Slots"),
+        ("Backend_Bound.Memory_Bound.L1_Bound", 12.0, "% Stalls <"),
+        ("MUX", mux, "%"),
+    ]
+    return [Sample(run_id=run_id, timestamp=1.0, metric_name=m, value=v, unit=u) for m, v, u in rows]
+
+
+def load_intel_runs(backend) -> None:
+    # B has the higher MUX, so "the noisier run's MUX" (3.0) is distinguishable.
+    for run_id, core, serializing, mux in ((INTEL_RUN_A, 30.0, 61.0, 3.0), (INTEL_RUN_B, 20.0, 41.0, 50.0)):
+        backend.insert_run(
+            Run(
+                run_id=run_id,
+                process_name="redis-server",
+                level=4,
+                labels={"test_name": "intel-run", "variant": run_id[:4]},
+            )
+        )
+        backend.insert_samples(intel_samples(run_id, core, serializing, mux))

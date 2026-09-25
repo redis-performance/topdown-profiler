@@ -9,6 +9,8 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
+from topdown.units import BELOW_THRESHOLD_MARKER, is_below_threshold, normalize_unit
+
 logger = logging.getLogger(__name__)
 
 # Regex for percentage values like "15.87%" or "15.87"
@@ -153,7 +155,22 @@ def parse_value(raw: str) -> float:
 
 
 def parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample | None:
-    """Parse a single CSV line given the detected format."""
+    """Parse a single CSV line given the detected format.
+
+    toplev appends " <" to the unit of a node that is below its reporting
+    threshold ("% Slots <"). The unit is stored without it so a metric keeps a
+    single unit across intervals; the marker moves to ``status`` unless that
+    already holds toplev's bottleneck marker.
+    """
+    sample = _parse_line(line, fmt, delimiter)
+    if sample is not None and is_below_threshold(sample.unit):
+        sample.unit = normalize_unit(sample.unit)
+        if not sample.status:
+            sample.status = BELOW_THRESHOLD_MARKER
+    return sample
+
+
+def _parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample | None:
     line = line.strip()
     if not _is_data_line(line):
         return None

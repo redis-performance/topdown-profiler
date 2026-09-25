@@ -117,7 +117,7 @@ class CollectionAgent:
             ]
             count = backend.insert_samples(samples)
             backend.update_run(run.run_id, run.ended_at, run.duration_seconds)
-            logger.info("Stored run %s with %d samples", run.run_id[:12], count)
+            logger.info("Stored run %s with %d samples", run.run_id, count)
         finally:
             backend.close()
 

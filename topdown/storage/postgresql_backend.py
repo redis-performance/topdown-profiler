@@ -7,9 +7,11 @@ from datetime import datetime
 import psycopg
 from psycopg.rows import dict_row
 
-from topdown.storage.base import StorageBackend
+from topdown.storage.base import StorageBackend, escape_like, window_hours
 from topdown.storage.models import Run, Sample
 from topdown.storage.schema import POSTGRESQL_SCHEMA
+from topdown.storage.sql_queries import SqlNodeQueries
+from topdown.units import normalized_unit_sql
 
 
 def _is_valid_uuid(val: str) -> bool:
@@ -20,7 +22,28 @@ def _is_valid_uuid(val: str) -> bool:
         return False
 
 
-class PostgreSQLBackend(StorageBackend):
+_SAMPLE_UNIT = normalized_unit_sql("unit", pct="%%")
+
+
+class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
+    PH = "%s"
+    PCT = "%%"
+    RUN_ID = "r.run_id::text AS run_id"
+    COLLATE = ' COLLATE "C"'
+    # PostgreSQL stores NaN and treats NaN = NaN as true; one NaN sample would
+    # otherwise make a node's average NaN. (SQLite stores NaN as NULL, so the
+    # NOT NULL value column rejects it.)
+    VALUE_FILTER = " AND s.value <> 'NaN'"
+
+    def _time_condition(self, last_hours: float) -> tuple[str, list]:
+        return "r.started_at >= NOW() - make_interval(secs => %s)", [window_hours(last_hours) * 3600]
+
+    def _label_condition(self, key: str, value: str) -> tuple[str, list]:
+        return "r.labels->>%s = %s", [key, value]
+
+    def _name_filter(self, metric_names: list[str]) -> tuple[str, list]:
+        return "s.metric_name = ANY(%s)", [metric_names]
+
     def __init__(self, dsn: str):
         self.dsn = dsn
         self._conn: psycopg.Connection | None = None
@@ -107,7 +130,7 @@ class PostgreSQLBackend(StorageBackend):
 
         if last_hours is not None:
             query += " AND started_at >= NOW() - make_interval(secs => %s)"
-            params.append(last_hours * 3600)
+            params.append(window_hours(last_hours) * 3600)
 
         if labels:
             for key, value in labels.items():
@@ -126,8 +149,8 @@ class PostgreSQLBackend(StorageBackend):
         conn = self._get_conn()
         if metric_name:
             rows = conn.execute(
-                "SELECT * FROM samples WHERE run_id = %s AND metric_name LIKE %s ORDER BY timestamp",
-                (run_id, f"%{metric_name}%"),
+                "SELECT * FROM samples WHERE run_id = %s AND metric_name LIKE %s ESCAPE '\\' ORDER BY timestamp",
+                (run_id, "%" + escape_like(metric_name) + "%"),
             ).fetchall()
         else:
             rows = conn.execute(
@@ -141,84 +164,13 @@ class PostgreSQLBackend(StorageBackend):
             return []
         conn = self._get_conn()
         rows = conn.execute(
-            """SELECT metric_name, AVG(value) as avg_value, unit,
+            f"""SELECT metric_name, AVG(value) as avg_value, {_SAMPLE_UNIT} as unit,
                       MIN(value) as min_value, MAX(value) as max_value, COUNT(*) as sample_count
                FROM samples WHERE run_id = %s
-               GROUP BY metric_name, unit
+               GROUP BY metric_name, {_SAMPLE_UNIT}
                ORDER BY avg_value DESC""",
             (run_id,),
         ).fetchall()
-        return [dict(r) for r in rows]
-
-    def query_bottlenecks(
-        self,
-        process_name: str | None = None,
-        labels: dict[str, str] | None = None,
-        last_hours: float | None = None,
-        min_percentage: float = 0.0,
-    ) -> list[dict]:
-        conn = self._get_conn()
-        query = """
-            SELECT r.run_id, r.started_at, r.process_name, r.labels, r.level,
-                   s.metric_name, AVG(s.value) as avg_value, s.unit
-            FROM runs r
-            JOIN samples s ON r.run_id = s.run_id
-            WHERE s.unit IN ('%%', '%%_Slots', 'slots')
-        """
-        params: list = []
-
-        if process_name:
-            query += " AND r.process_name = %s"
-            params.append(process_name)
-
-        if last_hours is not None:
-            query += " AND r.started_at >= NOW() - make_interval(secs => %s)"
-            params.append(last_hours * 3600)
-
-        if labels:
-            for key, value in labels.items():
-                query += " AND r.labels->>%s = %s"
-                params.extend([key, value])
-
-        query += " GROUP BY r.run_id, s.metric_name, s.unit HAVING AVG(s.value) >= %s"
-        params.append(min_percentage)
-        query += " ORDER BY avg_value DESC"
-
-        rows = conn.execute(query, params).fetchall()
-        return [dict(r) for r in rows]
-
-    def query_by_bottleneck(
-        self,
-        metric_name: str,
-        min_pct: float = 5.0,
-        labels: dict[str, str] | None = None,
-        last_hours: float | None = None,
-    ) -> list[dict]:
-        conn = self._get_conn()
-        query = """
-            SELECT r.run_id, r.started_at, r.process_name, r.labels, r.level,
-                   s.metric_name, AVG(s.value) as avg_value, s.unit
-            FROM runs r
-            JOIN samples s ON r.run_id = s.run_id
-            WHERE s.metric_name LIKE %s
-              AND s.unit IN ('%%', '%%_Slots', 'slots')
-        """
-        params: list = [f"%{metric_name}%"]
-
-        if last_hours is not None:
-            query += " AND r.started_at >= NOW() - make_interval(secs => %s)"
-            params.append(last_hours * 3600)
-
-        if labels:
-            for key, value in labels.items():
-                query += " AND r.labels->>%s = %s"
-                params.extend([key, value])
-
-        query += " GROUP BY r.run_id, s.metric_name, s.unit HAVING AVG(s.value) >= %s"
-        params.append(min_pct)
-        query += " ORDER BY avg_value DESC"
-
-        rows = conn.execute(query, params).fetchall()
         return [dict(r) for r in rows]
 
     def close(self) -> None:

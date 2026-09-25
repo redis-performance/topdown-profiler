@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from topdown.units import format_value, is_quality_metric, is_slot_unit, normalize_unit
+
 
 @dataclass
 class TreeNode:
@@ -57,7 +59,7 @@ def build_tree(metrics: list[dict]) -> TreeNode:
 
     for metric in metrics:
         name = metric.get("metric_name", "")
-        if not name:
+        if not name or is_quality_metric(name):
             continue
 
         parts = name.split(".")
@@ -71,10 +73,15 @@ def build_tree(metrics: list[dict]) -> TreeNode:
 
         # Set the value on the leaf/target node
         current.value = metric.get("value", metric.get("avg_value", 0.0))
-        current.unit = metric.get("unit", "%")
+        current.unit = normalize_unit(metric.get("unit", "%"))
         current.status = metric.get("status", "")
 
     return root
+
+
+def sort_children(node: TreeNode) -> list[TreeNode]:
+    """Children for display: slot shares first, then other denominators, each by value."""
+    return sorted(node.children.values(), key=lambda c: (is_slot_unit(c.unit), c.value), reverse=True)
 
 
 def get_node(root: TreeNode, path: str) -> TreeNode | None:
@@ -104,12 +111,14 @@ def format_tree_text(node: TreeNode, indent: int = 0, max_level: int | None = No
         prefix = "  " * indent
         bar = _value_bar(node.value)
         status_str = f" [{node.status}]" if node.status else ""
-        lines.append(f"{prefix}{node.name:<40} {node.value:6.1f}{node.unit}  {bar}{status_str}")
+        # Bars are on the slot scale; other denominators don't get one.
+        bar = bar if is_slot_unit(node.unit) else ""
+        lines.append(f"{prefix}{node.name:<40} {format_value(node.value, node.unit):>7}  {bar}{status_str}")
 
     if max_level is not None and node.level >= max_level:
         return "\n".join(lines)
 
-    for child in sorted(node.children.values(), key=lambda c: c.value, reverse=True):
+    for child in sort_children(node):
         lines.append(format_tree_text(child, indent + 1, max_level))
 
     return "\n".join(lines)

@@ -2,15 +2,47 @@
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from topdown.storage.base import StorageBackend
+from topdown.storage.base import StorageBackend, escape_like, window_hours
 from topdown.storage.models import Run, Sample
 from topdown.storage.schema import SQLITE_SCHEMA
+from topdown.storage.sql_queries import SqlNodeQueries
+from topdown.units import normalized_unit_sql
+
+_SAMPLE_UNIT = normalized_unit_sql("unit", pct="%")
 
 
-class SQLiteBackend(StorageBackend):
+def _cutoff_iso(last_hours: float) -> str:
+    """Oldest started_at to keep, compared as text.
+
+    Correct for the tz-aware UTC ``isoformat()`` this tool writes; rows stored
+    in another format or offset by other tools are not normalised.
+    """
+    return (datetime.now(timezone.utc) - timedelta(hours=window_hours(last_hours))).isoformat()
+
+
+# Matches a top-level label key exactly (dots, quotes, backslashes and all) on
+# every SQLite version; a quoted JSON path is not portable.
+_LABEL_MATCH = "EXISTS (SELECT 1 FROM json_each({labels}) WHERE json_each.key = ? AND json_each.value = ?)"
+
+
+class SQLiteBackend(SqlNodeQueries, StorageBackend):
+    PH = "?"
+    PCT = "%"
+    RUN_ID = "r.run_id"
+    COLLATE = ""
+
+    def _time_condition(self, last_hours: float) -> tuple[str, list]:
+        return "r.started_at >= ?", [_cutoff_iso(last_hours)]
+
+    def _label_condition(self, key: str, value: str) -> tuple[str, list]:
+        return _LABEL_MATCH.format(labels="r.labels"), [key, value]
+
+    def _name_filter(self, metric_names: list[str]) -> tuple[str, list]:
+        return f"s.metric_name IN ({', '.join('?' * len(metric_names))})", metric_names
+
     def __init__(self, db_path: Path):
         self.db_path = db_path
         self._conn: sqlite3.Connection | None = None
@@ -95,14 +127,13 @@ class SQLiteBackend(StorageBackend):
             params.append(process_name)
 
         if last_hours is not None:
-            cutoff = datetime.now(timezone.utc).isoformat()
-            query += " AND started_at >= datetime(?, '-' || ? || ' hours')"
-            params.extend([cutoff, str(last_hours)])
+            query += " AND started_at >= ?"
+            params.append(_cutoff_iso(last_hours))
 
         if labels:
             for key, value in labels.items():
-                query += " AND json_extract(labels, ?) = ?"
-                params.extend([f"$.{key}", value])
+                query += " AND " + _LABEL_MATCH.format(labels="labels")
+                params.extend([key, value])
 
         query += " ORDER BY started_at DESC LIMIT ?"
         params.append(limit)
@@ -114,8 +145,8 @@ class SQLiteBackend(StorageBackend):
         conn = self._get_conn()
         if metric_name:
             rows = conn.execute(
-                "SELECT * FROM samples WHERE run_id = ? AND metric_name LIKE ? ORDER BY timestamp",
-                (run_id, f"%{metric_name}%"),
+                "SELECT * FROM samples WHERE run_id = ? AND metric_name LIKE ? ESCAPE '\\' ORDER BY timestamp",
+                (run_id, "%" + escape_like(metric_name) + "%"),
             ).fetchall()
         else:
             rows = conn.execute(
@@ -127,86 +158,13 @@ class SQLiteBackend(StorageBackend):
     def get_aggregated_metrics(self, run_id: str) -> list[dict]:
         conn = self._get_conn()
         rows = conn.execute(
-            """SELECT metric_name, AVG(value) as avg_value, unit,
+            f"""SELECT metric_name, AVG(value) as avg_value, {_SAMPLE_UNIT} as unit,
                       MIN(value) as min_value, MAX(value) as max_value, COUNT(*) as sample_count
                FROM samples WHERE run_id = ?
-               GROUP BY metric_name, unit
+               GROUP BY metric_name, {_SAMPLE_UNIT}
                ORDER BY avg_value DESC""",
             (run_id,),
         ).fetchall()
-        return [dict(r) for r in rows]
-
-    def query_bottlenecks(
-        self,
-        process_name: str | None = None,
-        labels: dict[str, str] | None = None,
-        last_hours: float | None = None,
-        min_percentage: float = 0.0,
-    ) -> list[dict]:
-        conn = self._get_conn()
-        query = """
-            SELECT r.run_id, r.started_at, r.process_name, r.labels, r.level,
-                   s.metric_name, AVG(s.value) as avg_value, s.unit
-            FROM runs r
-            JOIN samples s ON r.run_id = s.run_id
-            WHERE s.unit IN ('%', '%_Slots', 'slots')
-        """
-        params: list = []
-
-        if process_name:
-            query += " AND r.process_name = ?"
-            params.append(process_name)
-
-        if last_hours is not None:
-            cutoff = datetime.now(timezone.utc).isoformat()
-            query += " AND r.started_at >= datetime(?, '-' || ? || ' hours')"
-            params.extend([cutoff, str(last_hours)])
-
-        if labels:
-            for key, value in labels.items():
-                query += " AND json_extract(r.labels, ?) = ?"
-                params.extend([f"$.{key}", value])
-
-        query += " GROUP BY r.run_id, s.metric_name HAVING AVG(s.value) >= ?"
-        params.append(min_percentage)
-        query += " ORDER BY avg_value DESC"
-
-        rows = conn.execute(query, params).fetchall()
-        return [dict(r) for r in rows]
-
-    def query_by_bottleneck(
-        self,
-        metric_name: str,
-        min_pct: float = 5.0,
-        labels: dict[str, str] | None = None,
-        last_hours: float | None = None,
-    ) -> list[dict]:
-        conn = self._get_conn()
-        query = """
-            SELECT r.run_id, r.started_at, r.process_name, r.labels, r.level,
-                   s.metric_name, AVG(s.value) as avg_value, s.unit
-            FROM runs r
-            JOIN samples s ON r.run_id = s.run_id
-            WHERE s.metric_name LIKE ?
-              AND s.unit IN ('%', '%_Slots', 'slots')
-        """
-        params: list = [f"%{metric_name}%"]
-
-        if last_hours is not None:
-            cutoff = datetime.now(timezone.utc).isoformat()
-            query += " AND r.started_at >= datetime(?, '-' || ? || ' hours')"
-            params.extend([cutoff, str(last_hours)])
-
-        if labels:
-            for key, value in labels.items():
-                query += " AND json_extract(r.labels, ?) = ?"
-                params.extend([f"$.{key}", value])
-
-        query += " GROUP BY r.run_id, s.metric_name HAVING AVG(s.value) >= ?"
-        params.append(min_pct)
-        query += " ORDER BY avg_value DESC"
-
-        rows = conn.execute(query, params).fetchall()
         return [dict(r) for r in rows]
 
     def close(self) -> None:

@@ -1,9 +1,14 @@
 """Tests for collection agent."""
 
+import logging
 import signal
 
+from tests.conftest import TEST_DATA_DIR
+from topdown.collector.csv_parser import parse_output
+from topdown.service import agent as agent_module
 from topdown.service.agent import CollectionAgent
 from topdown.config import TopdownConfig
+from topdown.storage.sqlite_backend import SQLiteBackend
 
 
 class TestCollectionAgent:
@@ -42,6 +47,37 @@ class TestCollectionAgent:
             custom_labels={"git_branch": "unstable"},
         )
         assert agent.custom_labels == {"git_branch": "unstable"}
+
+    def test_collect_once_stores_clean_units_and_logs_full_run_id(self, tmp_path, monkeypatch, caplog):
+        samples = parse_output((TEST_DATA_DIR / "toplev_csv_extended_spr.csv").read_text())
+
+        class FakeRunner:
+            def run_and_parse(self, duration_seconds):
+                return samples
+
+        monkeypatch.setattr(agent_module, "resolve_pids", lambda name: [4242])
+        monkeypatch.setattr(agent_module, "resolve_collector", lambda config: "toplev")
+        monkeypatch.setattr(agent_module, "collect_auto_labels", lambda *a, **k: {})
+        monkeypatch.setattr(agent_module, "make_runner", lambda *a, **k: FakeRunner())
+
+        config = TopdownConfig(db_path=tmp_path / "test.db")
+        agent = CollectionAgent(
+            process_name="redis-server",
+            level=4,
+            interval_seconds=60,
+            duration_seconds=1,
+            config=config,
+        )
+        with caplog.at_level(logging.INFO, logger="topdown.service.agent"):
+            agent._collect_once()
+
+        backend = SQLiteBackend(db_path=tmp_path / "test.db")
+        (run,) = backend.list_runs()
+        units = {s.unit for s in backend.get_samples(run.run_id)}
+        backend.close()
+        assert f"Stored run {run.run_id} with {len(samples)} samples" in caplog.text
+        assert "% Slots" in units
+        assert not [u for u in units if u.endswith("<")]
 
 
 class TestSystemdService:
