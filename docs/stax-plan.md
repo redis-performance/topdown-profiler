@@ -5,7 +5,8 @@ criteria below remain required before claiming platform support.
 
 Linux builds and preflight are tested; live capture needs host permissions.
 See the [Linux pilot report](stax-linux-pilot.md) for pinned revisions, results,
-and remaining checks. Apple validation is being handled separately on the M6.
+and remaining checks. The [M1 pilot](stax-m1-pilot.md) is tracked separately;
+M6 acceptance requires its own capture on that host.
 
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes
