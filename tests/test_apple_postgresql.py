@@ -125,6 +125,12 @@ def test_jsonb_preserves_measured_dependent_read_gpu_profiles(postgres_backend, 
     check_measured_dependent_read_storage(postgres_backend, tmp_path)
 
 
+def test_jsonb_preserves_measured_fma_gpu_profiles(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_fma_evidence import check_measured_fma_storage
+
+    check_measured_fma_storage(postgres_backend, tmp_path)
+
+
 @pytest.mark.parametrize("failure", ["components", "duplicate-fields", "metadata", "timestamps"])
 def test_inconsistent_apple_imports_fail_before_jsonb_insert(postgres_backend, tmp_path, failure):
     from topdown.collector.apple import AppleProfileError
