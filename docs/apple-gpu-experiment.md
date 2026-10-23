@@ -288,6 +288,12 @@ counters can include concurrent device activity. They print the native
 and timeline means describe different measurement scopes.
 Older profiles without these groups retain their existing report format.
 
+Labels are retained as exported by the debugger. In a native Xcode 27.1 control,
+Metal encoder labels containing NUL were truncated at that character in the
+debugger output, while the probe's own JSON retained the full labels. Original
+probe metadata can be stored alongside the replay without losing its escaped
+NUL payload values; encoder IDs remain distinct when displayed labels collide.
+
 The MCP server exposes:
 
 GPU captures share the serialized native capture worker with CPU captures;
