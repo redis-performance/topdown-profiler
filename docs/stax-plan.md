@@ -9,8 +9,10 @@ overhead. A [five-pair follow-up](stax-vm-latency-followup.md) confirmed that
 its low-pipeline latency result does not meet the declared budget; a diagnostic
 main-thread-only prototype also failed the longer-run budget and lost thread
 coverage, so no workaround is adopted.
-The [Intel Linux pilot](stax-linux-pilot.md) remains blocked on that host’s
-permissions. The [M1 pilot](stax-m1-pilot.md) has rootless controls but no
+The [Intel Linux pilot](stax-linux-pilot.md) now validates live capture, replay,
+and CLI/SQL/MCP queries after the operator enabled perf permissions. Its
+shared-host performance trials do not establish the overhead budget.
+The [M1 pilot](stax-m1-pilot.md) has rootless controls but no
 privileged CPU capture. The [M6 Metal control](stax-m6-metal-control.md)
 verified rootless target-span ingestion with zero CPU samples; M6 CPU/PMU
 capture requires its own host-specific acceptance check.
