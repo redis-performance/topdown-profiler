@@ -1,6 +1,12 @@
 # Stax pilot and integration plan
 
-Status: proposed; no Stax installation, profiling pilot, or integration has been completed.
+Status: pilot in progress. The optional integration is being tested; the acceptance
+criteria below remain required before claiming platform support.
+
+The initial source review pins Stax to
+`aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes
+archive format v3 and requires Rust 1.92, despite CLI help and some published docs
+still referring to v2 and Rust 1.91. Record the binary digest as well as its version.
 
 ## Goal
 
@@ -27,7 +33,9 @@ profiles must not be presented as Intel TMA funnels.
 - Use an optimized Redis build with debug information and frame pointers
   (`-fno-omit-frame-pointer`). Document installation and permissions, including
   signing and the required privileged helper on macOS. Check supported capabilities
-  on the actual hosts rather than assuming identical coverage.
+  on the actual hosts rather than assuming identical coverage. Verify M1 and M6
+  independently: a running helper does not establish that programmable counters
+  are available on a particular kernel. Preserve unavailable-counter status.
 - Run the same defined Redis workload on each platform, recording the dataset,
   command mix, client configuration, warmup, and measurement duration. Keep
   comparisons within each host; matching workloads do not make different CPUs
@@ -74,7 +82,13 @@ budget; otherwise document the limitation or narrow the supported configuration.
 - Add a Stax subprocess adapter alongside the existing collectors; keep installation optional.
   Start with CLI orchestration. Verify a stable structured extraction path before
   implementing persistent hotspot queries; do not assume every CLI view has JSON
-  output. Evaluate the documented Vox RPC interface only if needed.
+  output. Pin and validate the archive schema against real saved captures. Vox is
+  a binary RPC protocol, not JSON-RPC; evaluate it only if archive ingestion is
+  insufficient. Do not parse human-readable tables into persistent measurements.
+- Own a private server and socket for each capture. Save before shutting down that
+  server: `save` addresses its current query state and has no run selector. Never
+  adopt a shared server or stop its current recording. Serialize captures that
+  could contend for host-wide profiling facilities, even with separate servers.
 - Handle availability, permissions, duration, cancellation, subprocess failures,
   and an already-active Stax recording explicitly. Do not stop unrelated recordings.
 - Reuse collector metadata and add explicit capability information. Reuse benchmark labels such as
@@ -83,7 +97,10 @@ budget; otherwise document the limitation or narrow the supported configuration.
 - Associate saved artifacts and Stax version information with runs. Define artifact
   ownership, retention, and missing-file behavior before relying on file paths.
 - Store sampling summaries with explicit units and denominators, separately from
-  the TMA hierarchy. Preserve existing TMA queries and stored-run compatibility.
+  the TMA hierarchy, with a separate result document linked to the shared run.
+  Separate sample counts, scheduler intervals, and synthetic target-span durations;
+  do not assume their totals form a wall-time utilization denominator. Preserve
+  existing TMA queries and stored-run compatibility.
 - Reuse native Apple launch/attach and metadata conventions where applicable. If
   Stax supports collection by process name, provide portable discovery rather than
   routing macOS through the Linux `/proc` resolver or permission checks.
@@ -101,6 +118,8 @@ budget; otherwise document the limitation or narrow the supported configuration.
 - Support baseline/candidate artifact comparisons with compatible workload and
   capture metadata. Report incompatible comparisons explicitly.
 - Document macOS and Linux setup and a complete Redis example.
+- Treat cooperating GPU spans as explicit target instrumentation, not automatic
+  GPU hardware-counter collection. Keep native Metal replay available separately.
 
 ## Phase 4: CI evaluation
 
