@@ -183,12 +183,14 @@ def test_directory_and_manifest_import(tmp_path, event_log):
     assert a["result"]["frame_table"][0]["name"] == "hot"
 
 
-def test_target_spans_do_not_inflate_cpu_time(stax_archive):
+def test_target_spans_do_not_inflate_cpu_time_or_claim_trace_cpu_id(stax_archive, sqlite_backend):
     doc = archive_document()
+    marker = copy.deepcopy(doc["aggregator"]["threads"][0]["pet_samples"][0])
+    marker["cpu"] = 4
     doc["aggregator"]["threads"].append(
         {
             "tid": 4293918720,
-            "pet_samples": [doc["aggregator"]["threads"][0]["pet_samples"][0]],
+            "pet_samples": [marker],
             "intervals": [
                 {
                     "start_ns": 100,
@@ -207,6 +209,14 @@ def test_target_spans_do_not_inflate_cpu_time(stax_archive):
     assert result["counts"]["cpu_samples"] == 1
     assert result["counts"]["target_stack_samples"] == 1
     assert result["samples"][1]["kind"] == "target-span-stack"
+    assert "trace_cpu_id" not in result["samples"][1]
+    assert "pmc" not in result["samples"][1]
+    assert result["quality"]["cpu_samples_with_trace_cpu_id"] == 0
+    run = store_stax_result(sqlite_backend, stax_archive)
+    page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    target = next(row for row in page["rows"] if row["kind"] == "target-span-stack")
+    assert "trace_cpu_id" not in target
+    assert "pmc" not in target
 
 
 def test_open_interval_uses_last_event(stax_archive):

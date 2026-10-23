@@ -41,11 +41,12 @@
   },
   "topdown_after_patch_import": {
     "public_import_and_sample_query_succeeded": true,
-    "stored_run_id": "5fe9fa36-6411-40a8-8406-54e948d163bc",
+    "stored_run_id": "fe926118-b80a-444f-804a-4a4cd50e3f8b",
     "stored_cpu_samples": 348,
     "stored_target_stack_samples": 299,
     "cpu_samples_with_trace_cpu_id": 348,
     "first_sample_cycles": 0,
+    "target_spans_with_cpu_id_or_pmu_fields": 0,
     "pmu_counter_semantics": "unverified because v3 does not record conversion provenance"
   },
   "checks": {

@@ -477,6 +477,9 @@ samples with each ID alongside 299 real Metal target spans whose CPU ID
 remained unknown. The topdown importer now retains and validates optional raw
 CPU IDs as `trace_cpu_id`: public import and sample queries preserved all 348
 synthetic IDs.
+The importer exposes this field and PMU values only on CPU PET rows, even if a
+synthetic target-span marker carries `cpu` or `pmc` members in an archive; the
+marker is not a CPU-residency or hardware-counter observation.
 These IDs cannot establish core residency or P/E event behavior until a
 privileged capture and independent topology validation are available.
 XNU's [PET implementation](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kperf/pet.c)

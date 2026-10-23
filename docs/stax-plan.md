@@ -88,6 +88,20 @@ profiles must not be presented as Intel TMA funnels.
   `unknown` after such a round trip. The
   [M1 open/save control](stax-m1-save-provenance-control.json) confirms that
   the current server replaces a source archive's producer version when saving.
+- Save the PMU configuration with the captured run: KPC class mask, fixed and
+  configurable counter counts, exact configuration words, KPEP event-to-sample
+  slot mapping, CPU family, and the conversion mode. Verify the configuration
+  remains the same through capture, and mark a run invalid if another profiler
+  changes host-wide PMU state. The [M1 KPEP probe](stax-m1-kpep.json) showed
+  accepted events at sample slots 2 and 5 rather than adjacent positions;
+  event names or zero values alone do not establish the mapping or availability.
+- For a live M1 capture, bracket the profiled interval with process-scoped
+  `RUSAGE_INFO_V6` fixed cycle/instruction readings and compare them with
+  Stax's summed, provenance-labeled thread deltas as a sanity check. Report
+  first-sample and reset gaps, target thread coverage, and differing process
+  scope; these are not expected to be identical. Use scheduler evidence for
+  any P/E attribution, because the same trace CPU at adjacent PET ticks does
+  not rule out migration between those ticks.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
@@ -150,7 +164,9 @@ budget; otherwise document the limitation or narrow the supported configuration.
   Preserve optional raw per-sample CPU IDs when a Stax archive provides them;
   [the rootless M1 core-identity control](stax-m1-core-identity-control.json)
   verifies a proposed upstream parser-to-archive patch and topdown import.
-  A raw ID is not a validated P/E core label or PMU scope.
+  A raw ID is not a validated P/E core label or PMU scope. Keep it and PMU
+  values off synthetic target-span rows even if their saved sample shape
+  permits `cpu` and `pmc` members.
   In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
   includes synthetic target-span markers: the
   [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there

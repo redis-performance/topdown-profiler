@@ -405,7 +405,7 @@ def _normalize(archive):
         )
         for sample in _array(thread["pet_samples"], "samples"):
             check_cancelled()
-            pmc = _object(sample["pmc"], "PMU snapshot")
+            pmc = _object(sample["pmc"], "PMU fields")
             for key, value in pmc.items():
                 uint(value, f"PMU {key}")
             cpu = sample.get("cpu")
@@ -418,8 +418,8 @@ def _normalize(archive):
                     "kind": "target-span-stack" if target_lane else "cpu-stack",
                     "stack_id": stacks.intern(sample["stack"]),
                     "kernel_stack_id": stacks.intern(sample["kernel_stack"]),
-                    "pmc": pmc,
-                    **({"trace_cpu_id": cpu} if cpu is not None else {}),
+                    **({"pmc": pmc} if not target_lane else {}),
+                    **({"trace_cpu_id": cpu} if cpu is not None and not target_lane else {}),
                 }
             )
             counts["target_stack_sample_count" if target_lane else "sample_count"] += 1
