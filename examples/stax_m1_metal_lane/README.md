@@ -73,8 +73,8 @@ STAX_SERVER_SOCKET=/private/tmp/stax-m1-gpu-demo/server.sock \
 
 The app reports one span per completed **command buffer**. That timestamp
 does not separate multiple kernels within a command buffer and carries no
-GPU hardware counters. A real Stax helper is still needed to test CPU stack
-origins, waits, and PMU data alongside this GPU lane.
+GPU hardware counters. Native CPU stack origins, waits, and PMU data alongside
+this GPU lane remain unverified without a real Stax capture.
 
 ## Synthetic CPU/PMU software-path control
 
@@ -107,3 +107,24 @@ the test process. It stored 78 invented CPU samples and all 299 real GPU
 spans; every stored CPU sample retained the four expected fixture values.
 The pinned CLI's `compare` counted 377 samples, while the proposed corrected
 CLI counted 78 CPU samples and 299 target spans.
+
+## Rootless CPU origin-link control
+
+For an opt-in software-path check, set `STAX_M1_ORIGIN_TID_FILE` to a writable
+file in a private directory for both the Metal app and `fake_sample_daemon`.
+The app writes its `pthread_threadid_np` value before creating the command
+queue. The fake daemon reads that file for each invented PET/PMC record and
+samples every 20 ms in this mode; without the variable, it keeps the previous
+fixed thread ID and 100 ms cadence. The file may not exist at the first sample,
+so early records can use the fixture ID `42`.
+
+The [M1 origin control](../../docs/stax-m1-origin-link-control.json) used this
+mode with a real M1 Metal app, the experimental Stax server, and PR #47's
+capture adapter. It completed 300 checksum-verified command buffers, retained
+299 target spans, and linked all 299 to the fake CPU stack on the app's actual
+submitting thread. Import into SQLite kept each span's origin thread ID.
+This checks Stax's thread/time join and archive path. The CPU stack and PMU
+values are invented; it does not establish real kperf sampling, meaningful
+CPU attribution, hardware counters, or GPU utilization. The adapter's
+root-owned helper-socket preflight was bypassed only inside the rootless
+test process, with no privileged helper running.

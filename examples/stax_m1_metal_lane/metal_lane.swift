@@ -1,5 +1,6 @@
 import Foundation
 import Metal
+import Darwin
 
 @_silgen_name("stax_metal_begin")
 func staxMetalBegin() -> UnsafeMutableRawPointer?
@@ -9,6 +10,11 @@ func staxMetalFinish(_ token: UnsafeMutableRawPointer?, _ name: UnsafePointer<CC
 @_silgen_name("stax_metal_cancel")
 func staxMetalCancel(_ token: UnsafeMutableRawPointer?)
 
+if let path = ProcessInfo.processInfo.environment["STAX_M1_ORIGIN_TID_FILE"] {
+    var tid: UInt64 = 0
+    guard pthread_threadid_np(nil, &tid) == 0 else { fatalError("thread ID unavailable") }
+    try String(tid).write(toFile: path, atomically: true, encoding: .utf8)
+}
 let passes = CommandLine.arguments.count > 1 ? Int(CommandLine.arguments[1]) ?? 0 : 200
 guard (1...500).contains(passes), let device = MTLCreateSystemDefaultDevice(),
       let queue = device.makeCommandQueue() else { fatalError("Metal device or pass count unavailable") }

@@ -66,6 +66,27 @@
       "passed": 112,
       "failed": 0
     },
-    "privileged_sampling_verified": false
+    "privileged_sampling_verified": false,
+    "cli_import_of_synthetic_archive": {
+      "run_id": "8a55954d-29a9-47a5-a77f-64bb62aea3e8",
+      "labels": {
+        "collector": "stax",
+        "sampling_frequency_hz": "99",
+        "os": "macos",
+        "arch": "aarch64"
+      },
+      "cpu_samples": 78,
+      "target_stack_samples": 299,
+      "cpu_hotspot_denominator": 78,
+      "target_spans": 299,
+      "target_lanes": 1,
+      "sample_pmc_fixture": {
+        "cycles": 100,
+        "instructions": 200,
+        "l1d_misses": 13,
+        "branch_mispreds": 17
+      },
+      "note": "sampling_frequency_hz is the requested setting; the synthetic helper emitted about 10 samples per second instead"
+    }
   }
 }

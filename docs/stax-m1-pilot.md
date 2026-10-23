@@ -251,6 +251,23 @@ The same control was rerun against PR #47 at
 matched capture metadata, the M1 app again reported 299 spans and exited
 cleanly, the synthetic archive imported with 78 CPU samples and one target
 lane, and all 112 focused Stax integration tests passed on this host.
+Its public `stax import`, `query`, `hotspots`, and `targets` commands also
+preserved the 78 invented CPU samples, four fixture PMU fields, and 299 real
+GPU spans. The imported `sampling_frequency_hz=99` label is the requested
+setting; the fake helper actually supplied about ten samples per second.
+Requested frequency and observed sample count must stay distinct in reports.
+
+An additional [rootless origin-link control](stax-m1-origin-link-control.json)
+ran against PR #47 at `b6d2897440d62840f7bf3e7bf18fb275fab495e7`.
+The Swift app exposed its real submitting thread ID to the fake sample daemon,
+which supplied invented CPU stacks every 20 ms. The M1 GPU completed 300
+checksum-verified command buffers. Stax recorded 299 spans and linked all 299
+to that thread's synthetic CPU stack within its 50 ms link window; the largest
+recorded distance was 22.653 ms. PR #47 imported 341 invented CPU samples and
+all 299 linked spans into SQLite, preserving the origin thread ID in every
+stored span. This verifies the software join and persistence path only. The
+stack and PMU fields are fixture data, and neither hardware kperf sampling nor
+real CPU-to-GPU attribution has been verified.
 
 ## Live Redis pilot
 

@@ -20,45 +20,49 @@ struct Fake {
     active: Arc<AtomicBool>,
 }
 
-fn record(timestamp: u64, debugid: u32, args: [u64; 4]) -> KdBuf {
+fn record(timestamp: u64, tid: u64, debugid: u32, args: [u64; 4]) -> KdBuf {
     KdBuf {
         timestamp,
         arg1: args[0],
         arg2: args[1],
         arg3: args[2],
         arg4: args[3],
-        arg5: 42,
+        arg5: tid,
         debugid,
         cpuid: 0,
         unused: 0,
     }
 }
 
-fn fixture_sample(timestamp: u64) -> Vec<KdBuf> {
+fn fixture_sample(timestamp: u64, tid: u64) -> Vec<KdBuf> {
     let id = |subclass, code, function| kdbg_eventid(DBG_PERF, subclass, code) | function;
     vec![
-        record(timestamp, id(perf::sc::GENERIC, 0, DBG_FUNC_START), [0; 4]),
+        record(timestamp, tid, id(perf::sc::GENERIC, 0, DBG_FUNC_START), [0; 4]),
         record(
             timestamp,
+            tid,
             id(perf::sc::CALLSTACK, perf::cs::UHDR, DBG_FUNC_NONE),
             [0, 1, 0, 0],
         ),
         record(
             timestamp,
+            tid,
             id(perf::sc::CALLSTACK, perf::cs::UDATA, DBG_FUNC_NONE),
             [0x1000_0000_0, 0, 0, 0],
         ),
         record(
             timestamp,
+            tid,
             id(perf::sc::KPC, perf::kpc::DATA_THREAD, DBG_FUNC_NONE),
             [100, 200, 13, 0],
         ),
         record(
             timestamp,
+            tid,
             id(perf::sc::KPC, perf::kpc::DATA_THREAD, DBG_FUNC_NONE),
             [0, 17, 0, 0],
         ),
-        record(timestamp, id(perf::sc::GENERIC, 0, DBG_FUNC_END), [0; 4]),
+        record(timestamp, tid, id(perf::sc::GENERIC, 0, DBG_FUNC_END), [0; 4]),
     ]
 }
 
@@ -87,7 +91,12 @@ impl Staxd for Fake {
         let mut drained = 0;
         while self.active.load(Ordering::Acquire) {
             let timestamp = unsafe { mach_absolute_time() };
-            let fixture = fixture_sample(timestamp);
+            let tid = std::env::var("STAX_M1_ORIGIN_TID_FILE")
+                .ok()
+                .and_then(|path| std::fs::read_to_string(path).ok())
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(42);
+            let fixture = fixture_sample(timestamp, tid);
             drained += fixture.len() as u64;
             let batch = KdBufBatch {
                 records: fixture,
@@ -100,7 +109,12 @@ impl Staxd for Fake {
             if records.send(batch).await.is_err() {
                 break;
             }
-            tokio::time::sleep(Duration::from_millis(100)).await;
+            let interval_ms = if std::env::var_os("STAX_M1_ORIGIN_TID_FILE").is_some() {
+                20
+            } else {
+                100
+            };
+            tokio::time::sleep(Duration::from_millis(interval_ms)).await;
         }
         self.active.store(false, Ordering::Release);
         Ok(RecordSummary {

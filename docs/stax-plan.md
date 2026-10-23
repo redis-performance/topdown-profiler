@@ -105,7 +105,9 @@ budget; otherwise document the limitation or narrow the supported configuration.
   the TMA hierarchy, with a separate result document linked to the shared run.
   Separate sample counts, scheduler intervals, and synthetic target-span durations;
   do not assume their totals form a wall-time utilization denominator. Preserve
-  existing TMA queries and stored-run compatibility.
+  requested sampling frequency separately from observed sample count and
+  capture duration, because configured cadence does not prove delivered samples.
+  Preserve existing TMA queries and stored-run compatibility.
   In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
   includes synthetic target-span markers: the
   [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there
@@ -118,7 +120,12 @@ budget; otherwise document the limitation or narrow the supported configuration.
   Stax supports collection by process name, provide portable discovery rather than
   routing macOS through the Linux `/proc` resolver or permission checks.
 - Test lifecycle failures, capability reporting, storage compatibility, and unit
-  separation. Use real captures for platform acceptance checks.
+  separation. For target spans, report linked and unlinked origin counts plus
+  `no_thread`, `no_stack`, and `too_far` reasons; keep captured origin thread IDs
+  distinct from successfully linked CPU stacks. The
+  [M1 rootless join control](stax-m1-origin-link-control.json) covers the
+  software path with invented samples, so use real captures for platform
+  acceptance checks.
 
 ## Phase 3: CLI and MCP access
 
