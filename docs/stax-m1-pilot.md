@@ -233,6 +233,11 @@ On the synthetic CPU plus real GPU control, the original CLI reports 377 PET
 samples while the patched CLI reports the 78 invented CPU samples and 299
 target spans. This checks that the correction preserves CPU-sample counts
 while excluding target markers.
+On the linked-origin control, the installed CLI reports 640 PET samples
+(341 invented CPU samples plus 299 target markers); the proposed patch
+reports 341 CPU samples, 299 spans, and 299 linked origins. An offline
+comparison with the 100 ms fixture reports 341 versus 77 CPU samples and
+299 versus 147 linked origins, keeping the 299 target spans in each capture.
 
 The concurrent optional collector draft, [PR #47](https://github.com/redis-performance/topdown-profiler/pull/47)
 at `c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579`, also passed an M1

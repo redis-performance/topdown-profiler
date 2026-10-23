@@ -159,5 +159,26 @@
       "too_far_distance_min_ns": 50102667
     }
   ],
-  "interpretation": "The link fraction falls as synthetic samples become sparser despite the unchanged requested 99 Hz setting. At 20 ms one span arrived before any matching sample in the second run; at 50/100 ms unlinked spans were mainly outside Stax’s 50 ms window. These fixtures demonstrate software join sensitivity only; no hardware sampling rate, CPU stack truth, Apple PMU counter, TMA, or GPU utilization conclusion follows."
+  "interpretation": "The link fraction falls as synthetic samples become sparser despite the unchanged requested 99 Hz setting. At 20 ms one span arrived before any matching sample in the second run; at 50/100 ms unlinked spans were mainly outside Stax’s 50 ms window. These fixtures demonstrate software join sensitivity only; no hardware sampling rate, CPU stack truth, Apple PMU counter, TMA, or GPU utilization conclusion follows.",
+  "proposed_patched_stax_compare": {
+    "baseline": "control-002",
+    "candidate": "control-slow-001",
+    "cpu_pet_samples": [
+      341,
+      77
+    ],
+    "target_spans": [
+      299,
+      299
+    ],
+    "linked_origins": [
+      299,
+      147
+    ],
+    "unlinked_origins": [
+      0,
+      152
+    ],
+    "note": "Offline comparison of two saved rootless fixtures; sample and link differences reflect deliberately changed fake daemon cadence, not a workload performance change."
+  }
 }

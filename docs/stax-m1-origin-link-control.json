@@ -93,5 +93,12 @@
   "hardware_cpu_sampling_verified": false,
   "apple_pmu_hardware_verified": false,
   "gpu_hardware_counters_verified": false,
-  "limitations": "All PET stacks and PMU values came from the fake daemon, not kperf. Linked origins prove only the software thread/time join and persistence path. The 341 samples do not establish the requested 99 Hz cadence, real CPU attribution, Apple PMU availability, TMA slots, or GPU hardware utilization."
+  "limitations": "All PET stacks and PMU values came from the fake daemon, not kperf. Linked origins prove only the software thread/time join and persistence path. The 341 samples do not establish the requested 99 Hz cadence, real CPU attribution, Apple PMU availability, TMA slots, or GPU hardware utilization.",
+  "compare_json": {
+    "pinned_cli_pet_samples": 640,
+    "proposed_patched_cli_pet_samples": 341,
+    "target_spans_both": 299,
+    "linked_origins_both": 299,
+    "interpretation": "Pinned CLI includes 299 target stack markers in pet_samples; proposed patch uses archived run summary for CPU PET samples."
+  }
 }
