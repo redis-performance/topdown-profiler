@@ -7,7 +7,7 @@ from pathlib import Path
 from topdown.apple_storage import validate_run_options
 from topdown.apple_json import unicode_scalars
 from topdown.collector.apple_runtime import check_cancelled
-from topdown.stax_archive import StaxError, companion_metadata, load_archive
+from topdown.stax_archive import SCHEDULER_ABSENCE_NOTE, StaxError, companion_metadata, load_archive, off_cpu_quality
 from topdown.storage.models import Run
 
 BULK_FIELDS = {
@@ -62,6 +62,12 @@ def store_stax_result(backend, path, process_name=None, labels=None, capture=Non
     )
     if capture:
         all_labels["sampling_frequency_hz"] = str(capture["frequency_hz"])
+        capabilities = capture.get("capabilities")
+        environment = capabilities.get("environment") if isinstance(capabilities, dict) else None
+        if isinstance(environment, dict):
+            for key in ("cpu", "os_version", "os_build", "kernel_uuid"):
+                if isinstance(environment.get(key), str) and environment[key]:
+                    all_labels[key] = environment[key]
     for key in ("os", "arch"):
         if isinstance(provenance.get(key), str):
             all_labels[key] = provenance[key]
@@ -255,8 +261,12 @@ def get_stax_thread_waits(backend, run_id, tid=None, limit=20):
             "threads": threads[:limit],
             "total_threads": len(threads),
             "total_wait_stacks": len(rows),
+            "quality": {
+                **result["quality"],
+                **off_cpu_quality(result["scope"], sum(row["kind"] == "OffCpu" for row in result["intervals"])),
+            },
             "rows": rows[:limit],
-            "limitations": result["limitations"],
+            "limitations": list(dict.fromkeys([*result["limitations"], SCHEDULER_ABSENCE_NOTE])),
         }
     )
 

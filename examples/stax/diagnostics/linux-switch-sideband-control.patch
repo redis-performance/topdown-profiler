@@ -1,0 +1,15 @@
+diff --git a/stax-linux-capture/src/sys.rs b/stax-linux-capture/src/sys.rs
+index 7d8275a..2ac353f 100644
+--- a/stax-linux-capture/src/sys.rs
++++ b/stax-linux-capture/src/sys.rs
+@@ -201,8 +201,8 @@ fn switch_attr() -> pe::bindings::perf_event_attr {
+     // before its SWITCH_OUT record in this same ring. Without it the
+     // off-CPU stack is the thread's last timer sample, which can be a
+     // millisecond (and several calls) earlier.
+-    attr.config = pe::bindings::PERF_COUNT_SW_CONTEXT_SWITCHES as u64;
+-    attr.__bindgen_anon_1.sample_period = 1;
++    attr.config = pe::bindings::PERF_COUNT_SW_DUMMY as u64;
++    attr.__bindgen_anon_1.sample_period = 0;
+     attr.sample_type = (pe::bindings::PERF_SAMPLE_TID
+         | pe::bindings::PERF_SAMPLE_TIME
+         | pe::bindings::PERF_SAMPLE_CPU

@@ -1,0 +1,13 @@
+diff --git a/stax-linux-capture/src/session.rs b/stax-linux-capture/src/session.rs
+index 8bec857..00ca6d4 100644
+--- a/stax-linux-capture/src/session.rs
++++ b/stax-linux-capture/src/session.rs
+@@ -1051,7 +1051,7 @@ pub fn run(
+     // off-CPU breakdown — rather than failing the whole recording.
+     let mut switch_rings: Vec<PerfRing> = Vec::with_capacity(cpus.len());
+     for cpu in &cpus {
+-        match open_cpu_switch(*cpu) {
++        match Err::<PerfRing, _>(std::io::Error::other("diagnostic control: context-switch rings disabled")) {
+             Ok(r) => switch_rings.push(r),
+             Err(e) => {
+                 warn!(%e, "context-switch ring open failed; off-CPU disabled");

@@ -84,9 +84,16 @@ async def serve_stdio(server):
             blocking = os.get_blocking(fd)
             os.set_blocking(fd, False)
             stack.callback(os.set_blocking, fd, blocking)
-        async with stdio_server(stdin=_lines(source), stdout=_Output(destination)) as (reader, writer):
-            native = server._mcp_server
-            await native.run(reader, writer, native.create_initialization_options())
+        with anyio.CancelScope() as disconnected:
+            async def lines():
+                async for line in _lines(source):
+                    yield line
+                # Older supported SDKs wait for active handlers after transport EOF.
+                disconnected.cancel()
+
+            async with stdio_server(stdin=lines(), stdout=_Output(destination)) as (reader, writer):
+                native = server._mcp_server
+                await native.run(reader, writer, native.create_initialization_options())
 
 
 def run_stdio(serve):

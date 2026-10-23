@@ -2,6 +2,7 @@
 
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +11,7 @@ from tests.test_stax_archive import archive_document
 from topdown.stax_storage import (
     BULK_FIELDS,
     get_stax_hotspots,
+    get_stax_target_spans,
     get_stax_thread_waits,
     query_stax_result,
     store_stax_result,
@@ -50,6 +52,63 @@ def test_sql_reports_use_projected_documents(stored_sampling, monkeypatch):
     monkeypatch.setattr(backend, "get_stax_result", lambda *a: pytest.fail("loaded full Stax document"))
     assert get_stax_hotspots(backend, run.run_id)["rows"][0]["name"] == "hot"
     assert get_stax_thread_waits(backend, run.run_id)["rows"][0]["duration_ns"] == 30
+
+
+def test_old_documents_gain_wait_quality_without_reimport(stored_sampling):
+    backend, original = stored_sampling
+    document = backend.get_stax_result(original.run_id)
+    document["result"]["quality"] = {"sampling_observed": True}
+    document["result"]["limitations"] = []
+    run = Run(labels={"collector": "stax"})
+    backend.insert_stax_result(run, document)
+    report = get_stax_thread_waits(backend, run.run_id)
+    assert report["quality"]["sampling_observed"] is True
+    assert report["quality"]["observed_off_cpu_intervals"] == 1
+    assert report["quality"]["off_cpu_record_counts_match"] is True
+    assert report["quality"]["off_cpu_observed"] is True
+    assert any("does not establish no blocking" in note for note in report["limitations"])
+
+
+def test_real_m6_metal_excerpt_round_trip(sampling_backend):
+    path = Path(__file__).parent / "test_data" / "stax_v3_m6_metal_excerpt.json"
+    run = store_stax_result(sampling_backend, path, labels={"host_chip": "apple-m6"})
+    hotspots = get_stax_hotspots(sampling_backend, run.run_id)
+    assert hotspots["denominator_samples"] == 0
+    assert hotspots["rows"] == []
+    waits = get_stax_thread_waits(sampling_backend, run.run_id)
+    assert waits["rows"] == []
+    assert waits["quality"]["off_cpu_observed"] is False
+    assert waits["quality"]["observed_off_cpu_intervals"] == 0
+    assert any("does not establish no blocking" in note for note in waits["limitations"])
+    targets = get_stax_target_spans(sampling_backend, run.run_id)
+    assert targets["rows"][0]["span_count"] == 2
+    assert targets["rows"][0]["sum_target_span_ns"] == 13583
+    assert targets["rows"][0]["leaf"]["name"] == "M6 Metal add_one"
+    page = query_stax_result(sampling_backend, run.run_id, "intervals", 1, 1)
+    assert page["rows"][0]["start_ns"] == 192443916527292
+    assert page["rows"][0]["duration_ns"] == 8333
+    assert page["rows"][0]["origin_tid"] == 1526448
+    assert page["rows"][0]["lane_kind"] == "Metal"
+
+
+@pytest.mark.parametrize("cpu", ["Apple M1", "Apple M6"])
+def test_capture_host_identity_is_retained_without_using_import_host(sampling_backend, tmp_path, cpu, monkeypatch):
+    path = tmp_path / "profile.stax"
+    document = archive_document()
+    document["provenance"]["os"] = "macos"
+    path.write_text(json.dumps(document))
+    monkeypatch.setattr("topdown.collector.apple_environment.capture_environment",
+                        lambda: pytest.fail("read the importing host identity"))
+    environment = {"cpu": cpu, "os_version": "27.0.1", "os_build": "test-build", "kernel_uuid": "captured-kernel"}
+    capture = {"collector": "stax", "pid": 42, "frequency_hz": 99, "capabilities": {"environment": environment}}
+    run = store_stax_result(sampling_backend, path, labels={"cpu": "caller-guess"}, capture=capture)
+    assert {key: run.labels[key] for key in environment} == environment
+    summary = query_stax_result(sampling_backend, run.run_id)
+    assert summary["metadata"]["capture"]["capabilities"]["environment"] == environment
+    assert run.labels["arch"] == "aarch64"
+    imported = store_stax_result(sampling_backend, path)
+    assert "cpu" not in imported.labels
+    assert "kernel_uuid" not in imported.labels
 
 
 @pytest.mark.parametrize("native_text", ["zero\x00byte", "quotes'\"\\ and Ω", "\ud800legacy"])

@@ -5,8 +5,15 @@ shared run/label workflow. These results use separate SQL documents and never
 create Linux slot-TMA rows. Existing Apple Instruments and Metal replay commands
 remain available.
 
-Capture is experimental. Functional checks have run on a Linux aarch64 VM;
-M1/M6 capture acceptance remains pending. Measure overhead on the workload being
+On Apple hosts, capture metadata records the native chip name, macOS version,
+OS build and kernel UUID. Stored runs use those recorded values as labels, so
+M1 and M6 captures can be selected separately. Import never probes the importing
+computer to fill missing hardware identity; a bare archive's `aarch64` provenance
+does not identify an Apple chip or establish PMU access.
+
+Capture is experimental. Functional checks have run on a Linux aarch64 VM and
+the [M6 Metal target-span control](stax-m6-metal-control.md). Privileged M1/M6
+CPU capture acceptance remains pending. Measure overhead on the workload being
 investigated, especially when interpreting tail latency.
 
 ## Install and inspect
@@ -120,6 +127,10 @@ counters remain accessible through `topdown apple gpu`.
   not form GPU utilization, CPU time, or TMA pipeline-slot percentages.
 - Raw PMU fields preserve unsigned integers. Zero does not establish that a
   counter was supported, and the adapter does not sum values with unverified scope.
+  The pinned Linux backend opens system-wide perf events on each CPU, then keeps
+  target threads in userspace. Its hardware-group readings and per-CPU deltas do
+  not establish per-process counter totals. macOS values have a separate native
+  counter contract; these fields are not a portable CPI or TMA input.
 
 The importer replays `events.jsonl` or bundle events when present, following
 upstream's authoritative event-stream behavior. It stores deduplicated frame and

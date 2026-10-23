@@ -1,0 +1,63 @@
+--- a/stax-metal-bridge/src/lib.rs
++++ b/stax-metal-bridge/src/lib.rs
+@@ -6,7 +6,7 @@
+ 
+ fn lane() -> &'static Lane {
+     static LANE: OnceLock<Lane> = OnceLock::new();
+-    LANE.get_or_init(|| Lane::metal("M1 Metal command buffers"))
++    LANE.get_or_init(|| Lane::metal("M6 Metal command buffers"))
+ }
+ 
+ #[unsafe(no_mangle)]
+--- a/stax-metal-bridge/metal_lane.swift
++++ b/stax-metal-bridge/metal_lane.swift
+@@ -31,6 +31,12 @@
+ let buffer = device.makeBuffer(length: count * MemoryLayout<UInt32>.size, options: .storageModeShared)!
+ let data = buffer.contents().bindMemory(to: UInt32.self, capacity: count)
+ for index in 0..<count { data[index] = 0 }
++var timebase = mach_timebase_info_data_t()
++guard mach_timebase_info(&timebase) == KERN_SUCCESS else { fatalError("Mach timebase unavailable") }
++func hostNanoseconds() -> UInt64 {
++    UInt64((Double(mach_absolute_time()) * Double(timebase.numer) / Double(timebase.denom)).rounded())
++}
++var clockChecks: [[String: UInt64]] = []
+ var gated = 0
+ var reported = 0
+ for _ in 0..<passes {
+@@ -40,19 +46,28 @@
+         staxMetalCancel(token)
+         fatalError("Command buffer unavailable")
+     }
+-    command.label = "M1 Metal add_one"
++    command.label = "M6 Metal add_one"
+     encoder.setComputePipelineState(pipeline)
+     encoder.setBuffer(buffer, offset: 0, index: 0)
+     encoder.dispatchThreads(MTLSize(width: count, height: 1, depth: 1),
+                             threadsPerThreadgroup: MTLSize(width: min(256, pipeline.maxTotalThreadsPerThreadgroup),
+                                                            height: 1, depth: 1))
+     encoder.endEncoding()
++    let submittedAt = hostNanoseconds()
+     command.commit()
+     command.waitUntilCompleted()
++    let completedAt = hostNanoseconds()
+     guard command.status == .completed, command.gpuEndTime > command.gpuStartTime else {
+         staxMetalCancel(token)
+         fatalError("GPU command failed")
+     }
++    let gpuStart = UInt64((command.gpuStartTime * 1e9).rounded())
++    let gpuEnd = UInt64((command.gpuEndTime * 1e9).rounded())
++    guard submittedAt <= gpuStart, gpuStart < gpuEnd, gpuEnd <= completedAt else {
++        staxMetalCancel(token)
++        fatalError("Metal timestamps outside host Mach submission/completion bounds")
++    }
++    clockChecks.append(["submitted_ns": submittedAt, "gpu_start_ns": gpuStart, "gpu_end_ns": gpuEnd, "completed_ns": completedAt])
+     let accepted = command.label!.withCString {
+         staxMetalFinish(token, $0, command.gpuStartTime, command.gpuEndTime)
+     }
+@@ -63,3 +78,6 @@
+ let expected = UInt64(passes * count)
+ print("device=\(device.name) passes=\(passes) checksum=\(checksum) expected=\(expected) gated=\(gated) reported=\(reported)")
+ if checksum != expected { exit(1) }
++
++let clockData = try JSONSerialization.data(withJSONObject: ["timebase_numer": timebase.numer, "timebase_denom": timebase.denom, "clock_checks": clockChecks], options: [.sortedKeys])
++print(String(decoding: clockData, as: UTF8.self))

@@ -1,0 +1,12 @@
+diff --git a/stax-linux-capture/src/sys.rs b/stax-linux-capture/src/sys.rs
+index 7d8275a..a7e1474 100644
+--- a/stax-linux-capture/src/sys.rs
++++ b/stax-linux-capture/src/sys.rs
+@@ -165,6 +165,7 @@ fn sampling_attr(
+     // [`open_cpu_pmu_siblings`]) `nr == 5` and we attribute deltas per
+     // counter via the queried perf-event ID.
+     attr.read_format = (pe::bindings::PERF_FORMAT_GROUP | pe::bindings::PERF_FORMAT_ID) as u64;
++    attr.set_exclude_callchain_user(1);
+     attr.set_disabled(1);
+     attr.set_freq(1);
+     attr.set_exclude_kernel(if kernel_stacks { 0 } else { 1 });

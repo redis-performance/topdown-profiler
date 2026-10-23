@@ -1,0 +1,33 @@
+diff --git a/stax-linux-capture/src/session.rs b/stax-linux-capture/src/session.rs
+index 8bec857..16c8843 100644
+--- a/stax-linux-capture/src/session.rs
++++ b/stax-linux-capture/src/session.rs
+@@ -1007,6 +1007,7 @@ pub fn run(
+     sink: &mut dyn SampleSink,
+     should_stop: &AtomicBool,
+ ) -> eyre::Result<RecordSummary> {
++    crate::sys::CONTROL_PID.store(opts.pid as i32, std::sync::atomic::Ordering::Relaxed);
+     let cpus = online_cpus();
+     let mut rings: Vec<PerfRing> = Vec::with_capacity(cpus.len());
+     let mut pmu = PmuGroup::default();
+diff --git a/stax-linux-capture/src/sys.rs b/stax-linux-capture/src/sys.rs
+index 7d8275a..50a2b11 100644
+--- a/stax-linux-capture/src/sys.rs
++++ b/stax-linux-capture/src/sys.rs
+@@ -279,13 +279,15 @@ fn map_ring(fd: RawFd, kind: PerfRingKind) -> io::Result<PerfRing> {
+ /// event for `attr` (system-wide: `pid = -1`, `cpu = N`, no group,
+ /// cloexec) and hand back the owned descriptor. No mmap — the caller
+ /// (or, across the staxd fd broker, the unprivileged peer) maps it.
++pub(crate) static CONTROL_PID: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
++
+ fn perf_event_open_cpu(attr: &mut pe::bindings::perf_event_attr, cpu: u32) -> io::Result<OwnedFd> {
+     // SAFETY: FFI; attr is a valid initialized struct, fd args follow
+     // the perf_event_open contract (pid=-1, cpu=N, no group, cloexec).
+     let fd = unsafe {
+         pe::perf_event_open(
+             attr,
+-            -1,
++            CONTROL_PID.load(std::sync::atomic::Ordering::Relaxed),
+             cpu as i32,
+             -1,
+             pe::bindings::PERF_FLAG_FD_CLOEXEC as u64,

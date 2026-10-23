@@ -1,0 +1,1855 @@
+{
+  "series": [
+    {
+      "name": "redis-switch-sideband-p1",
+      "status": "completed",
+      "pilot_sha256": "c67e0e7379ef26ac50dc193b83e72ff41758122b3081d1fec2c76bb9232d8d3d",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "348977e4073559107cbfdaac2a90209a7ce752b599000605090a29b0e868e0a6",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.23106233993054337,
+          0.5777855368058415,
+          0.6932320775522083,
+          0.16442199853818895,
+          0.5259656066622709
+        ],
+        "median_throughput_loss_pct": 0.5259656066622709,
+        "paired_ping_p99_increase_pct": [
+          1368.7918087736255,
+          863.1678266227912,
+          1218.5678092658438,
+          22.61627832537545,
+          1447.1397866573107
+        ],
+        "baseline_rate_range_pct": 0.6264928908678247,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 1218.5678092658438,
+      "baseline_ping_p99_ms": [
+        0.059541998780332506,
+        0.06891799966979306,
+        0.07200099935289472,
+        0.07387599907815456,
+        0.06529300117108505
+      ],
+      "profile_ping_p99_ms": [
+        0.8745480008656159,
+        0.6637959995714482,
+        0.9493819998169784,
+        0.0905840006453218,
+        1.0101739990204806
+      ],
+      "baseline_p99_range_pct": 24.07376405132837,
+      "baseline_median_ping_p99_ms": 0.06891799966979306,
+      "profile_median_ping_p99_ms": 0.8745480008656159,
+      "cpu_samples": [
+        575,
+        572,
+        571,
+        573,
+        575
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 575,
+          "off_cpu_intervals": 6591,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 572,
+          "off_cpu_intervals": 6863,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 571,
+          "off_cpu_intervals": 7152,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 573,
+          "off_cpu_intervals": 6853,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 575,
+          "off_cpu_intervals": 6361,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        }
+      ],
+      "off_cpu_intervals": [
+        6591,
+        6863,
+        7152,
+        6853,
+        6361
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-switch-sideband-control.patch",
+        "sha256": "561b0a1f4a0d3a2cdf9b809677a640e45a6a7f5d4310cb67695372ca57e6508d"
+      }
+    },
+    {
+      "name": "redis-no-sample-user-stack-p1",
+      "status": "completed",
+      "pilot_sha256": "4fba39ab13b6a8dbc1634822ffbce1de7451e7247b14260fce42255a133b5b7f",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "7e91225dcba46ab5be04654331eb0ad2db6e5e5cff2da70072f80f7baf441ebd",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.8782092406448783,
+          0.16975407529227216,
+          0.4440754340895414,
+          -0.1985161062723284,
+          0.4504754287499413
+        ],
+        "median_throughput_loss_pct": 0.4440754340895414,
+        "paired_ping_p99_increase_pct": [
+          502.01584246315474,
+          1460.2398416783049,
+          215.81324414095664,
+          66.92150674919148,
+          682.0640290044504
+        ],
+        "baseline_rate_range_pct": 1.1093324904311253,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 502.01584246315474,
+      "baseline_ping_p99_ms": [
+        0.06845799907750916,
+        0.06445899998652749,
+        0.06954299897188321,
+        0.08175099901563954,
+        0.061791999542037956
+      ],
+      "profile_ping_p99_ms": [
+        0.41212799987988546,
+        1.005714999337215,
+        0.2196260011260165,
+        0.1364599993394222,
+        0.48325300122087356
+      ],
+      "baseline_p99_range_pct": 32.30029716067562,
+      "baseline_median_ping_p99_ms": 0.06845799907750916,
+      "profile_median_ping_p99_ms": 0.41212799987988546,
+      "cpu_samples": [
+        582,
+        577,
+        580,
+        571,
+        584
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 582,
+          "off_cpu_intervals": 7643,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 577,
+          "off_cpu_intervals": 7460,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 580,
+          "off_cpu_intervals": 7452,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 571,
+          "off_cpu_intervals": 7392,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 584,
+          "off_cpu_intervals": 7242,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        }
+      ],
+      "off_cpu_intervals": [
+        7643,
+        7460,
+        7452,
+        7392,
+        7242
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-no-sample-user-stack-control.patch",
+        "sha256": "b6b66b30f31e95a95afb52f3b4fcdb2b396ccfdae4ad0ae898acf1dc18cbfbef"
+      }
+    },
+    {
+      "name": "redis-no-cpu-clock-quiet-p1",
+      "status": "completed",
+      "pilot_sha256": "64dc6a846fd434eb851bdd7da1f0a682d58ed04507a46836535b6fdb4b7b8c68",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "6ac7e149db7de24597ed58f4c14832af14da11e13f40539e0d4cc02a1885969e",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.4409380086938808,
+          -0.09899708665186413,
+          -0.2503328766130908,
+          0.3051724039771053,
+          0.021919116669733008
+        ],
+        "median_throughput_loss_pct": 0.021919116669733008,
+        "paired_ping_p99_increase_pct": [
+          79.83905433602112,
+          55.27361021030299,
+          1685.3595138950227,
+          656.3209656768422,
+          2131.856072680567
+        ],
+        "baseline_rate_range_pct": 0.5499748340760169,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 656.3209656768422,
+      "baseline_ping_p99_ms": [
+        0.06325100002868567,
+        0.07779299994581379,
+        0.06820799899287522,
+        0.06650099930993747,
+        0.060041998949600384
+      ],
+      "profile_ping_p99_ms": [
+        0.11375000030966476,
+        0.12079199950676411,
+        1.217757999256719,
+        0.5029610001656692,
+        1.3400509997154586
+      ],
+      "baseline_p99_range_pct": 29.564307162913916,
+      "baseline_median_ping_p99_ms": 0.06650099930993747,
+      "profile_median_ping_p99_ms": 0.5029610001656692,
+      "cpu_samples": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 0,
+          "off_cpu_intervals": 7319,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 0,
+          "off_cpu_intervals": 7509,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 0,
+          "off_cpu_intervals": 7191,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 0,
+          "off_cpu_intervals": 7514,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 0,
+          "off_cpu_intervals": 7275,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        }
+      ],
+      "off_cpu_intervals": [
+        7319,
+        7509,
+        7191,
+        7514,
+        7275
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-no-cpu-clock-control.patch",
+        "sha256": "821772f2ad4ea3e508c9e9d71ca728517dc6f45cdfa8a3c01cbc3d90949a3a08"
+      }
+    },
+    {
+      "name": "redis-no-switch-rings-p1",
+      "status": "completed",
+      "pilot_sha256": "7028ed7edc4dad2caaa2e5a31c40d91291410c8505d3d2971e266509695ec0a2",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "9dc8d80fc4e9f8c292587691e11a98cc13d08fb1de7e77249c876e79d8b4e793",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.3899136095670719,
+          0.28415036605002886,
+          0.007710945179506545,
+          1.350783998667271,
+          1.3790132258250654
+        ],
+        "median_throughput_loss_pct": 0.3899136095670719,
+        "paired_ping_p99_increase_pct": [
+          1135.2859047645568,
+          1631.947551855943,
+          805.4940001763118,
+          2385.7835898930966,
+          331.93091006716884
+        ],
+        "baseline_rate_range_pct": 0.6514341800893941,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 1135.2859047645568,
+      "baseline_ping_p99_ms": [
+        0.06362599924614187,
+        0.058042000091518275,
+        0.06670900074823294,
+        0.06487600148830097,
+        0.5171290013095131
+      ],
+      "profile_ping_p99_ms": [
+        0.7859630004531937,
+        1.005256999633275,
+        0.6040459993528202,
+        1.6126769987749867,
+        2.2336400015774416
+      ],
+      "baseline_p99_range_pct": 790.9565495574327,
+      "baseline_median_ping_p99_ms": 0.06487600148830097,
+      "profile_median_ping_p99_ms": 1.005256999633275,
+      "cpu_samples": [
+        571,
+        581,
+        573,
+        567,
+        576
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 571,
+          "off_cpu_intervals": 0,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 581,
+          "off_cpu_intervals": 0,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 573,
+          "off_cpu_intervals": 0,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 567,
+          "off_cpu_intervals": 0,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 0,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": []
+        }
+      ],
+      "off_cpu_intervals": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-no-switch-rings-control.patch",
+        "sha256": "9def37266117a13c16f4fafb34834ccfc6ed07ddb0bc00c1f5addef7c549e475"
+      }
+    },
+    {
+      "name": "redis-target-main-thread-p1",
+      "status": "completed",
+      "pilot_sha256": "b9f6a9b6907ca08bf0f72f066cd009b34a3fd65b5b491b432c082b83639de1ef",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "57251329e062b29447bf5b33dc3a3e322173176a2672393f8f1407880038e093",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "ba29dff7411fb574bc59bcfced416f802286b1e21f7f4f4a1c99dc142cf627af",
+      "summary": {
+        "status": "within_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.27408436967776284,
+          0.7346447114673915,
+          0.1758071627307567,
+          0.5893187835330882,
+          0.030349801276308153
+        ],
+        "median_throughput_loss_pct": 0.27408436967776284,
+        "paired_ping_p99_increase_pct": [
+          60.731910254203235,
+          11.872020002325833,
+          337.8804862252777,
+          -15.728493647912888,
+          13.10211946050095
+        ],
+        "baseline_rate_range_pct": 0.7759050750790308,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 13.10211946050095,
+      "baseline_ping_p99_ms": [
+        0.069708,
+        0.068792,
+        0.080292,
+        0.068875,
+        0.064875
+      ],
+      "profile_ping_p99_ms": [
+        0.112043,
+        0.076959,
+        0.351583,
+        0.058042,
+        0.073375
+      ],
+      "baseline_p99_range_pct": 23.764161849710973,
+      "baseline_median_ping_p99_ms": 0.068875,
+      "profile_median_ping_p99_ms": 0.076959,
+      "cpu_samples": [
+        576,
+        576,
+        577,
+        576,
+        576
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 289,
+          "probes_overlapping_cpu_sample": 1,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10194705956101,
+              "ended_at_monotonic_ns": 10194708011780,
+              "rtt_ms": 2.055679,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10194475641715,
+              "ended_at_monotonic_ns": 10194477013766,
+              "rtt_ms": 1.372051,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 10194781017204,
+              "ended_at_monotonic_ns": 10194781129247,
+              "rtt_ms": 0.112043,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 2,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10203039070611,
+              "ended_at_monotonic_ns": 10203040037701,
+              "rtt_ms": 0.96709,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10203061009501,
+              "ended_at_monotonic_ns": 10203061133627,
+              "rtt_ms": 0.124126,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10202657389594,
+              "ended_at_monotonic_ns": 10202657466553,
+              "rtt_ms": 0.076959,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 577,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 2,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10221767632887,
+              "ended_at_monotonic_ns": 10221769825384,
+              "rtt_ms": 2.192497,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10220866625332,
+              "ended_at_monotonic_ns": 10220867031664,
+              "rtt_ms": 0.406332,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10221694666883,
+              "ended_at_monotonic_ns": 10221695018466,
+              "rtt_ms": 0.351583,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 289,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10226499110957,
+              "ended_at_monotonic_ns": 10226499172624,
+              "rtt_ms": 0.061667,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10228286279721,
+              "ended_at_monotonic_ns": 10228286339637,
+              "rtt_ms": 0.059916,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10226209105714,
+              "ended_at_monotonic_ns": 10226209163756,
+              "rtt_ms": 0.058042,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 289,
+          "probes_overlapping_cpu_sample": 1,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10246424991540,
+              "ended_at_monotonic_ns": 10246426011623,
+              "rtt_ms": 1.020083,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10246706430362,
+              "ended_at_monotonic_ns": 10246706509362,
+              "rtt_ms": 0.079,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10245924763433,
+              "ended_at_monotonic_ns": 10245924836808,
+              "rtt_ms": 0.073375,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        }
+      ],
+      "off_cpu_intervals": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-target-main-thread-control.patch",
+        "sha256": "32c81dc34c618c36cdc2fc89a9289a17bd057346a8cecc5a142d9570ce6b1628"
+      }
+    },
+    {
+      "name": "redis-target-main-thread-repeat-p1",
+      "status": "completed",
+      "pilot_sha256": "f691331ddfc105078bb72175fc993f3383129fecab3ce1588e83bab400453595",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "57251329e062b29447bf5b33dc3a3e322173176a2672393f8f1407880038e093",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "ba29dff7411fb574bc59bcfced416f802286b1e21f7f4f4a1c99dc142cf627af",
+      "summary": {
+        "status": "within_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.21585366142760076,
+          -0.4747726171120181,
+          0.17380879623291046,
+          -0.1814012357278294,
+          0.1910818841982187
+        ],
+        "median_throughput_loss_pct": 0.17380879623291046,
+        "paired_ping_p99_increase_pct": [
+          977.9250873098631,
+          -93.9496424982092,
+          10.83844580777098,
+          -25.473939168102845,
+          6.732427184466028
+        ],
+        "baseline_rate_range_pct": 0.5132895589588182,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 6.732427184466028,
+      "baseline_ping_p99_ms": [
+        0.060417,
+        2.209919,
+        0.061125,
+        0.085876,
+        0.064375
+      ],
+      "profile_ping_p99_ms": [
+        0.65125,
+        0.133708,
+        0.06775,
+        0.064,
+        0.068709
+      ],
+      "baseline_p99_range_pct": 3557.7767846798088,
+      "baseline_median_ping_p99_ms": 0.064375,
+      "profile_median_ping_p99_ms": 0.068709,
+      "cpu_samples": [
+        578,
+        578,
+        578,
+        576,
+        576
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 578,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 3,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10414211014187,
+              "ended_at_monotonic_ns": 10414212024563,
+              "rtt_ms": 1.010376,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10414877133365,
+              "ended_at_monotonic_ns": 10414878018450,
+              "rtt_ms": 0.885085,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10414064359297,
+              "ended_at_monotonic_ns": 10414065010547,
+              "rtt_ms": 0.65125,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 578,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10421153188719,
+              "ended_at_monotonic_ns": 10421155017804,
+              "rtt_ms": 1.829085,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10419887009152,
+              "ended_at_monotonic_ns": 10419888014778,
+              "rtt_ms": 1.005626,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10420146023537,
+              "ended_at_monotonic_ns": 10420146157245,
+              "rtt_ms": 0.133708,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 578,
+          "off_cpu_intervals": 0,
+          "probe_count": 289,
+          "probes_overlapping_cpu_sample": 2,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10438744005651,
+              "ended_at_monotonic_ns": 10438745024860,
+              "rtt_ms": 1.019209,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10439203963019,
+              "ended_at_monotonic_ns": 10439204053894,
+              "rtt_ms": 0.090875,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10439098119729,
+              "ended_at_monotonic_ns": 10439098187479,
+              "rtt_ms": 0.06775,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10443895132455,
+              "ended_at_monotonic_ns": 10443895258955,
+              "rtt_ms": 0.1265,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10444103791165,
+              "ended_at_monotonic_ns": 10444103871331,
+              "rtt_ms": 0.080166,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10445748161577,
+              "ended_at_monotonic_ns": 10445748225577,
+              "rtt_ms": 0.064,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 0,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10464974978244,
+              "ended_at_monotonic_ns": 10464975054202,
+              "rtt_ms": 0.075958,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10462995508454,
+              "ended_at_monotonic_ns": 10462995580037,
+              "rtt_ms": 0.071583,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10464653624553,
+              "ended_at_monotonic_ns": 10464653693262,
+              "rtt_ms": 0.068709,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        }
+      ],
+      "off_cpu_intervals": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-target-main-thread-control.patch",
+        "sha256": "32c81dc34c618c36cdc2fc89a9289a17bd057346a8cecc5a142d9570ce6b1628"
+      }
+    },
+    {
+      "name": "redis-pinned-timestamped-p1",
+      "status": "completed",
+      "pilot_sha256": "9534070d8086f727435a9d93f24451cd91f2de07c5becf4e51aa49eefdc383f0",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "57251329e062b29447bf5b33dc3a3e322173176a2672393f8f1407880038e093",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "62971492e86a1a22343ea28120467ee57fca6e2e768a629f3ac50d4181aa1b74",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.08883519134642581,
+          0.4058874789403255,
+          0.6653907557025995,
+          0.5092803578233496,
+          0.27160641508708894
+        ],
+        "median_throughput_loss_pct": 0.4058874789403255,
+        "paired_ping_p99_increase_pct": [
+          -1.3227480916030543,
+          1671.0816777041941,
+          74.730081300813,
+          74.63293172690764,
+          1945.1896707512326
+        ],
+        "baseline_rate_range_pct": 0.5080472661987745,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 74.730081300813,
+      "baseline_ping_p99_ms": [
+        0.081875,
+        0.056625,
+        0.0615,
+        0.06225,
+        0.063083
+      ],
+      "profile_ping_p99_ms": [
+        0.080792,
+        1.002875,
+        0.107459,
+        0.108709,
+        1.290167
+      ],
+      "baseline_p99_range_pct": 44.5916114790287,
+      "baseline_median_ping_p99_ms": 0.06225,
+      "profile_median_ping_p99_ms": 0.108709,
+      "cpu_samples": [
+        576,
+        580,
+        572,
+        570,
+        577
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 576,
+          "off_cpu_intervals": 7360,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10299775881450,
+              "ended_at_monotonic_ns": 10299777007075,
+              "rtt_ms": 1.125625,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10298770012792,
+              "ended_at_monotonic_ns": 10298770346917,
+              "rtt_ms": 0.334125,
+              "redis_main_off_cpu_overlap_ns": 6125,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10297493941613,
+              "ended_at_monotonic_ns": 10297494022405,
+              "rtt_ms": 0.080792,
+              "redis_main_off_cpu_overlap_ns": 4875,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 580,
+          "off_cpu_intervals": 7657,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 2,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10304102004199,
+              "ended_at_monotonic_ns": 10304104818407,
+              "rtt_ms": 2.814208,
+              "redis_main_off_cpu_overlap_ns": 5375,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 10306416179657,
+              "ended_at_monotonic_ns": 10306418006907,
+              "rtt_ms": 1.82725,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10306585010141,
+              "ended_at_monotonic_ns": 10306586013016,
+              "rtt_ms": 1.002875,
+              "redis_main_off_cpu_overlap_ns": 4833,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 572,
+          "off_cpu_intervals": 7401,
+          "probe_count": 291,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10322550507872,
+              "ended_at_monotonic_ns": 10322551014580,
+              "rtt_ms": 0.506708,
+              "redis_main_off_cpu_overlap_ns": 5000,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10325259011197,
+              "ended_at_monotonic_ns": 10325259130322,
+              "rtt_ms": 0.119125,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10324794186858,
+              "ended_at_monotonic_ns": 10324794294317,
+              "rtt_ms": 0.107459,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 570,
+          "off_cpu_intervals": 7277,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10328942099982,
+              "ended_at_monotonic_ns": 10328942222857,
+              "rtt_ms": 0.122875,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10329895126413,
+              "ended_at_monotonic_ns": 10329895242580,
+              "rtt_ms": 0.116167,
+              "redis_main_off_cpu_overlap_ns": 116167,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10329334635288,
+              "ended_at_monotonic_ns": 10329334743997,
+              "rtt_ms": 0.108709,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 577,
+          "off_cpu_intervals": 7633,
+          "probe_count": 290,
+          "probes_overlapping_cpu_sample": 0,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10348106019987,
+              "ended_at_monotonic_ns": 10348108008946,
+              "rtt_ms": 1.988959,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10348469602569,
+              "ended_at_monotonic_ns": 10348471012653,
+              "rtt_ms": 1.410084,
+              "redis_main_off_cpu_overlap_ns": 4709,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10349277722971,
+              "ended_at_monotonic_ns": 10349279013138,
+              "rtt_ms": 1.290167,
+              "redis_main_off_cpu_overlap_ns": 4333,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        }
+      ],
+      "off_cpu_intervals": [
+        7360,
+        7657,
+        7401,
+        7277,
+        7633
+      ]
+    },
+    {
+      "name": "redis-pinned-long-p1",
+      "status": "completed",
+      "pilot_sha256": "a8c0f7a8607632c664c63b945ee35a82918d73e64317d31b8c4a6f9643798edf",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 33,
+        "measurement_seconds": 30,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "e058a3aeab98e3abd3b285ede22e658759351a57f896cea50018a551c36b4d48",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "62971492e86a1a22343ea28120467ee57fca6e2e768a629f3ac50d4181aa1b74",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.23201606701681587,
+          0.46176438900614736,
+          -0.014281468044341494,
+          0.34448152752952765,
+          0.5645167737642898
+        ],
+        "median_throughput_loss_pct": 0.34448152752952765,
+        "paired_ping_p99_increase_pct": [
+          1390.4530062575097,
+          1549.6110758512789,
+          1434.1083731801587,
+          1420.941176470588,
+          1580.6144927536234
+        ],
+        "baseline_rate_range_pct": 0.4018370957923123,
+        "baseline_ping_p99_range_pct": 12.216977225672899,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 1434.1083731801587,
+      "baseline_ping_p99_ms": [
+        0.064083,
+        0.067751,
+        0.065459,
+        0.065875,
+        0.060375
+      ],
+      "profile_ping_p99_ms": [
+        0.955127,
+        1.117628,
+        1.004212,
+        1.00192,
+        1.014671
+      ],
+      "baseline_p99_range_pct": 12.216977225672899,
+      "baseline_median_ping_p99_ms": 0.065459,
+      "profile_median_ping_p99_ms": 1.004212,
+      "cpu_samples": [
+        3188,
+        3182,
+        3174,
+        3175,
+        3183
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 3188,
+          "off_cpu_intervals": 41529,
+          "probe_count": 2896,
+          "probes_overlapping_cpu_sample": 18,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10630730372816,
+              "ended_at_monotonic_ns": 10630733007114,
+              "rtt_ms": 2.634298,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10625104391365,
+              "ended_at_monotonic_ns": 10625107006538,
+              "rtt_ms": 2.615173,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10635730651409,
+              "ended_at_monotonic_ns": 10635733006248,
+              "rtt_ms": 2.354839,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 3182,
+          "off_cpu_intervals": 44162,
+          "probe_count": 2896,
+          "probes_overlapping_cpu_sample": 9,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10672404126496,
+              "ended_at_monotonic_ns": 10672407005671,
+              "rtt_ms": 2.879175,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10670222758523,
+              "ended_at_monotonic_ns": 10670225006571,
+              "rtt_ms": 2.248048,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10674055813212,
+              "ended_at_monotonic_ns": 10674058007468,
+              "rtt_ms": 2.194256,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 3174,
+          "off_cpu_intervals": 41077,
+          "probe_count": 2895,
+          "probes_overlapping_cpu_sample": 13,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10761410159807,
+              "ended_at_monotonic_ns": 10761413006899,
+              "rtt_ms": 2.847092,
+              "redis_main_off_cpu_overlap_ns": 7667,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10763679391438,
+              "ended_at_monotonic_ns": 10763682006905,
+              "rtt_ms": 2.615467,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 10762650530141,
+              "ended_at_monotonic_ns": 10762653007024,
+              "rtt_ms": 2.476883,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 3175,
+          "off_cpu_intervals": 42312,
+          "probe_count": 2892,
+          "probes_overlapping_cpu_sample": 15,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10800614139978,
+              "ended_at_monotonic_ns": 10800617007237,
+              "rtt_ms": 2.867259,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10788394163677,
+              "ended_at_monotonic_ns": 10788397006186,
+              "rtt_ms": 2.842509,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10807067179799,
+              "ended_at_monotonic_ns": 10807070006142,
+              "rtt_ms": 2.826343,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 3183,
+          "off_cpu_intervals": 41463,
+          "probe_count": 2895,
+          "probes_overlapping_cpu_sample": 10,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10890738093345,
+              "ended_at_monotonic_ns": 10890741005855,
+              "rtt_ms": 2.91251,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10893710124287,
+              "ended_at_monotonic_ns": 10893713006839,
+              "rtt_ms": 2.882552,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 10898715147337,
+              "ended_at_monotonic_ns": 10898718006097,
+              "rtt_ms": 2.85876,
+              "redis_main_off_cpu_overlap_ns": 3458,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        }
+      ],
+      "off_cpu_intervals": [
+        41529,
+        44162,
+        41077,
+        42312,
+        41463
+      ]
+    },
+    {
+      "name": "redis-target-main-thread-long-p1",
+      "status": "completed",
+      "pilot_sha256": "9c635bc55d6217d88afcf346c212fd3852a632b52db5b3722af452ecc281a631",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 33,
+        "measurement_seconds": 30,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "budget_declared_before_measurement": {
+        "median_throughput_loss_pct": 10,
+        "median_ping_p99_increase_pct": 20,
+        "max_baseline_rate_range_pct": 10
+      },
+      "runner_sha256": "e058a3aeab98e3abd3b285ede22e658759351a57f896cea50018a551c36b4d48",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "server_sha256": "ba29dff7411fb574bc59bcfced416f802286b1e21f7f4f4a1c99dc142cf627af",
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.23285843063869383,
+          0.2616724696909656,
+          0.10171030550674143,
+          0.14562468192423905,
+          0.19542316628483603
+        ],
+        "median_throughput_loss_pct": 0.19542316628483603,
+        "paired_ping_p99_increase_pct": [
+          231.64454860899735,
+          19.18658020194841,
+          80.42745873771402,
+          77.23484380787751,
+          491.30028500677474
+        ],
+        "baseline_rate_range_pct": 0.4467738270162558,
+        "baseline_ping_p99_range_pct": 5.190861094239119,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "median_paired_ping_p99_change_pct": 80.42745873771402,
+      "baseline_ping_p99_ms": [
+        0.065708,
+        0.067542,
+        0.064708,
+        0.064792,
+        0.064209
+      ],
+      "profile_ping_p99_ms": [
+        0.217917,
+        0.080501,
+        0.116751,
+        0.114834,
+        0.379668
+      ],
+      "baseline_p99_range_pct": 5.190861094239119,
+      "baseline_median_ping_p99_ms": 0.064792,
+      "profile_median_ping_p99_ms": 0.116751,
+      "cpu_samples": [
+        3186,
+        3190,
+        3190,
+        3187,
+        3188
+      ],
+      "all_wall_clock_windows_contained": true,
+      "all_observed_clock_windows_contained": true,
+      "probe_errors": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "timing_diagnostics": [
+        {
+          "pair": 0,
+          "cpu_samples": 3186,
+          "off_cpu_intervals": 0,
+          "probe_count": 2897,
+          "probes_overlapping_cpu_sample": 8,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 10987913314903,
+              "ended_at_monotonic_ns": 10987916791750,
+              "rtt_ms": 3.476847,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 10986236128336,
+              "ended_at_monotonic_ns": 10986239007390,
+              "rtt_ms": 2.879054,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11007790396566,
+              "ended_at_monotonic_ns": 11007793006077,
+              "rtt_ms": 2.609511,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 1,
+          "cpu_samples": 3190,
+          "off_cpu_intervals": 0,
+          "probe_count": 2891,
+          "probes_overlapping_cpu_sample": 9,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 11033197017225,
+              "ended_at_monotonic_ns": 11033200764740,
+              "rtt_ms": 3.747515,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11043235319002,
+              "ended_at_monotonic_ns": 11043238009304,
+              "rtt_ms": 2.690302,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11021063573909,
+              "ended_at_monotonic_ns": 11021066006794,
+              "rtt_ms": 2.432885,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            }
+          ]
+        },
+        {
+          "pair": 2,
+          "cpu_samples": 3190,
+          "off_cpu_intervals": 0,
+          "probe_count": 2895,
+          "probes_overlapping_cpu_sample": 9,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 11134396606748,
+              "ended_at_monotonic_ns": 11134399536219,
+              "rtt_ms": 2.929471,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 11142941114906,
+              "ended_at_monotonic_ns": 11142944005460,
+              "rtt_ms": 2.890554,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11142964233506,
+              "ended_at_monotonic_ns": 11142967003727,
+              "rtt_ms": 2.770221,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 3,
+          "cpu_samples": 3187,
+          "off_cpu_intervals": 0,
+          "probe_count": 2894,
+          "probes_overlapping_cpu_sample": 7,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 11168601118034,
+              "ended_at_monotonic_ns": 11168604006630,
+              "rtt_ms": 2.888596,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11177657529428,
+              "ended_at_monotonic_ns": 11177660008939,
+              "rtt_ms": 2.479511,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11169205723986,
+              "ended_at_monotonic_ns": 11169208007163,
+              "rtt_ms": 2.283177,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        },
+        {
+          "pair": 4,
+          "cpu_samples": 3188,
+          "off_cpu_intervals": 0,
+          "probe_count": 2889,
+          "probes_overlapping_cpu_sample": 17,
+          "slowest_probes": [
+            {
+              "started_at_monotonic_ns": 11266945341731,
+              "ended_at_monotonic_ns": 11266948006035,
+              "rtt_ms": 2.664304,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            },
+            {
+              "started_at_monotonic_ns": 11255031405996,
+              "ended_at_monotonic_ns": 11255034007133,
+              "rtt_ms": 2.601137,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 1
+            },
+            {
+              "started_at_monotonic_ns": 11269315193548,
+              "ended_at_monotonic_ns": 11269317687351,
+              "rtt_ms": 2.493803,
+              "redis_main_off_cpu_overlap_ns": 0,
+              "redis_main_cpu_samples_in_window": 0
+            }
+          ]
+        }
+      ],
+      "off_cpu_intervals": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "experimental_patch": {
+        "path": "examples/stax/diagnostics/linux-target-main-thread-control.patch",
+        "sha256": "32c81dc34c618c36cdc2fc89a9289a17bd057346a8cecc5a142d9570ce6b1628"
+      }
+    }
+  ],
+  "captured_at": "2026-10-23",
+  "upstream_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "environment": "Ubuntu 24.04.4 aarch64, Linux 6.8.0-117-generic, four vCPUs, 6 GiB VZ guest on Apple M6; Redis 8.2.3",
+  "decision": "Keep pinned capture experimental; none of these source controls is adopted as a production workaround.",
+  "excluded_series": [
+    {
+      "name": "redis-no-cpu-clock-p1",
+      "reason": "Overlapped macOS regression tests; baseline throughput range 10.345228013849294% exceeded the declared 10% stability budget. Excluded in full; replaced with the quiet repeat."
+    }
+  ],
+  "limitations": [
+    "One virtualized host; not a hardware-PMU or other-platform acceptance study.",
+    "Short main-thread-only median passes did not survive 30-second measurements. Baseline p99 variation was also large in some short series.",
+    "The main-thread-only prototype drops other threads and off-CPU decoding. Absence of waits in that reduced mode is not evidence of no blocking.",
+    "Event-window overlap does not identify kernel causation, client delay, or virtual-machine descheduling.",
+    "Probe rate is approximately 100 Hz; PING RTT is not concurrent SET/GET end-to-end latency."
+  ],
+  "mcp_protocol_cancellation": [
+    {
+      "status": "passed",
+      "transport": "stdio",
+      "mcp": "1.30.0",
+      "queued_cancelled_before_start": true,
+      "active_cancelled": true,
+      "partial_archive_retained": true,
+      "native_children_reaped": true,
+      "attached_target_survived": true,
+      "stored_runs": 0,
+      "query_responsive_during_capture": true,
+      "server_responsive_after_cancel": true,
+      "artifact_root": "/tmp/td-stax-protocol-igp2rv4l"
+    },
+    {
+      "status": "passed",
+      "transport": "streamable-http",
+      "mcp": "1.30.0",
+      "queued_cancelled_before_start": true,
+      "active_cancelled": true,
+      "partial_archive_retained": true,
+      "native_children_reaped": true,
+      "attached_target_survived": true,
+      "stored_runs": 0,
+      "query_responsive_during_capture": true,
+      "server_responsive_after_cancel": true,
+      "artifact_root": "/tmp/td-stax-http-protocol-k0kffirc"
+    }
+  ]
+}

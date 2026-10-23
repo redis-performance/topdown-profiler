@@ -87,17 +87,20 @@ def process_snapshot(pid):
 
 def observe(path, seconds, process_ids=None):
     client = Redis(path)
-    stop, latencies, errors = threading.Event(), [], []
+    stop, latencies, probes, errors = threading.Event(), [], [], []
 
     def ping():
         probe = None
         try:
             probe = Redis(path)
             while not stop.is_set():
-                start = time.perf_counter()
+                start = time.monotonic_ns()
                 probe.call("PING")
+                end = time.monotonic_ns()
                 if not stop.is_set():
-                    latencies.append((time.perf_counter() - start) * 1000)
+                    latency = (end - start) / 1e6
+                    latencies.append(latency)
+                    probes.append({"started_at_monotonic_ns": start, "ended_at_monotonic_ns": end, "rtt_ms": latency})
                 stop.wait(0.01)
         except OSError as exc:
             errors.append(str(exc))
@@ -135,9 +138,9 @@ def observe(path, seconds, process_ids=None):
                     "rss_before_bytes": first["rss_bytes"],
                     "rss_after_bytes": after["rss_bytes"],
                 }
+        stop.set()
         ended_at_ns = time.time_ns()
         ended_monotonic_ns = time.monotonic_ns()
-        stop.set()
         thread.join(4)
         return {
             "started_at_unix_ns": started_at_ns,
@@ -153,6 +156,7 @@ def observe(path, seconds, process_ids=None):
                 "p50": percentile(latencies, 0.5),
                 "p99": percentile(latencies, 0.99),
             },
+            "ping_probes": probes,
             "probe_errors": errors,
             "process_resources": resources,
         }
@@ -176,11 +180,12 @@ def summarize(trials, budget):
         if a and b is not None:
             rtt_changes.append(100 * (b / a - 1))
     rates = [trial["commands_per_second"] for trial in trials if trial["mode"] == "baseline"]
+    baseline_p99 = [trial["ping_rtt_ms"]["p99"] for trial in trials if trial["mode"] == "baseline"]
     if not losses:
         return {"status": "insufficient_pairs"}
     variation = 100 * (max(rates) / min(rates) - 1)
     stable = variation <= budget["max_baseline_rate_range_pct"]
-    valid = all(
+    valid = len(rtt_changes) == len(complete) and all(
         trial.get("measurement_inside_capture", True)
         and trial.get("measurement_inside_observed_clock", True)
         and not trial["probe_errors"]
@@ -203,6 +208,9 @@ def summarize(trials, budget):
         "median_throughput_loss_pct": statistics.median(losses),
         "paired_ping_p99_increase_pct": rtt_changes,
         "baseline_rate_range_pct": variation,
+        "baseline_ping_p99_range_pct": 100 * (max(baseline_p99) / min(baseline_p99) - 1)
+        if all(value is not None and value > 0 for value in baseline_p99)
+        else None,
         "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency",
     }
 
