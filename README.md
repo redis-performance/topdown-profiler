@@ -415,6 +415,8 @@ Install Stax separately. CPU sample counts, scheduler durations and target spans
 retain distinct units; they do not form a TMA funnel. See the
 [Stax setup and Redis guide](docs/stax-usage.md) for permissions, command launches,
 MCP tools, artifact retention and M1/M6 validation limits.
+The [M6 Metal span example](docs/stax-m6-metal-control.md) demonstrates real
+command-buffer timestamps with zero CPU samples, including the clock checks.
 
 ## Microarchitecture Analysis Example (Linux)
 

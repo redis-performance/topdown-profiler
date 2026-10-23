@@ -1,0 +1,303 @@
+{
+  "format_version": 3,
+  "saved_at_unix_ns": 1792785495722572000,
+  "provenance": {
+    "producer": "stax-server",
+    "producer_version": "0.1.0",
+    "os": "macos",
+    "arch": "aarch64"
+  },
+  "runs": [
+    {
+      "id": [
+        1
+      ],
+      "state": "Stopped",
+      "stop_reason": "UserStop",
+      "started_at_unix_ns": 1792785487513211000,
+      "stopped_at_unix_ns": 1792785495615008000,
+      "target_pid": 88122,
+      "label": "(attached)",
+      "pet_samples": 0,
+      "off_cpu_intervals": 0
+    }
+  ],
+  "events": [
+    {
+      "ArchiveSaved": {
+        "saved_at_unix_ns": 1792785495722572000
+      }
+    },
+    {
+      "RunSummary": {
+        "run": {
+          "id": [
+            1
+          ],
+          "state": "Stopped",
+          "stop_reason": "UserStop",
+          "started_at_unix_ns": 1792785487513211000,
+          "stopped_at_unix_ns": 1792785495615008000,
+          "target_pid": 88122,
+          "label": "(attached)",
+          "pet_samples": 0,
+          "off_cpu_intervals": 0
+        }
+      }
+    },
+    {
+      "AggregatorClock": {
+        "session_start_ns": 192436030590500,
+        "last_event_ns": 192443916535625
+      }
+    },
+    {
+      "ThreadName": {
+        "tid": 4293918720,
+        "name": "M6 Metal command buffers"
+      }
+    },
+    {
+      "BinaryLoaded": {
+        "binary": {
+          "path": "<target spans>",
+          "base_avma": 281470681743360,
+          "avma_end": 281470681743392,
+          "text_svma": 0,
+          "arch": null,
+          "is_executable": false,
+          "symbols": [
+            {
+              "start_svma": 0,
+              "end_svma": 16,
+              "name": [
+                77,
+                54,
+                32,
+                77,
+                101,
+                116,
+                97,
+                108,
+                32,
+                99,
+                111,
+                109,
+                109,
+                97,
+                110,
+                100,
+                32,
+                98,
+                117,
+                102,
+                102,
+                101,
+                114,
+                115
+              ]
+            },
+            {
+              "start_svma": 16,
+              "end_svma": 32,
+              "name": [
+                77,
+                54,
+                32,
+                77,
+                101,
+                116,
+                97,
+                108,
+                32,
+                97,
+                100,
+                100,
+                95,
+                111,
+                110,
+                101
+              ]
+            }
+          ],
+          "text_bytes": null
+        }
+      }
+    },
+    {
+      "TargetIngestDiagnostics": {
+        "diagnostics": {
+          "batches": 299,
+          "batches_dropped_no_active_run": 0,
+          "spans_dropped_no_active_run": 0,
+          "batches_dropped_wrong_pid": 0,
+          "spans_dropped_wrong_pid": 0,
+          "batches_dropped_target_queue_full": 0,
+          "spans_dropped_target_queue_full": 0,
+          "batches_dropped_target_worker_disconnected": 0,
+          "spans_dropped_target_worker_disconnected": 0,
+          "spans_received": 299,
+          "records_received": 0,
+          "dispatch_records": 0,
+          "source_records": 0,
+          "shader_records": 0,
+          "attachment_records": 0,
+          "counter_set_records": 0,
+          "counter_sample_records": 0,
+          "spans_recorded": 299,
+          "spans_dropped_bad_duration": 0,
+          "spans_with_origin": 299,
+          "spans_linked_origin": 0,
+          "spans_unlinked_origin": 299,
+          "spans_origin_invalid_tid": 0,
+          "spans_origin_no_thread": 299,
+          "spans_origin_no_stack": 0,
+          "spans_origin_too_far": 0,
+          "origin_stack_max_distance_ns": 50000000,
+          "origin_linked_distance_min_ns": 0,
+          "origin_linked_distance_avg_ns": 0,
+          "origin_linked_distance_max_ns": 0,
+          "origin_too_far_distance_min_ns": 0,
+          "origin_too_far_distance_avg_ns": 0,
+          "origin_too_far_distance_max_ns": 0,
+          "total_duration_ns": 1656958,
+          "lanes": [
+            {
+              "tid": 4293918720,
+              "name": "M6 Metal command buffers",
+              "records_received": 0,
+              "dispatch_records": 0,
+              "source_records": 0,
+              "shader_records": 0,
+              "attachment_records": 0,
+              "counter_set_records": 0,
+              "counter_sample_records": 0,
+              "spans_recorded": 299,
+              "spans_with_origin": 299,
+              "spans_linked_origin": 0,
+              "spans_unlinked_origin": 299,
+              "spans_origin_invalid_tid": 0,
+              "spans_origin_no_thread": 299,
+              "spans_origin_no_stack": 0,
+              "spans_origin_too_far": 0,
+              "origin_linked_distance_min_ns": 0,
+              "origin_linked_distance_avg_ns": 0,
+              "origin_linked_distance_max_ns": 0,
+              "origin_too_far_distance_min_ns": 0,
+              "origin_too_far_distance_avg_ns": 0,
+              "origin_too_far_distance_max_ns": 0,
+              "total_duration_ns": 1656958
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ObservabilityDiagnostics": {
+        "diagnostics": {
+          "signal_batches": 0,
+          "signal_batches_dropped_no_active_run": 0,
+          "signals_dropped_no_active_run": 0,
+          "signal_batches_dropped_wrong_pid": 0,
+          "signals_dropped_wrong_pid": 0,
+          "events_received": 0,
+          "events_recorded": 0,
+          "counter_samples_received": 0,
+          "counter_samples_recorded": 0,
+          "definitions_conflicting": 0,
+          "samples_unknown_definition": 0,
+          "samples_bad_value_count": 0,
+          "samples_invalid_tid": 0,
+          "samples_bad_timestamp": 0,
+          "monotonic_regressions": 0,
+          "events_dropped_store_full": 0,
+          "counter_samples_dropped_store_full": 0
+        }
+      }
+    },
+    {
+      "PetSample": {
+        "tid": 4293918720,
+        "sample": {
+          "timestamp_ns": 192436030590500,
+          "stack": [
+            281470681743376,
+            281470681743360
+          ],
+          "kernel_stack": [],
+          "pmc": {
+            "cycles": 0,
+            "instructions": 0,
+            "l1d_misses": 0,
+            "branch_mispreds": 0
+          }
+        }
+      }
+    },
+    {
+      "Interval": {
+        "tid": 4293918720,
+        "interval": {
+          "start_ns": 192436030590500,
+          "end_ns": 192436030595750,
+          "kind": {
+            "SyntheticSpan": {
+              "stack": [
+                281470681743376,
+                281470681743360
+              ],
+              "origin_tid": 1526448,
+              "lane_kind": "Metal"
+            }
+          }
+        }
+      }
+    },
+    {
+      "PetSample": {
+        "tid": 4293918720,
+        "sample": {
+          "timestamp_ns": 192443916527292,
+          "stack": [
+            281470681743376,
+            281470681743360
+          ],
+          "kernel_stack": [],
+          "pmc": {
+            "cycles": 0,
+            "instructions": 0,
+            "l1d_misses": 0,
+            "branch_mispreds": 0
+          }
+        }
+      }
+    },
+    {
+      "Interval": {
+        "tid": 4293918720,
+        "interval": {
+          "start_ns": 192443916527292,
+          "end_ns": 192443916535625,
+          "kind": {
+            "SyntheticSpan": {
+              "stack": [
+                281470681743376,
+                281470681743360
+              ],
+              "origin_tid": 1526448,
+              "lane_kind": "Metal"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "fixture_provenance": {
+    "kind": "real Apple M6 completed Metal command buffers; rootless zero-kperf helper control",
+    "upstream_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+    "source_events_sha256": "17fc33ecb7f6092706cb82b61b86f986df63a6d41db9a9f6cfc59ef7bbf96e60",
+    "selection": "Original summary/clock/names/diagnostics, target binary and first/last PET+span events; unrelated binary symbols omitted. Full diagnostics still describe all 299 captured spans.",
+    "cpu_samples_in_full_capture": 0,
+    "target_spans_in_full_capture": 299
+  }
+}

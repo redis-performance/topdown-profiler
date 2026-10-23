@@ -1,0 +1,213 @@
+{
+  "status": "rootless Metal target-span software-path control; privileged CPU acceptance pending",
+  "captured_at": "2026-10-23",
+  "host": {
+    "chip": "Apple M6",
+    "os": "macOS 27.0.1",
+    "architecture": "arm64",
+    "xcode": "27.1"
+  },
+  "revisions": {
+    "stax": "aedd85e08894fc3250ec975a486544d091e11281",
+    "m1_example": "bc96a8d38563c624976d960c746a972291dd6952",
+    "topdown": "6699fbc89bac730dc90ec58e3a2178eaf5ddcc35"
+  },
+  "binary_sha256": {
+    "stax": "a867cd1a706b6ebcfa545987400966c4f38508ba15d0d89e06927f7f68ead4bf",
+    "stax-server": "ce9cefc3e1e6dd85f9e7eb29c11b668d03367e9b285bc6088f7cb5c5421e1d90",
+    "fake_helper": "bb7754b75330e49f697b2cf2918c5f1ce9a4dc9338b534ea1856723fc3af2802",
+    "metal_app": "2a2244dcea802f079b8ceacef652210d603af43dc7dbe31c9a40ab75dccb1d83"
+  },
+  "source_sha256": {
+    "src/lib.rs": "a43581e389823f4f53d47c42972d985855a2cf2133555da362e6502ff5de92d6",
+    "metal_lane.swift": "c14c45b904e0f95f3e30b34c5dcfdeeddec5e81f198ea56bfda7ef89cb3cd313"
+  },
+  "control": {
+    "helper": "user-owned fake daemon emitting zero kperf records",
+    "helper_ownership_preflight": "bypassed only in the disposable test process using unittest.mock.patch; public preflight unchanged",
+    "requested_frequency_hz": 99,
+    "maximum_duration_seconds": 12,
+    "command_buffers": 300,
+    "elements_per_buffer": 16384,
+    "checksum": 4915200,
+    "expected_checksum": 4915200
+  },
+  "clock_validation": {
+    "command_buffers_checked": 300,
+    "all_gpu_intervals_within_host_mach_submission_completion": true,
+    "captured_spans": 299,
+    "all_captured_timestamps_match_producer_exactly": true,
+    "timebase_numer": 125,
+    "timebase_denom": 3,
+    "target_summary": "device=Apple M6 passes=300 checksum=4915200 expected=4915200 gated=299 reported=299"
+  },
+  "counts": {
+    "samples": 299,
+    "intervals": 299,
+    "wakeups": 0,
+    "cpu_samples": 0,
+    "target_stack_samples": 299,
+    "threads": 1,
+    "frame_table": 2,
+    "stack_table": 2,
+    "application_records": 0,
+    "target_lanes": 1
+  },
+  "quality": {
+    "reported_cpu_samples": 0,
+    "observed_cpu_samples": 0,
+    "cpu_sample_counts_match": true,
+    "cpu_samples_without_user_stack": 0,
+    "cpu_samples_with_unresolved_user_leaf": 0,
+    "sampling_observed": false,
+    "pmu_availability": "unverified",
+    "native_loss_accounting": "not represented by the v3 archive",
+    "symbol_names": "archived ranges; not demangled"
+  },
+  "target_report": {
+    "collector": "stax",
+    "unit": "ns",
+    "tid": null,
+    "clock": "producer-supplied target span timestamps",
+    "total_target_functions": 1,
+    "rows": [
+      {
+        "tid": 4293918720,
+        "lane_kind": "Metal",
+        "leaf": {
+          "address": 281470681743376,
+          "name": "M6 Metal add_one",
+          "name_bytes": [
+            77,
+            54,
+            32,
+            77,
+            101,
+            116,
+            97,
+            108,
+            32,
+            97,
+            100,
+            100,
+            95,
+            111,
+            110,
+            101
+          ],
+          "binary": "<target spans>",
+          "symbol_address": 281470681743376
+        },
+        "span_count": 299,
+        "sum_target_span_ns": 1656958,
+        "min_span_ns": 4292,
+        "max_span_ns": 50375,
+        "origin_tids": [
+          1526448
+        ],
+        "origin_thread_count": 1
+      }
+    ],
+    "target_ingest": {
+      "batches": 299,
+      "batches_dropped_no_active_run": 0,
+      "spans_dropped_no_active_run": 0,
+      "batches_dropped_wrong_pid": 0,
+      "spans_dropped_wrong_pid": 0,
+      "batches_dropped_target_queue_full": 0,
+      "spans_dropped_target_queue_full": 0,
+      "batches_dropped_target_worker_disconnected": 0,
+      "spans_dropped_target_worker_disconnected": 0,
+      "spans_received": 299,
+      "records_received": 0,
+      "dispatch_records": 0,
+      "source_records": 0,
+      "shader_records": 0,
+      "attachment_records": 0,
+      "counter_set_records": 0,
+      "counter_sample_records": 0,
+      "spans_recorded": 299,
+      "spans_dropped_bad_duration": 0,
+      "spans_with_origin": 299,
+      "spans_linked_origin": 0,
+      "spans_unlinked_origin": 299,
+      "spans_origin_invalid_tid": 0,
+      "spans_origin_no_thread": 299,
+      "spans_origin_no_stack": 0,
+      "spans_origin_too_far": 0,
+      "origin_stack_max_distance_ns": 50000000,
+      "origin_linked_distance_min_ns": 0,
+      "origin_linked_distance_avg_ns": 0,
+      "origin_linked_distance_max_ns": 0,
+      "origin_too_far_distance_min_ns": 0,
+      "origin_too_far_distance_avg_ns": 0,
+      "origin_too_far_distance_max_ns": 0,
+      "total_duration_ns": 1656958
+    },
+    "lanes": [
+      {
+        "tid": 4293918720,
+        "name": "M6 Metal command buffers",
+        "records_received": 0,
+        "dispatch_records": 0,
+        "source_records": 0,
+        "shader_records": 0,
+        "attachment_records": 0,
+        "counter_set_records": 0,
+        "counter_sample_records": 0,
+        "spans_recorded": 299,
+        "spans_with_origin": 299,
+        "spans_linked_origin": 0,
+        "spans_unlinked_origin": 299,
+        "spans_origin_invalid_tid": 0,
+        "spans_origin_no_thread": 299,
+        "spans_origin_no_stack": 0,
+        "spans_origin_too_far": 0,
+        "origin_linked_distance_min_ns": 0,
+        "origin_linked_distance_avg_ns": 0,
+        "origin_linked_distance_max_ns": 0,
+        "origin_too_far_distance_min_ns": 0,
+        "origin_too_far_distance_avg_ns": 0,
+        "origin_too_far_distance_max_ns": 0,
+        "total_duration_ns": 1656958
+      }
+    ],
+    "total_lanes": 1,
+    "limitations": [
+      "Sample shares describe observed stack hits, not CPU time or TMA pipeline slots.",
+      "Scheduler interval totals may overlap; they are not a utilization denominator.",
+      "Raw PMU fields are retained without summing; zero does not establish counter availability.",
+      "Synthetic target spans are separate from CPU intervals and native GPU hardware counters.",
+      "Symbols use archived names without demangling; source artifacts remain required for disassembly.",
+      "Target span durations can overlap; their sum is not GPU utilization.",
+      "A Metal lane label alone does not establish hardware timestamp provenance."
+    ]
+  },
+  "fixture": {
+    "kind": "real Apple M6 completed Metal command buffers; rootless zero-kperf helper control",
+    "upstream_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+    "source_events_sha256": "17fc33ecb7f6092706cb82b61b86f986df63a6d41db9a9f6cfc59ef7bbf96e60",
+    "selection": "Original summary/clock/names/diagnostics, target binary and first/last PET+span events; unrelated binary symbols omitted. Full diagnostics still describe all 299 captured spans.",
+    "cpu_samples_in_full_capture": 0,
+    "target_spans_in_full_capture": 299
+  },
+  "verification": {
+    "sqlite": "all 299 target spans retained; zero CPU-hotspot denominator",
+    "installed_wheel_mcp": {
+      "python": "3.10.21",
+      "mcp": "1.24.0",
+      "transport": "stdio",
+      "registered_stax_tools": 7,
+      "excerpt_cpu_samples": 0,
+      "excerpt_spans": 2,
+      "excerpt_total_duration_ns": 13583
+    },
+    "producer_log_sha256": "8a4ca85c584b1266abf629293533cc5bef5d63489710203da67543dc00f0e3b4"
+  },
+  "limitations": [
+    "No CPU samples, privileged helper, PMU counters or linked CPU stacks.",
+    "Command-buffer intervals do not separate individual GPU kernels or establish GPU utilization.",
+    "This tiny compute kernel is a functional control, not a representative performance or overhead study.",
+    "The first of 300 command buffers occurred before the capture gate opened; 299 were accepted and retained."
+  ]
+}
