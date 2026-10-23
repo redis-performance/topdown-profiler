@@ -5,7 +5,7 @@ import signal
 import subprocess
 from dataclasses import dataclass, field
 
-from topdown.collector.csv_parser import ToplevSample, parse_output
+from topdown.collector.csv_parser import ToplevSample, parse_output, sample_scope_labels
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ class ToplevOptions:
     pids: list[int] | None = None
     system_wide: bool = False
     extra_args: list[str] = field(default_factory=list)
+    cpu_type: str | None = None
 
 
 class ToplevRunner:
@@ -34,6 +35,10 @@ class ToplevRunner:
             "--no-desc",  # Skip metric descriptions in output
             "-v",  # Show all nodes, not just bottlenecks above threshold
         ]
+        if self.options.cpu_type is not None:
+            if self.options.cpu_type not in {"core", "atom"}:
+                raise RuntimeError("TOPDOWN_TOPLEV_CPU_TYPE must be core or atom")
+            cmd.extend(["--cputype", self.options.cpu_type])
 
         if self.options.pids:
             # Use -C 0 (CPU-pinned) instead of --pid for processes running
@@ -108,6 +113,7 @@ class ToplevRunner:
         if not samples and stdout:
             # Fallback: some toplev versions may write to stdout
             samples = parse_output(stdout)
+        sample_scope_labels(samples, self.options.cpu_type)
         logger.info("Parsed %d samples from toplev output", len(samples))
         return samples
 

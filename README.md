@@ -608,8 +608,13 @@ topdown collect --process redis-server --level 2 --duration 30s
 | `TOPDOWN_DSN` | PostgreSQL connection string | — |
 | `TOPDOWN_DB_PATH` | SQLite database path | `~/.topdown/data.db` |
 | `TOPDOWN_TOPLEV_PATH` | Path to toplev.py (Intel only) | `toplev.py` |
+| `TOPDOWN_TOPLEV_CPU_TYPE` | Select one Intel hybrid PMU group (`core` or `atom`) | auto |
 | `TOPDOWN_PMU_TOOLS_DIR` | pmu-tools directory (Intel only) | — |
 | `TOPDOWN_COLLECTOR` | Collector backend: `toplev` (Intel), `perf_stat` (ARM), or auto-detect | auto |
+
+Hybrid toplev captures retain their observed group in the `pmu_group` run label.
+Mixed core/atom output is rejected before storage; select one group explicitly
+when toplev reports both.
 
 ## Knowledge Base
 
