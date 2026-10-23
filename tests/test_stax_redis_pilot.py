@@ -22,6 +22,41 @@ def fake_executable(path: Path, body: str) -> str:
     return str(path)
 
 
+def test_timed_out_command_retains_partial_output(tmp_path):
+    command = [sys.executable, "-u", "-c", "import sys,time;print('partial output');"
+               "print('partial error', file=sys.stderr);time.sleep(5)"]
+    with pytest.raises(RuntimeError, match="timed out"):
+        PILOT.run_command("slow", command, tmp_path, timeout=0.5)
+    assert json.loads((tmp_path / "slow.command.json").read_text()) == command
+    assert (tmp_path / "slow.stdout").read_text() == "partial output\n"
+    assert (tmp_path / "slow.stderr").read_text() == "partial error\n"
+
+
+def test_timed_out_redis_prefill_retains_partial_output(tmp_path, monkeypatch):
+    def expire(*args, **kwargs):
+        raise subprocess.TimeoutExpired(args[0], kwargs["timeout"], output=b"partial prefill\n",
+                                        stderr=b"partial error\n")
+
+    monkeypatch.setattr(PILOT.subprocess, "run", expire)
+    with pytest.raises(RuntimeError, match="Redis prefill timed out"):
+        PILOT.prefill_redis(tmp_path / "redis-cli", tmp_path / "redis.sock", tmp_path, 1)
+    assert (tmp_path / "prefill.stdout").read_bytes() == b"partial prefill\n"
+    assert (tmp_path / "prefill.stderr").read_bytes() == b"partial error\n"
+
+
+def test_host_version_probe_has_a_deadline(monkeypatch):
+    def probe(command, **kwargs):
+        assert kwargs["timeout"] == 10
+        if command[0] == "xcodebuild":
+            raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+        return subprocess.CompletedProcess(command, 0, stdout="host value\n", stderr="")
+
+    monkeypatch.setattr(PILOT.platform, "platform", lambda: "test-host")
+    monkeypatch.setattr(PILOT.platform, "machine", lambda: "arm64")
+    monkeypatch.setattr(PILOT.subprocess, "run", probe)
+    assert PILOT.read_host()["xcode"] == "unavailable: timed out"
+
+
 def test_benchmark_rates_and_balanced_order():
     assert PILOT.benchmark_rates('"SET","1200.5"\n"GET","1000"\n') == {"SET": 1200.5, "GET": 1000}
     csv_output = ('"test","rps","p50_latency_ms","p95_latency_ms","p99_latency_ms"\n'
@@ -330,7 +365,11 @@ def test_absent_helper_fails_with_retained_preflight(tmp_path, monkeypatch):
                               annotate_symbol="processCommand", min_free_gib=0.001)
     with pytest.raises(RuntimeError, match="helper socket is absent"):
         PILOT.pilot(args)
-    assert json.loads((output / "metadata.json").read_text())["host"]["machine"]
+    report = json.loads((output / "metadata.json").read_text())
+    assert output.stat().st_mode & 0o777 == 0o700
+    assert report["host"]["machine"]
+    assert report["preflight_status"] == "failed"
+    assert "helper socket is absent" in report["preflight_error"]
 
 
 def test_m1_kpep_probe_detects_stax_order_and_nonsequential_mapping():

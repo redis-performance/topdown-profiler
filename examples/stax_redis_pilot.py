@@ -42,7 +42,14 @@ def sha256(path: Path) -> str:
 def run_command(name: str, command: list[str], output: Path, *, env: dict[str, str] | None = None,
                 timeout: float = 60) -> subprocess.CompletedProcess[str]:
     (output / f"{name}.command.json").write_text(json.dumps(command, indent=2) + "\n")
-    result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=timeout, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=timeout, check=False)
+    except subprocess.TimeoutExpired as exc:
+        for suffix, value in (("stdout", exc.stdout), ("stderr", exc.stderr)):
+            if isinstance(value, bytes):
+                value = value.decode(errors="replace")
+            (output / f"{name}.{suffix}").write_text(value or "")
+        raise RuntimeError(f"{name} timed out after {timeout}s; logs: {output}") from exc
     (output / f"{name}.stdout").write_text(result.stdout)
     (output / f"{name}.stderr").write_text(result.stderr)
     if result.returncode:
@@ -157,7 +164,12 @@ def prefill_redis(redis_cli: Path, redis_socket: Path, output: Path, key_count: 
             frames.extend(f"${len(argument)}\r\n".encode())
             frames.extend(argument + b"\r\n")
     (output / "prefill.command.json").write_text(json.dumps(command, indent=2) + "\n")
-    result = subprocess.run(command, input=bytes(frames), capture_output=True, timeout=30, check=False)
+    try:
+        result = subprocess.run(command, input=bytes(frames), capture_output=True, timeout=30, check=False)
+    except subprocess.TimeoutExpired as exc:
+        (output / "prefill.stdout").write_bytes(exc.stdout or b"")
+        (output / "prefill.stderr").write_bytes(exc.stderr or b"")
+        raise RuntimeError(f"Redis prefill timed out; logs: {output}") from exc
     (output / "prefill.stdout").write_bytes(result.stdout)
     (output / "prefill.stderr").write_bytes(result.stderr)
     if result.returncode or b"errors: 0" not in result.stdout:
@@ -192,9 +204,11 @@ def stop_owned(process: subprocess.Popen | None, *, interrupt: bool = False) -> 
 def read_host() -> dict[str, str]:
     def value(command: list[str]) -> str:
         try:
-            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10, check=False)
         except OSError as exc:
             return f"unavailable: {exc}"
+        except subprocess.TimeoutExpired:
+            return "unavailable: timed out"
         return result.stdout.strip() if result.returncode == 0 else f"unavailable: {result.stderr.strip()}"
 
     return {
@@ -368,7 +382,7 @@ def monitor_rss(processes: dict[str, subprocess.Popen], stop: threading.Event,
 
 def pilot(args: argparse.Namespace) -> None:
     output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=False, mode=0o700)
     initial_free = require_free_space(output, args.min_free_gib)
     names = ["stax", "stax_server", "redis_server", "redis_cli"]
     names.append("memtier" if args.workload == "memtier" else "redis_benchmark")
@@ -415,7 +429,13 @@ def pilot(args: argparse.Namespace) -> None:
 
     daemon_socket = Path(args.daemon_socket)
     if platform.system() == "Darwin":
-        metadata["helper_socket"] = validate_helper_socket(daemon_socket)
+        try:
+            metadata["helper_socket"] = validate_helper_socket(daemon_socket)
+        except RuntimeError as exc:
+            metadata.update(preflight_status="failed", preflight_error=str(exc))
+            (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
+            raise
+        metadata["preflight_status"] = "passed"
         (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
     redis = server = recorder = None

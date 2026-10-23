@@ -382,7 +382,9 @@ comparison must return valid JSON. Stax's comparison field named
 sample markers and is not used to validate CPU sampling. An
 unavailable annotation is retained as a recorded error without losing the
 archive. It retains raw
-memtier JSON, Stax views, commands, hashes, and environment metadata:
+memtier JSON, Stax views, commands, hashes, and environment metadata. The
+output root is private (`0700`); helper preflight failures remain in
+`metadata.json`, and timed-out commands retain any partial stdout/stderr:
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
