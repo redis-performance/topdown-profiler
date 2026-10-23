@@ -122,7 +122,7 @@ def test_record_requires_apple_host(tmp_path, monkeypatch):
 def fake_capture(monkeypatch):
     state = {"commands": [], "failure": None}
     monkeypatch.setattr(apple_gpu, "_require_host", lambda: None)
-    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution: write_profile(output))
+    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution, gpu_state: write_profile(output))
 
     def run(command, **kwargs):
         state["commands"].append((command, kwargs))
@@ -189,7 +189,7 @@ def test_gpu_cli_profiles_existing_trace(tmp_path, monkeypatch):
     trace = tmp_path / "saved.gputrace"
     trace.mkdir()
     calls = []
-    def collect(path, output, execution):
+    def collect(path, output, execution, gpu_state):
         calls.append((path, execution))
         return write_profile(output)
     monkeypatch.setattr(apple_gpu, "collect", collect)
@@ -217,7 +217,7 @@ def test_mcp_gpu_collect_query_report_and_profile_trace(tmp_path, monkeypatch):
     config = TopdownConfig(db_path=tmp_path / "gpu.db")
     monkeypatch.setattr(mcp_server, "get_config", lambda: config)
     monkeypatch.setattr(apple_gpu, "record", write_profile)
-    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution: write_profile(output))
+    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution, gpu_state: write_profile(output))
     result = mcp_server.collect_apple_gpu_profile("alu", labels={"test_name": "gpu-mcp"})
     assert "error" not in result, result
     assert "encoders" not in result["result"] and Path(result["artifacts"]).is_dir()
@@ -312,7 +312,7 @@ def test_sqlite_measured_m6_mixed_encoder_profile(sqlite_backend, tmp_path):
 
 def test_packaged_record_preserves_replay_host_identity(tmp_path, fake_capture, monkeypatch):
     environment = {"cpu": "Apple M6", "arch": "arm64", "kernel_uuid": "REPLAY-KERNEL"}
-    def replay(trace, output, execution):
+    def replay(trace, output, execution, gpu_state):
         profile = write_profile(output)
         profile["environment"] = environment.copy()
         return profile
@@ -350,7 +350,7 @@ def test_gpu_cli_cancellation_retains_artifacts_and_skips_storage(tmp_path, monk
         raise KeyboardInterrupt
     store = Mock(side_effect=AssertionError("stored a cancelled GPU capture"))
     monkeypatch.setattr(apple_gpu, "record", interrupted)
-    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution: interrupted(output))
+    monkeypatch.setattr(apple_gpu, "collect", lambda trace, output, execution, gpu_state: interrupted(output))
     monkeypatch.setattr("topdown.apple_cli._store_capture", store)
     args = ["apple", "gpu", command]
     if command == "profile":

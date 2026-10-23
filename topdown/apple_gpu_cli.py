@@ -36,6 +36,7 @@ def record(
     passes: Annotated[int, typer.Option(min=1, max=500)] = 4,
     items: Annotated[int, typer.Option(min=1, max=16777216)] = 16384,
     execution: Annotated[str, typer.Option(help="overlapping or serial replay")] = "overlapping",
+    gpu_state: Annotated[str, typer.Option(help="Replay state: default, low, medium or high")] = "default",
     store: Annotated[bool, typer.Option(help="Store native GPU results in the configured database")] = False,
     label: Annotated[Optional[list[str]], typer.Option("--label", "-L")] = None,
     db: Annotated[Optional[str], typer.Option(help="SQLite database path")] = None,
@@ -43,7 +44,7 @@ def record(
     """Compile, capture and replay a checksum-verified Metal control on Apple silicon with Xcode."""
     from topdown.collector.apple_gpu import record as collect
 
-    _capture(output, store, label, db, lambda: collect(output, mode, passes, items, execution))
+    _capture(output, store, label, db, lambda: collect(output, mode, passes, items, execution, gpu_state))
 
 
 @app.command()
@@ -51,6 +52,7 @@ def profile(
     trace: Annotated[Path, typer.Argument(exists=True, help="Existing Metal .gputrace capture")],
     output: Annotated[Path, typer.Option(help="New directory for replay counters and logs")],
     execution: Annotated[str, typer.Option(help="overlapping or serial replay")] = "overlapping",
+    gpu_state: Annotated[str, typer.Option(help="Replay state: default, low, medium or high")] = "default",
     store: Annotated[bool, typer.Option(help="Store native GPU results in the configured database")] = False,
     label: Annotated[Optional[list[str]], typer.Option("--label", "-L")] = None,
     db: Annotated[Optional[str], typer.Option(help="SQLite database path")] = None,
@@ -58,7 +60,7 @@ def profile(
     """Replay an existing workload capture and collect its native per-encoder counters."""
     from topdown.collector.apple_gpu import collect
 
-    _capture(output, store, label, db, lambda: collect(trace, output, execution))
+    _capture(output, store, label, db, lambda: collect(trace, output, execution, gpu_state))
 
 
 @app.command()

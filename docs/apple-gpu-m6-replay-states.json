@@ -1,0 +1,3442 @@
+{
+  "measurement_kind": "apple-gpu-m6-replay-state-validation",
+  "source": "topdown/collector/apple_gpu_probe.swift",
+  "source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+  "original_probe": {
+    "checksum": 8336.906823405065,
+    "checksum_verified": true,
+    "commands": [
+      {
+        "gpu_end_seconds": 179892.91960787502,
+        "gpu_start_seconds": 179892.919574625,
+        "label": "topdown GPU alu pass 0"
+      },
+      {
+        "gpu_end_seconds": 179892.920510125,
+        "gpu_start_seconds": 179892.92047725,
+        "label": "topdown GPU alu pass 1"
+      },
+      {
+        "gpu_end_seconds": 179892.92146550003,
+        "gpu_start_seconds": 179892.92143275,
+        "label": "topdown GPU alu pass 2"
+      },
+      {
+        "gpu_end_seconds": 179892.92230541667,
+        "gpu_start_seconds": 179892.92227279168,
+        "label": "topdown GPU alu pass 3"
+      }
+    ],
+    "device": "Apple M6",
+    "expected_checksum": 8336.906823405065,
+    "gpu_seconds": 0.00013150001177564263,
+    "items": 16384,
+    "mode": "alu",
+    "passes": 4
+  },
+  "environment": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "cpu": "Apple M6",
+    "os_build": "26A434",
+    "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+  },
+  "order": [
+    "default",
+    "low",
+    "medium",
+    "high",
+    "high",
+    "medium",
+    "low",
+    "default"
+  ],
+  "cases": [
+    {
+      "trial": 0,
+      "requested_state": "default",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "default",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0854 ms",
+          "Frame end": "85375 ns",
+          "GPU time": "0.0854 ms",
+          "Overlap": "yes",
+          "Profiled state": "default"
+        },
+        "encoders": [
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 31.270346005912575
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0119 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "31.27%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "31.27%",
+              "Duration": "0.0121 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,86%",
+              "Instruction Throughput Limiter": "46,60%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,25%",
+              "Occupancy Manager Target": "50,40%"
+            }
+          },
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 28.614773366350907
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0120 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "28.61%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "28.61%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,91%",
+              "Instruction Throughput Limiter": "46,60%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,21%",
+              "Occupancy Manager Target": "50,37%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 21.173531905287092
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0120 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "21.17%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "21.17%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,67%",
+              "Instruction Throughput Limiter": "46,58%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,29%",
+              "Occupancy Manager Target": "50,37%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 18.941348722449426
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0121 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "18.94%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "18.94%",
+              "Duration": "0.0126 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,00%",
+              "Instruction Throughput Limiter": "46,51%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,52%",
+              "Occupancy Manager Target": "50,87%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "4,19"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "3,78"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,41"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "4,19 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "3,78 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,41 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "15,93%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "15,93%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "15,93% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "15,93% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,76%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,76% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "77"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "77 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "75,57%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "70,22%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "75,57% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "70,22% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:11.523766+00:00",
+        "ended_at": "2026-10-23T16:29:18.624840+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "cd15a331768a989c7a78d371e556340536839d98537849f3dff72f9e9e0dc712",
+      "profile_canonical_sha256": "8ea995cababf52fb0442cce22c206fcf1c93c6049156c212e203e4d89f34b427"
+    },
+    {
+      "trial": 1,
+      "requested_state": "low",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "low",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.1574 ms",
+          "Frame end": "157416 ns",
+          "GPU time": "0.1574 ms",
+          "Overlap": "yes",
+          "Profiled state": "min"
+        },
+        "encoders": [
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 27.11060539403532
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0301 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "27.11%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "27.11%",
+              "Duration": "0.0300 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,82%",
+              "Instruction Throughput Limiter": "46,62%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,23%",
+              "Occupancy Manager Target": "50,00%"
+            }
+          },
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 24.984033839021347
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0301 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "24.98%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "24.98%",
+              "Duration": "0.0299 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,88%",
+              "Instruction Throughput Limiter": "46,65%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,24%",
+              "Occupancy Manager Target": "49,99%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 24.134069627668676
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0300 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "24.13%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "24.13%",
+              "Duration": "0.0307 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,87%",
+              "Instruction Throughput Limiter": "46,59%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,36%",
+              "Occupancy Manager Target": "50,22%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 23.771291139274652
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0296 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "23.77%",
+              "Control Flow Limiter": "1,71%",
+              "Cost": "23.77%",
+              "Duration": "0.0303 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,02%",
+              "Instruction Throughput Limiter": "46,26%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,37%",
+              "Kernel Occupancy": "15,10%",
+              "Occupancy Manager Target": "49,04%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,90"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,54"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,36"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "1,90 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "1,54 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,36 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "17,41%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "17,41%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "17,41% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "17,41% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,30%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "1,30% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "67"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "67 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "63,47%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "60,04%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "63,47% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "60,04% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:18.633345+00:00",
+        "ended_at": "2026-10-23T16:29:22.313306+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "66651f2b9e335fee71d8d9b73c2cc9ca2456f9a1c7d3d4a9182598eb071f8e03",
+      "profile_canonical_sha256": "8cbe8fa13c41a00e76998d5a2622019229ff7e03b1aa0f98ae57006774d80dee"
+    },
+    {
+      "trial": 2,
+      "requested_state": "medium",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "medium",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0859 ms",
+          "Frame end": "85916 ns",
+          "GPU time": "0.0859 ms",
+          "Overlap": "yes",
+          "Profiled state": "medium"
+        },
+        "encoders": [
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 34.58542702964382
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0117 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "34.59%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "34.59%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,88%",
+              "Instruction Throughput Limiter": "46,58%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,30%",
+              "Occupancy Manager Target": "50,53%"
+            }
+          },
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 33.71270281609777
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0117 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "33.71%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "33.71%",
+              "Duration": "0.0121 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,89%",
+              "Instruction Throughput Limiter": "46,63%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,42%",
+              "Kernel Occupancy": "15,12%",
+              "Occupancy Manager Target": "50,24%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 17.93935086970745
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0118 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "17.94%",
+              "Control Flow Limiter": "2,10%",
+              "Cost": "17.94%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "67,86%",
+              "Instruction Throughput Limiter": "56,33%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "4,11%",
+              "Kernel Occupancy": "18,01%",
+              "Occupancy Manager Target": "60,84%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 13.762519284550976
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0117 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "13.76%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "13.76%",
+              "Duration": "0.0126 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,90%",
+              "Instruction Throughput Limiter": "46,52%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,51%",
+              "Occupancy Manager Target": "50,77%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "4,99"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "4,50"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,50"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "4,99 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "4,50 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,50 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "17,66%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "17,66%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "17,66% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "17,66% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,78%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,78% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "78"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "78 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "81,38%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "76,45%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "81,38% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "76,45% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:22.321426+00:00",
+        "ended_at": "2026-10-23T16:29:25.883243+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "92920d2fccf505f69501e0becd672373611ba3553bd3d35cece28b2350f6997c",
+      "profile_canonical_sha256": "d127ee2fb07b29be29b6ee8d805835464de8cd3bfa7c7b302797d09cdf2f4407"
+    },
+    {
+      "trial": 3,
+      "requested_state": "high",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "high",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0731 ms",
+          "Frame end": "73125 ns",
+          "GPU time": "0.0731 ms",
+          "Overlap": "yes",
+          "Profiled state": "max"
+        },
+        "encoders": [
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 26.236414741422905
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0086 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "26.24%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "26.24%",
+              "Duration": "0.0087 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,92%",
+              "Instruction Throughput Limiter": "46,62%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,08%",
+              "Occupancy Manager Target": "50,31%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 25.843679692239437
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0086 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "25.84%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "25.84%",
+              "Duration": "0.0088 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,93%",
+              "Instruction Throughput Limiter": "46,60%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,08%",
+              "Occupancy Manager Target": "50,25%"
+            }
+          },
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 24.90020066881455
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0087 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "24.90%",
+              "Control Flow Limiter": "2,11%",
+              "Cost": "24.90%",
+              "Duration": "0.0087 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "68,20%",
+              "Instruction Throughput Limiter": "56,61%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "4,14%",
+              "Kernel Occupancy": "18,02%",
+              "Occupancy Manager Target": "61,41%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 23.01970489752311
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0086 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "23.02%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "23.02%",
+              "Duration": "0.0091 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,04%",
+              "Instruction Throughput Limiter": "46,44%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,62%",
+              "Occupancy Manager Target": "51,38%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,54"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,32"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,21"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "1,54 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "1,32 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,21 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "14,46%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "14,46%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "14,46% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "14,46% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,65%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,65% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "72"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "72 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "70,90%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "64,47%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "70,90% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "64,47% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:25.891430+00:00",
+        "ended_at": "2026-10-23T16:29:29.412317+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "d1c1b578beb992911e3b33d190bd241471086ea63f69c910ea36fa0649cea9d1",
+      "profile_canonical_sha256": "15b3da12cd76d740bc2571f01902e094a935baba42d61f3b7ad944ac52745ba9"
+    },
+    {
+      "trial": 4,
+      "requested_state": "high",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "high",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0730 ms",
+          "Frame end": "73000 ns",
+          "GPU time": "0.0730 ms",
+          "Overlap": "yes",
+          "Profiled state": "max"
+        },
+        "encoders": [
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 40.58513787550599
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0088 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "40.59%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "40.59%",
+              "Duration": "0.0088 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,75%",
+              "FS Occupancy": "0,17%",
+              "Instruction Throughput Limiter": "46,62%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,50%",
+              "Kernel Occupancy": "15,04%",
+              "Occupancy Manager Target": "50,52%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 20.253313606048142
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0087 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "20.25%",
+              "Control Flow Limiter": "1,72%",
+              "Cost": "20.25%",
+              "Duration": "0.0088 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,51%",
+              "Instruction Throughput Limiter": "46,38%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,39%",
+              "Kernel Occupancy": "15,15%",
+              "Last Level Cache Limiter": "1,34%",
+              "Occupancy Manager Target": "50,09%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 19.597156113923507
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0086 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "19.60%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "19.60%",
+              "Duration": "0.0092 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,12%",
+              "Instruction Throughput Limiter": "46,57%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,43%",
+              "Kernel Occupancy": "15,74%",
+              "Occupancy Manager Target": "51,38%"
+            }
+          },
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 19.564392404522366
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0085 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "19.56%",
+              "Control Flow Limiter": "1,74%",
+              "Cost": "19.56%",
+              "Duration": "0.0088 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,13%",
+              "Instruction Throughput Limiter": "46,74%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,43%",
+              "Kernel Occupancy": "15,39%",
+              "Occupancy Manager Target": "50,80%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "6,45"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "5,92"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,53"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "6,45 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "5,92 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,53 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "14,76%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "14,76%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "14,76% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "14,76% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,64%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,64% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "76"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "76 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "73,71%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "67,68%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "73,71% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "67,68% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:29.420127+00:00",
+        "ended_at": "2026-10-23T16:29:32.962820+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "2a2ea9586c7a4e56a9a3f8a98b15574e5db0aae6bb8dcb81946bf00a9b975e15",
+      "profile_canonical_sha256": "a67dc84c68c32287f32a0bc97cc0912c48c6d3eb229dc78572b1c3c18743db09"
+    },
+    {
+      "trial": 5,
+      "requested_state": "medium",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "medium",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0857 ms",
+          "Frame end": "85708 ns",
+          "GPU time": "0.0857 ms",
+          "Overlap": "yes",
+          "Profiled state": "medium"
+        },
+        "encoders": [
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 37.6897429275292
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0118 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "37.69%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "37.69%",
+              "Duration": "0.0124 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,93%",
+              "Instruction Throughput Limiter": "46,53%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,40%",
+              "Kernel Occupancy": "15,53%",
+              "Occupancy Manager Target": "50,82%"
+            }
+          },
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 24.093016963246395
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0119 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "24.09%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "24.09%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,07%",
+              "Instruction Throughput Limiter": "46,73%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,13%",
+              "Occupancy Manager Target": "50,23%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 19.450514257131534
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0120 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "19.45%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "19.45%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "56,01%",
+              "Instruction Throughput Limiter": "46,61%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,13%",
+              "Occupancy Manager Target": "50,09%"
+            }
+          },
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 18.766725852092872
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0118 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "18.77%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "18.77%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,77%",
+              "Instruction Throughput Limiter": "46,53%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,40%",
+              "Kernel Occupancy": "15,06%",
+              "Occupancy Manager Target": "50,19%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "5,63"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "5,10"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,53"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "5,63 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "5,10 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,53 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "15,25%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "15,25%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "15,25% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "15,25% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,78%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,78% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "71"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "71 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "70,48%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "64,84%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "70,48% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "64,84% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:32.971183+00:00",
+        "ended_at": "2026-10-23T16:29:36.594722+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "52ff1e46dd706474361df932b85fc88677b189d6e9529588264ee50956e9bf13",
+      "profile_canonical_sha256": "564a3bcd8f40bc263c6b71e1f9369fd62f4f77ecb8cfa3a7549ec455b648a62e"
+    },
+    {
+      "trial": 6,
+      "requested_state": "low",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "low",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.1588 ms",
+          "Frame end": "158833 ns",
+          "GPU time": "0.1588 ms",
+          "Overlap": "yes",
+          "Profiled state": "min"
+        },
+        "encoders": [
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 32.01399636840911
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0305 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "32.01%",
+              "Compute Shader Launch Limiter": "1,01%",
+              "Control Flow Limiter": "1,94%",
+              "Cost": "32.01%",
+              "Duration": "0.0299 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "62,65%",
+              "Instruction Throughput Limiter": "52,27%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,82%",
+              "Kernel Occupancy": "16,79%",
+              "Occupancy Manager Target": "55,81%"
+            }
+          },
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 31.907559163280816
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0300 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "31.91%",
+              "Control Flow Limiter": "1,46%",
+              "Cost": "31.91%",
+              "Duration": "0.0300 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "47,09%",
+              "Instruction Throughput Limiter": "39,23%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "2,86%",
+              "Kernel Occupancy": "12,64%",
+              "Occupancy Manager Target": "41,85%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 23.19903026648533
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0293 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "23.20%",
+              "Control Flow Limiter": "2,10%",
+              "Cost": "23.20%",
+              "Duration": "0.0365 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "67,91%",
+              "Instruction Throughput Limiter": "56,35%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "4,13%",
+              "Kernel Occupancy": "18,20%",
+              "Occupancy Manager Target": "61,09%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 12.879414201824739
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0301 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "12.88%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "12.88%",
+              "Duration": "0.0301 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,97%",
+              "Instruction Throughput Limiter": "46,68%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,41%",
+              "Kernel Occupancy": "15,12%",
+              "Occupancy Manager Target": "49,88%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "2,06"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,65"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,42"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "2,06 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "1,65 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,42 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "18,40%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "18,40%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "18,40% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "18,40% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "1,14%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "1,14% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "77"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "77 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "72,35%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "69,06%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "72,35% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "69,06% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:36.602894+00:00",
+        "ended_at": "2026-10-23T16:29:40.234535+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "5f3a36909c238c1fb1cc65784ae86bfea32b0ce943204ad5ddd80838af938530",
+      "profile_canonical_sha256": "8682a10866add68ec4bc89e686ceca43d778044889586a0546549afcef2e3c0f"
+    },
+    {
+      "trial": 7,
+      "requested_state": "default",
+      "profile": {
+        "schema_version": 1,
+        "measurement_kind": "apple-gpu-replay-profile",
+        "scope": {
+          "kind": "captured-metal-workload",
+          "trace_name": "capture.gputrace"
+        },
+        "settings": {
+          "execution": "overlapping",
+          "gpu_state": "default",
+          "replayed": true
+        },
+        "device": "Apple M6",
+        "timeline": {
+          "Commands": "4",
+          "Consistent state": "yes",
+          "Cores": "12 sampled / 12 total",
+          "Encoders": "4",
+          "Frame begin": "0 ns",
+          "Frame duration": "0.0862 ms",
+          "Frame end": "86166 ns",
+          "GPU time": "0.0862 ms",
+          "Overlap": "yes",
+          "Profiled state": "default"
+        },
+        "encoders": [
+          {
+            "id": "ce1",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce1",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 1\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 29.13759037004037
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0121 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "29.14%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "29.14%",
+              "Duration": "0.0119 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,90%",
+              "Instruction Throughput Limiter": "46,63%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,40%",
+              "Kernel Occupancy": "15,09%",
+              "Occupancy Manager Target": "50,09%"
+            }
+          },
+          {
+            "id": "ce2",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce2",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 2\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 27.339171947049373
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0118 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "27.34%",
+              "Control Flow Limiter": "1,73%",
+              "Cost": "27.34%",
+              "Duration": "0.0121 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,93%",
+              "Instruction Throughput Limiter": "46,64%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,40%",
+              "Kernel Occupancy": "15,08%",
+              "Occupancy Manager Target": "50,13%"
+            }
+          },
+          {
+            "id": "ce3",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce3",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 3\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 23.630784013603957
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0117 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "23.63%",
+              "Control Flow Limiter": "1,72%",
+              "Cost": "23.63%",
+              "Duration": "0.0120 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "55,64%",
+              "Instruction Throughput Limiter": "46,43%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "3,39%",
+              "Kernel Occupancy": "15,03%",
+              "Occupancy Manager Target": "49,94%"
+            }
+          },
+          {
+            "id": "ce0",
+            "listing": {
+              "actions": "go, info",
+              "name": "ce0",
+              "values": [
+                {
+                  "type": "string",
+                  "value": "\"alu compute pass 0\""
+                },
+                {
+                  "type": "percentage",
+                  "value": 19.892453669306292
+                },
+                null,
+                null,
+                {
+                  "type": "string",
+                  "value": "0.0117 ms"
+                }
+              ]
+            },
+            "counters": {
+              "Commands": "4",
+              "Compute": "19.89%",
+              "Control Flow Limiter": "2,11%",
+              "Cost": "19.89%",
+              "Duration": "0.0124 ms",
+              "Encoder type": "Compute",
+              "F32 Limiter": "68,35%",
+              "Instruction Throughput Limiter": "56,72%",
+              "Instructions": "18972852",
+              "Integer and Conditional Limiter": "4,14%",
+              "Kernel Occupancy": "18,50%",
+              "Occupancy Manager Target": "61,86%"
+            }
+          }
+        ],
+        "timeline_counter_groups": {
+          "bandwidth": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "5,29"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_read_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "4,76"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "gpu_write_bandwidth",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,53"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "gpu_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read or written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Bandwidth",
+                "Scope": "timeline",
+                "Value": "5,29 GiB / Second"
+              },
+              "gpu_read_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are read by the GPU from a memory external to the GPU (potentially device memory)",
+                "Name": "GPU Read Bandwidth",
+                "Scope": "timeline",
+                "Value": "4,76 GiB / Second"
+              },
+              "gpu_write_bandwidth": {
+                "Description": "Measures how much memory, in gigabytes per second, are written by the GPU to a memory external to the GPU (potentially device memory).",
+                "Name": "GPU Write Bandwidth",
+                "Scope": "timeline",
+                "Value": "0,53 GiB / Second"
+              }
+            }
+          },
+          "occupancy": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fs_occupancy"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "kernel_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "18,06%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "total_occupancy",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "18,06%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 4
+            },
+            "counters": {
+              "vs_occupancy": null,
+              "fs_occupancy": null,
+              "kernel_occupancy": {
+                "Description": "Percentage of shader core resources that are occupied by the compute kernel",
+                "Name": "Kernel Occupancy",
+                "Scope": "timeline",
+                "Value": "18,06% Percentage of Shader Core Resources"
+              },
+              "total_occupancy": {
+                "Description": "Sum of vertex, fragment and compute occupancy",
+                "Name": "Total Occupancy",
+                "Scope": "timeline",
+                "Value": "18,06% % Shader Core Resources"
+              }
+            }
+          },
+          "shader_launch_limiter": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "vertex_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "fragment_shader_launch_limiter"
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "compute_shader_launch_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "0,76%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 3
+            },
+            "counters": {
+              "vertex_shader_launch_limiter": null,
+              "fragment_shader_launch_limiter": null,
+              "compute_shader_launch_limiter": {
+                "Description": "The rate at which compute shader threads are launched into the shader cores or stalled launching by the shader core, normalized to the peak launch rate",
+                "Name": "Compute Shader Launch Limiter",
+                "Scope": "timeline",
+                "Value": "0,76% % Peak Performance"
+              }
+            }
+          },
+          "active_cores": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "active_cores",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "80"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "rt_unit_active"
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "active_cores": {
+                "Description": "The percentage of available GPU cores that are currently active",
+                "Name": "Active Cores",
+                "Scope": "timeline",
+                "Value": "80 % GPU Cores"
+              },
+              "rt_unit_active": null
+            }
+          },
+          "f32": {
+            "listing": {
+              "children": [
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_limiter",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "82,94%"
+                    }
+                  ]
+                },
+                {
+                  "actions": "info, fetch",
+                  "name": "f32_utilization",
+                  "values": [
+                    {
+                      "type": "string",
+                      "value": "78,70%"
+                    }
+                  ]
+                }
+              ],
+              "totalCount": 2
+            },
+            "counters": {
+              "f32_limiter": {
+                "Description": "Measures the time during which F32 work is attempted to execute as a percentage of peak performance. A value of 100% indicates F32 execution pipeline has reached full capacity and cannot process more F32 instructions in parallel",
+                "Name": "F32 Limiter",
+                "Scope": "timeline",
+                "Value": "82,94% Percentage of Peak Performance"
+              },
+              "f32_utilization": {
+                "Description": "Measures the time during which F32 work is executed as a percentage of peak F32 performance",
+                "Name": "F32 Utilization",
+                "Scope": "timeline",
+                "Value": "78,70% Percentage of Peak F32 Performance"
+              }
+            }
+          }
+        },
+        "environment": {
+          "system": "Darwin",
+          "arch": "arm64",
+          "os_version": "27.0.1",
+          "cpu": "Apple M6",
+          "os_build": "26A434",
+          "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+        },
+        "tma_available": false,
+        "tma": {
+          "Frontend_Bound": null,
+          "Bad_Speculation": null,
+          "Backend_Bound": null,
+          "Retiring": null
+        },
+        "started_at": "2026-10-23T16:29:40.242598+00:00",
+        "ended_at": "2026-10-23T16:29:47.352901+00:00",
+        "limitations": [
+          "Measurements describe replay of the captured Metal workload, not original application wall time.",
+          "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+          "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+          "Replay GPU state and execution mode can change timings; compare matched settings.",
+          "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders."
+        ]
+      },
+      "profile_raw_sha256": "cb69701f11d78119a0ea79ae5521bd0089c042499423629c988b65f795393f37",
+      "profile_canonical_sha256": "faddeff760949a4ee36f9f52854b92116e93743e884b05a2c9ac17da5df41437"
+    }
+  ],
+  "limitations": [
+    "State names select native debugger replay settings; they are not calibrated clock frequencies.",
+    "This control replays one identical captured workload; its original execution is separate.",
+    "Native timeline counters may include other device activity.",
+    "Frequency/background conditions outside the requested replay state remain uncontrolled."
+  ]
+}

@@ -173,3 +173,9 @@ def test_jsonb_preserves_capture_host_labels_across_imports(postgres_backend, tm
     from tests.test_apple_environment import check_import_environment
 
     check_import_environment(postgres_backend, tmp_path, monkeypatch)
+
+
+def test_jsonb_preserves_measured_replay_state_settings(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_states import check_measured_replay_state_storage
+
+    check_measured_replay_state_storage(postgres_backend, tmp_path)

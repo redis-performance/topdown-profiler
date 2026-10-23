@@ -324,6 +324,39 @@ The run's timestamp range covers the collection workflow; use the native
 `timeline` for replay GPU timing and `probe.gpu_seconds` for original command GPU
 timestamps. Neither is application CPU time.
 
+### Select a replay state
+
+The CLI and MCP collectors accept a replay state: `default` (unchanged default),
+`low`, `medium`, or `high`. This selects the debugger's replay setting; it does
+not control the original captured execution. For example:
+
+```bash
+topdown apple gpu profile capture.gputrace --output replay-high --gpu-state high --store
+topdown apple gpu record --mode alu --output alu-low --gpu-state low --store
+```
+
+Set `gpu_state` on `profile_apple_gpu_trace` or `collect_apple_gpu_profile` in MCP.
+Saved settings retain the requested value; native timeline labels remain
+unchanged. On the tested Xcode 27.1/M6, `low` reports `min` and `high` reports
+`max`. The collector rejects a contradictory reported state before publishing
+the result and still closes its own session.
+
+The [balanced replay-state control](apple-gpu-m6-replay-states.json) replays one
+checksum-verified four-pass packaged ALU capture in forward/reverse state order:
+
+| Requested state | Native label | Replay GPU ms (two observations) |
+|---|---|---:|
+| default | default | 0.0854–0.0862 |
+| low | min | 0.1574–0.1588 |
+| medium | medium | 0.0857–0.0859 |
+| high | max | 0.0730–0.0731 |
+
+These names select native tool settings; they do not calibrate clock frequencies
+or guarantee performance ordering for other workloads. Compare matched states,
+retain sampling coverage, and account for concurrent GPU activity. All eight
+profiles retain their state through SQLite/PostgreSQL, encoder pages and MCP
+reports.
+
 ### Reproduce the lower-level replay experiment
 
 The source-checkout wrappers use the same packaged collector and report code.
