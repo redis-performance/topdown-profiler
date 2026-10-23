@@ -310,6 +310,12 @@ remain responsive while that command finishes.
 CLI Ctrl-C during replay also waits for the current bounded debugger command,
 closes its owned session, retains artifacts and exits with status 130.
 
+On POSIX, SIGTERM to the stdio MCP server cancels its requests, waits for native
+cleanup, and exits with status 143, including when the client keeps stdin open
+or stops reading stdout. Allow the current bounded debugger command to finish
+before escalating to SIGKILL; a forced process kill cannot run Python cleanup.
+HTTP transport retains its server's signal handling.
+
 | Tool | Purpose |
 |---|---|
 | `collect_apple_gpu_profile(mode, passes, items, execution, process_name, labels)` | Capture the packaged Metal control and store its replay profile |
