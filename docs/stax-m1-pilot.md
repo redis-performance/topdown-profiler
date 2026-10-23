@@ -475,9 +475,39 @@ used a [fake daemon](../examples/stax_m1_metal_lane/fake_core_id_daemon.rs)
 to alternate invented IDs 0 and 4. The patched server archived 174 CPU
 samples with each ID alongside 299 real Metal target spans whose CPU ID
 remained unknown. The topdown importer now retains and validates optional raw
-CPU IDs: public import and sample queries preserved all 348 synthetic IDs.
+CPU IDs as `trace_cpu_id`: public import and sample queries preserved all 348
+synthetic IDs.
 These IDs cannot establish core residency or P/E event behavior until a
 privileged capture and independent topology validation are available.
+XNU's [PET implementation](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kperf/pet.c)
+distinguishes a heavier PET thread that samples other threads from lightweight
+PET, where a thread samples itself while coming on-core. The pinned Stax
+helper explicitly enables lightweight PET. This makes the trace CPU ID a
+plausible residency signal for that mode, but the patch only preserves
+`KdBuf.cpuid` from the sample-start record. The installed macOS kernel and
+PMU attribution still require a real capture and an independent core-scoped
+cross-check before using the field for P/E claims.
+
+An [M1 KPC accumulation control](stax-m1-kpc-accumulation-control.json) found a
+separate correctness blocker. XNU's
+[thread counter code](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kern/kpc_thread.c)
+returns accumulated per-thread KPC values, and
+[kperf's PMC sampler](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kperf/kperf_kpc.c)
+uses that API. The pinned Stax macOS parser and pipeline forward each snapshot
+into a saved sample as if it were an interval delta. A rootless fake daemon
+emitted 348 invented cumulative snapshots with cycles `100, 200, 300, ...,
+34800`. The core-ID-only server archived those values, whose sum is
+`6,072,600` rather than the final cumulative `34,800`. A proposed
+[per-thread delta patch](../examples/stax-m1-kpc-delta.patch) archived `0, 100,
+100, ...` for the same fixture, summing to `34,700` because its first snapshot
+is withheld as a baseline. Both runs retained 299 real Metal target spans;
+neither measured hardware PMUs. Apply the delta patch after the core-identity
+patch with `git apply --unidiff-zero` against the pinned Stax revision. Its
+parser library tests and release server build pass. The generic Stax v3 archive
+does not label PMU values as cumulative or differenced, so the importer marks
+macOS PMU semantics unverified and does not sum the values. A converted
+per-thread delta can cover migrations between sample ticks; the sample's
+`trace_cpu_id` cannot assign all intervening work to that core.
 
 One separate [native M1 Redis control](stax-m1-native-control.json) completed
 before a Stax recording was available. `topdown apple stat` observed the pinned

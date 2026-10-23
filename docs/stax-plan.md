@@ -66,7 +66,19 @@ profiles must not be presented as Intel TMA funnels.
   the [M1 core-attribution audit](stax-m1-core-attribution-audit.json). An
   importer cannot reconstruct that identity from the archive. Keep per-core
   claims unavailable until upstream preserves it or captures are independently
-  verified to be core-scoped.
+  verified to be core-scoped. A proposed
+  [core-identity patch](../examples/stax-m1-core-identity.patch) preserves the
+  raw trace ID in a rootless control, but this is not proof of thread residency.
+- Validate macOS KPC counter semantics before adding or interpreting PMU
+  totals. XNU returns cumulative per-thread counters; the pinned Stax path
+  treats each PET snapshot as a delta. The
+  [M1 accumulation control](stax-m1-kpc-accumulation-control.json) demonstrates
+  the inflation with synthetic snapshots and tests a proposed per-thread
+  differencing patch. A first snapshot or counter reset requires a new baseline;
+  report lost baseline coverage and native record loss. Record conversion
+  provenance in the archive before an importer treats PMU fields as deltas.
+  Even a valid thread delta may span several cores between samples, so a trace
+  CPU ID alone cannot assign the whole delta to a P or E core.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing

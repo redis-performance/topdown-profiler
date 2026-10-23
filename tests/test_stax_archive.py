@@ -104,8 +104,8 @@ def test_native_addresses_counters_and_interval_units(stax_archive):
     result = doc["result"]
     assert result["tma_available"] is False
     assert result["samples"][0]["pmc"]["cycles"] == 2**64 - 1
-    assert "cpu" not in result["samples"][0]
-    assert result["quality"]["cpu_samples_with_cpu_id"] == 0
+    assert "trace_cpu_id" not in result["samples"][0]
+    assert result["quality"]["cpu_samples_with_trace_cpu_id"] == 0
     table = {f["address"]: f for f in result["frame_table"]}
     frames = [table[a] for a in result["stack_table"][result["samples"][0]["stack_id"]]]
     assert [frame["name"] for frame in frames] == ["hot", "caller", "hot"]
@@ -143,8 +143,17 @@ def test_optional_raw_cpu_id_survives_import_and_query(stax_archive, sqlite_back
 
     run = store_stax_result(sqlite_backend, stax_archive)
     page = query_stax_result(sqlite_backend, run.run_id, "samples")
-    assert [row["cpu"] for row in page["rows"]] == [0, 4]
-    assert page["result"]["quality"]["cpu_samples_with_cpu_id"] == 2
+    assert [row["trace_cpu_id"] for row in page["rows"]] == [0, 4]
+    assert page["result"]["quality"]["cpu_samples_with_trace_cpu_id"] == 2
+
+
+def test_macos_pmu_snapshots_are_not_presented_as_verified_deltas(stax_archive):
+    doc = archive_document()
+    doc["provenance"]["os"] = "macos"
+    stax_archive.write_text(json.dumps(doc))
+    result = load_archive(stax_archive)["result"]
+    assert "cumulative KPC thread snapshots" in result["quality"]["pmu_counter_semantics"]
+    assert any("cannot be summed as per-sample deltas" in text for text in result["limitations"])
 
 
 @pytest.mark.parametrize("cpu", [True, -1, 2**32, 1.5, "4"])

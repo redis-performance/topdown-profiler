@@ -31,10 +31,10 @@
     "public_samples_query_succeeded": true,
     "stored_run_id": "9f96aeec-021e-40dd-9394-18e7c01903f2",
     "stored_cpu_samples": 348,
-    "stored_cpu_samples_with_cpu_id": 348,
+    "stored_cpu_samples_with_trace_cpu_id": 348,
     "queried_cpu_ids": [0, 4],
     "stored_target_stack_samples": 299,
-    "target_samples_with_cpu_id": 0
+    "target_samples_with_trace_cpu_id": 0
   },
   "checks": {
     "stax_parser_unit_tests": "5 passed",
@@ -45,5 +45,5 @@
     "topdown_archive_tests": "40 passed",
     "upstream_parser_doctest": "fails in the pinned unmodified source because its example refers to undefined placeholders"
   },
-  "limitations": "The CPU IDs, PMCs, and CPU stack records are synthetic. This proves software preservation of the raw ID, not physical M1 core residency, P/E topology classification, PMU scope, or complete sample delivery. The patch is a proposed upstream change, not part of the pinned installed Stax binaries."
+  "limitations": "The CPU IDs, PMCs, and CPU stack records are synthetic. This proves software preservation of the raw kdebug index, not physical M1 thread residency, P/E topology classification, PMU scope, or complete sample delivery. Stax enables lightweight PET, which XNU source describes as sampling on-core, but this kernel has not been validated with a real Stax capture. The patch is a proposed upstream change, not part of the pinned installed Stax binaries."
 }
