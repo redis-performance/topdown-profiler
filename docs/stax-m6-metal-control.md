@@ -51,8 +51,19 @@ are not GPU utilization, and a command buffer can contain multiple kernels.
 ## Reproduce the source control
 
 Use the pinned Stax revision and the source/build instructions in the linked
-M1 bridge README. Copy its bridge to `stax-metal-bridge/` inside the disposable
-Stax workspace. Before building, apply
+M1 bridge README. The example comes from an immutable commit in the M1 pilot
+draft; it need not be checked out over your working branch. From a profiler
+checkout, extract it into a temporary directory:
+
+```bash
+git fetch origin bc96a8d38563c624976d960c746a972291dd6952
+STAX_EXAMPLE_SOURCE=$(mktemp -d /tmp/topdown-metal-source.XXXXXX)
+git archive bc96a8d38563c624976d960c746a972291dd6952 \
+  examples/stax_m1_metal_lane | tar -x -C "$STAX_EXAMPLE_SOURCE"
+```
+
+Copy `$STAX_EXAMPLE_SOURCE/examples/stax_m1_metal_lane` to
+`stax-metal-bridge/` inside the disposable Stax workspace. Before building, apply
 [m6-metal-clock.patch](../examples/stax/m6-metal-clock.patch) from that workspace:
 
 ```bash

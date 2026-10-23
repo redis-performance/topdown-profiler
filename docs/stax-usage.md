@@ -121,6 +121,10 @@ counters remain accessible through `topdown apple gpu`.
   not form GPU utilization, CPU time, or TMA pipeline-slot percentages.
 - Raw PMU fields preserve unsigned integers. Zero does not establish that a
   counter was supported, and the adapter does not sum values with unverified scope.
+  The pinned Linux backend opens system-wide perf events on each CPU, then keeps
+  target threads in userspace. Its hardware-group readings and per-CPU deltas do
+  not establish per-process counter totals. macOS values have a separate native
+  counter contract; these fields are not a portable CPI or TMA input.
 
 The importer replays `events.jsonl` or bundle events when present, following
 upstream's authoritative event-stream behavior. It stores deduplicated frame and
