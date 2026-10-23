@@ -121,6 +121,9 @@ profiles must not be presented as Intel TMA funnels.
   later drops an empty-user-stack sample; its diagnostic PMU sum includes that
   parsed sample while the saved archive does not. Reconcile parsed, emitted,
   and archived sample counts before comparing totals.
+  Audit the pinned parser's `rec.arg5 as u32` thread-ID conversion against the
+  host's 64-bit kdebug IDs before relying on per-thread baselines; a collision
+  would mix independent cumulative streams. Also test a thread-ID reuse case.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
