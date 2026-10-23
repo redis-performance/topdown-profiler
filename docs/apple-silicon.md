@@ -100,6 +100,20 @@ Unsigned counters, including values above 2^53, remain integers through storage
 and Python/MCP serialization. Clients must also handle large JSON integers
 without converting them to floating point.
 
+Native payload strings can contain escaped NUL characters. PostgreSQL JSONB
+cannot store those characters directly, so exceptional documents use an escaped
+JSON-text envelope in the existing column; CLI/MCP queries decode it without
+changing native values. Ordinary documents retain direct JSONB projection.
+Encoded documents require full decoding for paging, and raw SQL JSONB paths do
+not expose their inner fields; use the native query tools for those runs.
+Run labels and process names require valid Unicode without NUL so both SQL
+backends can store and filter them. Unpaired Unicode surrogates are rejected on
+import; valid emoji, newlines and escaped NUL payload values remain supported.
+Artifact basenames must also contain valid Unicode. Public summaries, selected
+pages and reports return an explicit error for legacy unpaired surrogates in
+their response; the storage backend retains the original archived document.
+Omitted observations do not prevent reading a clean summary or another page.
+
 The importer retains source scope, native M1 bottleneck shares, unmeasured rows,
 trace gaps, and null Intel TMA fields. It does not create floating-point Linux
 metric rows. Capture timestamps are used when available; otherwise the run is

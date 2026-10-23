@@ -7,12 +7,14 @@ import os
 from pathlib import Path
 import stat
 
+from topdown.apple_json import surrogate_tokens, unicode_scalars
+
 
 def _json_object(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError(f"Duplicate Apple JSON field: {key}")
+            raise ValueError(f"Duplicate Apple JSON field: {key!r}")
         result[key] = value
     return result
 
@@ -30,12 +32,18 @@ def _json_float(value):
 
 class NativeJSONDecoder(json.JSONDecoder):
     def __init__(self, **kwargs):
+        parse_int = kwargs.get("parse_int")
+        self._native_int = parse_int is None or parse_int is int
         kwargs.update(object_pairs_hook=_json_object, parse_constant=_json_constant, parse_float=_json_float)
         super().__init__(**kwargs)
 
     def raw_decode(self, source, idx=0):
         try:
-            return super().raw_decode(source, idx)
+            value, end = super().raw_decode(source, idx)
+            # Ordinary JSON cannot create surrogate code points without corresponding source tokens.
+            if (not self._native_int or surrogate_tokens(source)) and not unicode_scalars(value):
+                raise ValueError("Native Apple JSON requires valid Unicode scalar values")
+            return value, end
         except RecursionError as exc:
             raise ValueError("Apple JSON exceeds the parser nesting limit") from exc
 

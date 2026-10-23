@@ -70,6 +70,7 @@ def fake_gpudebug(monkeypatch):
     state = {"commands": [], "loaded": True, "performance_opened": False, "timeline_opened": False,
              "error": None, "pending": 0, "error_stream": "stdout", "warning": ""}
     profile = native_profile()
+    state["timeline"] = profile["timeline"]
 
     def run(command, **kwargs):
         assert kwargs["stdin"] == subprocess.DEVNULL and kwargs["start_new_session"]
@@ -365,6 +366,41 @@ def test_ambiguous_or_missing_session_messages_never_signal_a_guessed_session(tm
 
 def test_repeated_identical_creation_lines_are_unambiguous():
     assert REPLAY._created_session(b"Session 42 created.\r\nSession 42 created.\n") == "42"
+
+
+@pytest.mark.parametrize("state,label", [("default", "default"), ("low", "min"),
+                                        ("medium", "medium"), ("high", "max")])
+def test_replay_state_request_and_native_label_are_preserved(tmp_path, fake_gpudebug, state, label):
+    trace = tmp_path / "state.gputrace"
+    trace.mkdir()
+    fake_gpudebug["timeline"]["Profiled state"] = label
+    result = REPLAY.collect(trace, tmp_path / "replay", gpu_state=state)
+    assert result["settings"]["gpu_state"] == state
+    assert result["timeline"]["Profiled state"] == label
+    commands = fake_gpudebug["commands"]
+    assert any(f"profile run --gpu-state {state} --exec overlapping" in command for command in commands)
+    assert commands[-1] == ["xcrun", "gpudebug", "--terminate", "42"]
+
+
+def test_unexpected_native_replay_state_fails_before_publication(tmp_path, fake_gpudebug):
+    trace = tmp_path / "state.gputrace"
+    trace.mkdir()
+    fake_gpudebug["timeline"]["Profiled state"] = "min"
+    output = tmp_path / "replay"
+    with pytest.raises(ValueError, match="differs from the requested"):
+        REPLAY.collect(trace, output, gpu_state="high")
+    assert not (output / "profile.json").exists()
+    assert fake_gpudebug["commands"][-1] == ["xcrun", "gpudebug", "--terminate", "42"]
+
+
+@pytest.mark.parametrize("state", [None, True, [], "turbo", "max", "high --exec serial"])
+def test_invalid_replay_states_fail_before_native_commands(tmp_path, fake_gpudebug, state):
+    with pytest.raises(ValueError, match="GPU state"):
+        REPLAY.collect(tmp_path / "missing.gputrace", tmp_path / "replay", gpu_state=state)
+    with pytest.raises(ValueError, match="GPU state"):
+        REPLAY.validate_options(gpu_state=state)
+    assert not (tmp_path / "replay").exists()
+    assert fake_gpudebug["commands"] == []
 
 
 def test_native_tty_creation_format_does_not_hide_its_session_identity():

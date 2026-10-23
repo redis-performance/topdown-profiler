@@ -10,6 +10,8 @@ Auth modes (via TOPDOWN_AUTH_MODE env var):
 """
 
 
+from typing import Literal
+
 from mcp.server.fastmcp import FastMCP
 from pydantic import StrictFloat, StrictInt
 
@@ -187,7 +189,7 @@ def get_apple_hotspots(run_id: str, limit: StrictInt = 20) -> dict:
         backend.close()
 
 
-def _collect_gpu(trace, mode, passes, items, execution, process_name, labels):
+def _collect_gpu(trace, mode, passes, items, execution, process_name, labels, gpu_state="default"):
     import uuid
     from pathlib import Path
     from topdown.apple_storage import query_apple_result as query, store_apple_result, validate_run_options
@@ -197,9 +199,9 @@ def _collect_gpu(trace, mode, passes, items, execution, process_name, labels):
     try:
         validate_run_options(process_name, labels)
         if trace is None:
-            record(output, mode, passes, items, execution)
+            record(output, mode, passes, items, execution, gpu_state)
         else:
-            collect(Path(trace), output, execution)
+            collect(Path(trace), output, execution, gpu_state)
         from topdown.collector.apple_runtime import check_cancelled
 
         check_cancelled()
@@ -217,6 +219,7 @@ def _collect_gpu(trace, mode, passes, items, execution, process_name, labels):
 def collect_apple_gpu_profile(
     mode: str = "compute", passes: StrictInt = 4, items: StrictInt = 16384, execution: str = "overlapping",
     process_name: str | None = None, labels: dict[str, str] | None = None,
+    gpu_state: Literal["default", "low", "medium", "high"] = "default",
 ) -> dict:
     """Capture a checksum-verified packaged Metal control, replay it, and store native GPU counters.
 
@@ -224,21 +227,24 @@ def collect_apple_gpu_profile(
     Modes: compute, alu (reduced loop overhead), memory, stream (64 floats/thread).
     Bounds: passes 1–500, items 1–16777216, product <=268435456; stream items divisible by 64.
     Compilation/capture timeouts are 90/60 seconds; replay budget 300 seconds plus session cleanup.
-    Replay execution is overlapping or serial, GPU state default. Failed captures retain artifacts.
+    Replay execution is overlapping or serial; gpu_state selects default/low/medium/high replay state.
+    State selection does not control the original capture. Failed captures retain artifacts.
     """
-    return _collect_gpu(None, mode, passes, items, execution, process_name, labels)
+    return _collect_gpu(None, mode, passes, items, execution, process_name, labels, gpu_state)
 
 
 @_apple_tool(capture=True)
 def profile_apple_gpu_trace(
     path: str, execution: str = "overlapping", process_name: str | None = None, labels: dict[str, str] | None = None,
+    gpu_state: Literal["default", "low", "medium", "high"] = "default",
 ) -> dict:
     """Replay an existing server-local .gputrace and store its native GPU counters (M3/A17 Pro+, Xcode).
 
     Only the captured Metal workload is replayed; this does not launch or profile an arbitrary process.
     Retains native counters, overlapping limiters and sampling coverage. Replay budget: 300 seconds.
+    gpu_state selects default/low/medium/high; native min/max labels remain unchanged in the timeline.
     """
-    return _collect_gpu(path, None, None, None, execution, process_name, labels)
+    return _collect_gpu(path, None, None, None, execution, process_name, labels, gpu_state)
 
 
 @_apple_tool()
@@ -827,6 +833,7 @@ def _register_tools_and_resources(target: FastMCP):
 def run_server(transport: str = "stdio", host: str = "localhost", port: int = 8000):
     """Start the MCP server."""
     from topdown.auth import AuthConfig
+    from topdown.mcp_runtime import run_stdio, serve_stdio
 
     auth_config = AuthConfig.from_env()
 
@@ -838,11 +845,11 @@ def run_server(transport: str = "stdio", host: str = "localhost", port: int = 80
                 "Auth is only enforced on HTTP transport.",
                 auth_config.mode,
             )
-        mcp.run(transport="stdio")
+        run_stdio(lambda: serve_stdio(mcp))
     elif transport == "http":
         # Create a new MCP instance with auth for HTTP transport
         server = _create_mcp(host=host, port=port)
         _register_tools_and_resources(server)
         server.run(transport="streamable-http")
     else:
-        mcp.run(transport="stdio")
+        run_stdio(lambda: serve_stdio(mcp))

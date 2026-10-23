@@ -12,6 +12,12 @@ from topdown.collector.apple import TMA_ROOTS
 from topdown.storage.models import Run, Sample
 
 
+def test_jsonb_retains_native_strings_and_pages(postgres_backend):
+    from tests.test_apple_json_strings import check_native_string_storage
+
+    check_native_string_storage(postgres_backend)
+
+
 @pytest.fixture
 def postgres_backend():
     dsn = os.environ.get("TOPDOWN_TEST_DSN")
@@ -125,6 +131,28 @@ def test_jsonb_preserves_measured_dependent_read_gpu_profiles(postgres_backend, 
     check_measured_dependent_read_storage(postgres_backend, tmp_path)
 
 
+def test_jsonb_preserves_measured_fma_gpu_profiles(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_fma_evidence import check_measured_fma_storage
+
+    check_measured_fma_storage(postgres_backend, tmp_path)
+
+
+@pytest.mark.parametrize("phase,failure", [("before-encode", "cancel"), ("connected", "cancel"), ("after-run", "cancel"),
+                                          ("after-document", "cancel"), ("after-run", "keyboard"),
+                                          ("after-document", "keyboard"), ("after-run", "exit"),
+                                          ("after-document", "exit")])
+def test_interrupted_native_insert_rolls_back_and_reuses_postgresql(postgres_backend, monkeypatch, phase, failure):
+    from tests.test_apple_cancelled_transactions import check_interrupted_transaction
+
+    check_interrupted_transaction(postgres_backend, monkeypatch, phase, failure)
+
+
+def test_postgresql_committed_native_result_survives_late_cancellation(postgres_backend, monkeypatch):
+    from tests.test_apple_cancelled_transactions import check_committed_result_survives_late_cancellation
+
+    check_committed_result_survives_late_cancellation(postgres_backend, monkeypatch)
+
+
 @pytest.mark.parametrize("failure", ["components", "duplicate-fields", "metadata", "timestamps"])
 def test_inconsistent_apple_imports_fail_before_jsonb_insert(postgres_backend, tmp_path, failure):
     from topdown.collector.apple import AppleProfileError
@@ -173,3 +201,15 @@ def test_jsonb_preserves_capture_host_labels_across_imports(postgres_backend, tm
     from tests.test_apple_environment import check_import_environment
 
     check_import_environment(postgres_backend, tmp_path, monkeypatch)
+
+
+def test_jsonb_public_responses_reject_selected_legacy_surrogates(postgres_backend):
+    from tests.test_apple_json_strings import check_public_legacy_unicode_responses
+
+    check_public_legacy_unicode_responses(postgres_backend)
+
+
+def test_jsonb_preserves_measured_replay_state_settings(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_states import check_measured_replay_state_storage
+
+    check_measured_replay_state_storage(postgres_backend, tmp_path)

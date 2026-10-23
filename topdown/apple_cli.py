@@ -2,6 +2,8 @@
 
 import json
 from pathlib import Path
+import signal
+import threading
 from typing import Annotated, Optional
 
 import typer
@@ -9,9 +11,32 @@ import typer
 from topdown.collector.apple import AppleProfileError, doctor, export_profile, record_profile
 from topdown.apple_gpu_cli import app as gpu_app
 
-app = typer.Typer(help="Count, capture, export and report native Apple silicon profiles; slot TMA remains unavailable.")
+app = typer.Typer(help="Count, capture, export and report native Apple silicon profiles; slot TMA remains unavailable.",
+                  no_args_is_help=True)
 
 app.add_typer(gpu_app, name="gpu")
+
+
+@app.callback()
+def _interrupt_on_termination(ctx: typer.Context):
+    if threading.current_thread() is not threading.main_thread():
+        return
+    terminated = False
+    previous = signal.getsignal(signal.SIGTERM)
+
+    def terminate(signum, frame):
+        nonlocal terminated
+        if not terminated:
+            terminated = True
+            raise KeyboardInterrupt
+
+    def restore():
+        signal.signal(signal.SIGTERM, previous)
+        if terminated:
+            raise typer.Exit(128 + signal.SIGTERM)
+
+    ctx.call_on_close(restore)
+    signal.signal(signal.SIGTERM, terminate)
 
 
 def _store_capture(output, labels, db, process_name=None):
@@ -35,8 +60,9 @@ def _check_storage_options(store, label, db):
     if not store and (label or db):
         raise AppleProfileError("Use --store with --label or --db when capturing Apple results")
     from topdown.collector.labels import parse_label_args
+    from topdown.apple_storage import validate_run_options
 
-    parse_label_args(label)
+    validate_run_options(None, parse_label_args(label))
 
 
 def _profile_summary(profile, output):

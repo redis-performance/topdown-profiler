@@ -161,6 +161,63 @@ topdown apple store /tmp/m6-dependent-reads-001/trial-02-bits-24-threads-262144/
   --process dependent-reads --label test_name=m6-dependent-reads
 ```
 
+### M6 compute control: independent FMA chains
+
+The [FMA probe](../examples/apple_gpu/fma_chains_probe.swift) executes
+268,435,456 logical fused multiply-add updates per trial, varying 64/4,096
+threads and 1/4/16 independent chains within each thread. The positive
+coefficients keep the tested states growing, and safe/precise Metal math avoids
+unsafe reassociation. After each original command, every output's Float bit
+pattern must match a fused CPU reference. The result records coefficient bits,
+checksums, work counts and original GPU timing.
+
+The [measured M6 evidence](apple-gpu-m6-fma-chains.json) contains 12 forward/reverse
+trials plus 12 public-runner replications, with source, binary and artifact hashes.
+These are the full ranges across all four observations of each condition:
+
+| Threads | Chains/thread | Original GPU ms | Replay GPU ms | Native active-core share |
+|---:|---:|---:|---:|---:|
+| 64 | 1 | 54.74–54.91 | 62.9507–62.9536 | 8% |
+| 64 | 4 | 20.27–20.42 | 15.7393–15.7408 | 8% |
+| 64 | 16 | 12.52–12.54 | 6.2144–6.2263 | 8–9% |
+| 4,096 | 1 | 2.49–3.73 | 1.2858–1.4776 | 74–82% |
+| 4,096 | 4 | 1.2472–1.2478 | 0.4940–0.4959 | 63–67% |
+| 4,096 | 16 | 0.6823–0.6866 | 0.2703–0.3336 | 66–67% |
+
+More independent chains made the same logical work faster in this control.
+With 4,096 threads, the per-encoder F32 Limiter rose from 9.34–10.48% for one
+chain to 54.86–55.00% for 16 chains while replay duration fell. Read this native
+counter alongside verified work and duration: a larger limiter value alone
+cannot rank performance. The 64-thread one-chain captures have no per-encoder
+F32 Limiter field, even though their timeline F32 observations are present.
+Missing fields stay unavailable.
+
+Changing chains also changes register demand, loop iterations, coefficient reuse
+and input/output size. Changing threads changes scheduling and per-thread work.
+The logical FMA count does not establish issued instructions, pipeline latency
+or peak FLOP/s. Original command and replay timings describe different
+executions; frequency and background GPU activity are uncontrolled. Timeline
+counter scope remains wider than the captured workload.
+
+Run the balanced experiment on a supported replay host:
+
+```bash
+python examples/apple_gpu/fma_chains.py --output apple-fma
+
+topdown apple gpu report \
+  apple-fma/trial-00-threads-64-chains-1/replay/profile.json
+
+topdown apple store apple-fma/trial-00-threads-64-chains-1/replay/profile.json \
+  --label test_name=m6-fma --label threads=64 --label chains_per_thread=1
+```
+
+The runner freezes the compiled Swift source and its own Python source in the
+new output directory. Keep `results.json` with the captures for the verified
+work counts and provenance. Stored replays use the existing
+`query_apple_result(section="encoders")` and `get_apple_gpu_report` MCP tools;
+SQLite/PostgreSQL round-trip all 24 measured profiles without changing native
+strings, missing counters, costs or scope.
+
 ### Timeline counters include concurrent GPU activity
 
 A separate [offscreen renderer](../examples/apple_gpu/background_render_probe.swift)
@@ -288,6 +345,12 @@ counters can include concurrent device activity. They print the native
 and timeline means describe different measurement scopes.
 Older profiles without these groups retain their existing report format.
 
+Labels are retained as exported by the debugger. In a native Xcode 27.1 control,
+Metal encoder labels containing NUL were truncated at that character in the
+debugger output, while the probe's own JSON retained the full labels. Original
+probe metadata can be stored alongside the replay without losing its escaped
+NUL payload values; encoder IDs remain distinct when displayed labels collide.
+
 The MCP server exposes:
 
 GPU captures share the serialized native capture worker with CPU captures;
@@ -301,8 +364,21 @@ in the retained logs. A session whose startup did not return an ID retains its
 180-second idle timeout. Cancellation during a debugger command is deferred because killing its client can leave an
 XPC profiling operation running after the session disappears. Other MCP tools
 remain responsive while that command finishes.
+Native storage checks cancellation before serialization, after connection setup
+and immediately before committing the run and its payload. An uncommitted
+cancelled store rolls back both rows. A run committed before cancellation
+remains available through `list_profiling_runs`.
 CLI Ctrl-C during replay also waits for the current bounded debugger command,
 closes its owned session, retains artifacts and exits with status 130.
+SIGTERM follows the same cleanup path and exits with status 143, including when
+SIGINT was ignored by the shell that launched the CLI. Repeated SIGTERM does
+not interrupt cleanup. A forced SIGKILL cannot run Python cleanup.
+
+On POSIX, SIGTERM to the stdio MCP server cancels its requests, waits for native
+cleanup, and exits with status 143, including when the client keeps stdin open
+or stops reading stdout. Allow the current bounded debugger command to finish
+before escalating to SIGKILL; a forced process kill cannot run Python cleanup.
+HTTP transport retains its server's signal handling.
 
 | Tool | Purpose |
 |---|---|
@@ -323,6 +399,39 @@ Failed collection/storage preserves local artifacts and returns an error.
 The run's timestamp range covers the collection workflow; use the native
 `timeline` for replay GPU timing and `probe.gpu_seconds` for original command GPU
 timestamps. Neither is application CPU time.
+
+### Select a replay state
+
+The CLI and MCP collectors accept a replay state: `default` (unchanged default),
+`low`, `medium`, or `high`. This selects the debugger's replay setting; it does
+not control the original captured execution. For example:
+
+```bash
+topdown apple gpu profile capture.gputrace --output replay-high --gpu-state high --store
+topdown apple gpu record --mode alu --output alu-low --gpu-state low --store
+```
+
+Set `gpu_state` on `profile_apple_gpu_trace` or `collect_apple_gpu_profile` in MCP.
+Saved settings retain the requested value; native timeline labels remain
+unchanged. On the tested Xcode 27.1/M6, `low` reports `min` and `high` reports
+`max`. The collector rejects a contradictory reported state before publishing
+the result and still closes its own session.
+
+The [balanced replay-state control](apple-gpu-m6-replay-states.json) replays one
+checksum-verified four-pass packaged ALU capture in forward/reverse state order:
+
+| Requested state | Native label | Replay GPU ms (two observations) |
+|---|---|---:|
+| default | default | 0.0854–0.0862 |
+| low | min | 0.1574–0.1588 |
+| medium | medium | 0.0857–0.0859 |
+| high | max | 0.0730–0.0731 |
+
+These names select native tool settings; they do not calibrate clock frequencies
+or guarantee performance ordering for other workloads. Compare matched states,
+retain sampling coverage, and account for concurrent GPU activity. All eight
+profiles retain their state through SQLite/PostgreSQL, encoder pages and MCP
+reports.
 
 ### Reproduce the lower-level replay experiment
 

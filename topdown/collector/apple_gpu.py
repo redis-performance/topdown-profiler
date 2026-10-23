@@ -22,6 +22,8 @@ from topdown.collector.apple_environment import capture_environment
 
 GPU_KIND = "apple-gpu-replay-profile"
 GPU_MODES = {"compute", "alu", "memory", "stream"}
+GPU_STATE_LABELS = {"default": ("default",), "low": ("low", "min"),
+                    "medium": ("medium",), "high": ("high", "max")}
 TIMELINE_GROUPS = ("bandwidth", "occupancy", "shader_launch_limiter", "active_cores", "f32")
 
 
@@ -30,31 +32,36 @@ def _defer_keyboard_interrupt():
     if threading.current_thread() is not threading.main_thread():
         yield
         return
-    previous = signal.getsignal(signal.SIGINT)
-    if not callable(previous):
+    previous = {signum: handler for signum in (signal.SIGINT, signal.SIGTERM)
+                if callable(handler := signal.getsignal(signum))}
+    if not previous:
         yield
         return
     pending = None
 
     def remember(signum, frame):
         nonlocal pending
-        pending = signum, frame
+        if pending is None or signum == signal.SIGTERM:
+            pending = signum, frame
 
-    signal.signal(signal.SIGINT, remember)
+    for signum in previous:
+        signal.signal(signum, remember)
     try:
         yield
     finally:
-        signal.signal(signal.SIGINT, previous)
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
         if pending is not None and sys.exc_info()[0] is None:
-            previous(*pending)
+            previous[pending[0]](*pending)
 
 
-def validate_options(mode="compute", passes=4, items=16384, execution="overlapping"):
+def validate_options(mode="compute", passes=4, items=16384, execution="overlapping", gpu_state="default"):
     if (not isinstance(mode, str) or mode not in GPU_MODES or type(passes) is not int or not 1 <= passes <= 500
             or type(items) is not int or not 1 <= items <= 16777216 or passes * items > 268435456
-            or (mode == "stream" and items % 64) or execution not in ("overlapping", "serial")):
+            or (mode == "stream" and items % 64) or execution not in ("overlapping", "serial")
+            or not isinstance(gpu_state, str) or gpu_state not in GPU_STATE_LABELS):
         raise ValueError("Choose compute/alu/memory/stream, passes 1–500, items 1–16777216, passes*items <= 268435456, "
-                         "stream items divisible by 64, and overlapping/serial execution")
+                         "stream items divisible by 64, overlapping/serial execution, and default/low/medium/high GPU state")
 
 
 def _require_host():
@@ -62,9 +69,9 @@ def _require_host():
         raise ValueError("GPU capture/replay requires Apple silicon macOS and Xcode; stored reports work on any OS")
 
 
-def record(output: Path, mode="compute", passes=4, items=16384, execution="overlapping") -> dict:
+def record(output: Path, mode="compute", passes=4, items=16384, execution="overlapping", gpu_state="default") -> dict:
     """Capture the packaged, checksum-verified Metal control and profile its replay."""
-    validate_options(mode, passes, items, execution)
+    validate_options(mode, passes, items, execution, gpu_state)
     _require_host()
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -95,7 +102,7 @@ def record(output: Path, mode="compute", passes=4, items=16384, execution="overl
     if (not isinstance(probe, dict) or probe.get("checksum_verified") is not True
             or probe.get("mode") != mode or probe.get("passes") != passes or probe.get("items") != items):
         raise ValueError(f"GPU control failed checksum/configuration verification; artifacts: {output}")
-    result = collect(trace, output / "replay", execution)
+    result = collect(trace, output / "replay", execution, gpu_state)
     result.update(started_at=started, ended_at=datetime.now(timezone.utc).isoformat(),
                   probe=probe,
                   source_sha256=hashlib.sha256(source.read_bytes()).hexdigest())
@@ -125,9 +132,10 @@ def _created_session(output):
     return next(iter(sessions)) if len(sessions) == 1 else None
 
 
-def collect(trace: Path, output: Path, execution: str = "overlapping") -> dict:
-    if execution not in ("overlapping", "serial"):
-        raise ValueError("Choose overlapping or serial replay execution")
+def collect(trace: Path, output: Path, execution: str = "overlapping", gpu_state: str = "default") -> dict:
+    if (execution not in ("overlapping", "serial")
+            or not isinstance(gpu_state, str) or gpu_state not in GPU_STATE_LABELS):
+        raise ValueError("Choose overlapping/serial execution and default/low/medium/high replay GPU state")
     if not trace.exists() or trace.suffix != ".gputrace":
         raise ValueError("Require an existing .gputrace capture")
     output.mkdir(parents=True, exist_ok=False)
@@ -185,7 +193,7 @@ def collect(trace: Path, output: Path, execution: str = "overlapping") -> dict:
         run(["-t", str(trace.resolve()), "--timeout", "180", "-c", "profile"])
         if session is None:
             raise ValueError(f"gpudebug did not report an unambiguous created session; artifacts: {output}")
-        run(["-s", session, "-c", f"profile run --gpu-state default --exec {execution}"])
+        run(["-s", session, "-c", f"profile run --gpu-state {gpu_state} --exec {execution}"])
         status = query("profile")
         if status.get("state") != "loaded":
             raise ValueError(f"GPU replay profiling is unavailable: {status}; artifacts: {output}")
@@ -236,10 +244,12 @@ def collect(trace: Path, output: Path, execution: str = "overlapping") -> dict:
             groups[group] = {"listing": listing, "counters": {
                 row["name"]: query(f"info {prefix}/{row['name']}") if row.get("values") else None for row in leaves}}
         timeline = query("info /performance/timeline")
+        if timeline.get("Profiled state", gpu_state) not in GPU_STATE_LABELS[gpu_state]:
+            raise ValueError("Native GPU profiled state differs from the requested replay state")
         document = {
             "schema_version": 1, "measurement_kind": "apple-gpu-replay-profile",
             "scope": {"kind": "captured-metal-workload", "trace_name": trace.name},
-            "settings": {"execution": execution, "gpu_state": "default", "replayed": True},
+            "settings": {"execution": execution, "gpu_state": gpu_state, "replayed": True},
             "device": query("status").get("device"), "timeline": timeline, "encoders": encoders,
             "timeline_counter_groups": groups,
             "environment": environment,
@@ -249,7 +259,7 @@ def collect(trace: Path, output: Path, execution: str = "overlapping") -> dict:
                 "Measurements describe replay of the captured Metal workload, not original application wall time.",
                 "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
                 "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
-                "Default replay GPU state and execution mode can change timings; compare matched settings.",
+                "Replay GPU state and execution mode can change timings; compare matched settings.",
                 "Timeline hardware counters may include concurrent device activity; they are not exclusive to captured encoders.",
             ],
         }
@@ -274,9 +284,10 @@ def main():
     parser.add_argument("trace", type=Path)
     parser.add_argument("--output", required=True, type=Path, help="new directory for native JSON and command logs")
     parser.add_argument("--execution", choices=["overlapping", "serial"], default="overlapping")
+    parser.add_argument("--gpu-state", choices=list(GPU_STATE_LABELS), default="default")
     args = parser.parse_args()
     try:
-        result = collect(args.trace, args.output, args.execution)
+        result = collect(args.trace, args.output, args.execution, args.gpu_state)
     except KeyboardInterrupt:
         parser.exit(130, f"GPU replay cancelled; artifacts retained at {args.output}\n")
     except (AppleProfileError, ValueError, OSError) as exc:
