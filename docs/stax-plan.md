@@ -6,8 +6,10 @@ criteria below remain required before claiming platform support.
 An optional v3 CLI/SQL/MCP integration is available for experimental testing.
 The [Linux VM validation](stax-vm-pilot.md) includes real captures and measured
 overhead; its low-pipeline latency result does not meet the declared budget.
-The [Intel Linux pilot](stax-linux-pilot.md) remains blocked on that host’s
-permissions. Privileged M1/M6 Stax CPU acceptance remains pending helper setup.
+The [Intel Linux pilot](stax-linux-pilot.md) now validates live capture, replay,
+and CLI/SQL/MCP queries after the operator enabled perf permissions. Its shared-host
+performance trials do not establish the overhead budget. Privileged M1/M6 Stax
+CPU acceptance remains pending helper setup.
 
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes

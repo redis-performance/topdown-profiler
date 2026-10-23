@@ -7,7 +7,8 @@ overhead guarantee or complete the matched Redis 8.6/memtier Apple/Intel pilot.
 
 Exact settings, paired observations, hashes and resource snapshots are in
 [stax-vm-validation.json](stax-vm-validation.json). The separate
-[Intel laptop pilot](stax-linux-pilot.md) encountered a real permission blocker.
+[Intel laptop pilot](stax-linux-pilot.md) resumed after the operator enabled perf
+permissions and now validates live capture and replay; its overhead remains unresolved.
 
 ## Environment and workload
 

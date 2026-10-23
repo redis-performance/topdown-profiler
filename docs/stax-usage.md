@@ -11,7 +11,8 @@ M1 and M6 captures can be selected separately. Import never probes the importing
 computer to fill missing hardware identity; a bare archive's `aarch64` provenance
 does not identify an Apple chip or establish PMU access.
 
-Capture is experimental. Functional checks have run on a Linux aarch64 VM and
+Capture is experimental. Functional checks have run on a Linux aarch64 VM,
+an [Intel Linux laptop](stax-linux-pilot.md), and
 the [M6 Metal target-span control](stax-m6-metal-control.md). Privileged M1/M6
 CPU capture acceptance remains pending. Measure overhead on the workload being
 investigated, especially when interpreting tail latency.
