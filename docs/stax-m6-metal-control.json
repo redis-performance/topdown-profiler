@@ -202,7 +202,42 @@
       "excerpt_spans": 2,
       "excerpt_total_duration_ns": 13583
     },
-    "producer_log_sha256": "8a4ca85c584b1266abf629293533cc5bef5d63489710203da67543dc00f0e3b4"
+    "producer_log_sha256": "8a4ca85c584b1266abf629293533cc5bef5d63489710203da67543dc00f0e3b4",
+    "native_compare": {
+      "method": "pinned native compare of the same real M6 archive against itself",
+      "reported_pet_samples": 299,
+      "actual_run_summary_cpu_samples": 0,
+      "target_spans": 299,
+      "status": "upstream comparison counts synthetic target markers as PET samples; project CPU denominator stays zero"
+    },
+    "fresh_capture_identity": {
+      "labels": {
+        "arch": "aarch64",
+        "evidence": "real-metal-timestamps-zero-cpu-control",
+        "collector": "stax",
+        "measurement_kind": "stax-sampled-stacks-and-scheduler-intervals",
+        "time_basis": "archive_run_timestamps",
+        "sampling_frequency_hz": "99",
+        "cpu": "Apple M6",
+        "os_version": "27.0.1",
+        "os_build": "26A434",
+        "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495",
+        "os": "macos"
+      },
+      "counts": {
+        "samples": 299,
+        "intervals": 299,
+        "wakeups": 0,
+        "cpu_samples": 0,
+        "target_stack_samples": 299,
+        "threads": 1,
+        "frame_table": 2,
+        "stack_table": 2,
+        "application_records": 0,
+        "target_lanes": 1
+      },
+      "status": "real M6 zero-kperf control under the recorded-host identity implementation"
+    }
   },
   "limitations": [
     "No CPU samples, privileged helper, PMU counters or linked CPU stacks.",

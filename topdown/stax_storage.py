@@ -7,7 +7,7 @@ from pathlib import Path
 from topdown.apple_storage import validate_run_options
 from topdown.apple_json import unicode_scalars
 from topdown.collector.apple_runtime import check_cancelled
-from topdown.stax_archive import StaxError, companion_metadata, load_archive
+from topdown.stax_archive import SCHEDULER_ABSENCE_NOTE, StaxError, companion_metadata, load_archive, off_cpu_quality
 from topdown.storage.models import Run
 
 BULK_FIELDS = {
@@ -261,8 +261,12 @@ def get_stax_thread_waits(backend, run_id, tid=None, limit=20):
             "threads": threads[:limit],
             "total_threads": len(threads),
             "total_wait_stacks": len(rows),
+            "quality": {
+                **result["quality"],
+                **off_cpu_quality(result["scope"], sum(row["kind"] == "OffCpu" for row in result["intervals"])),
+            },
             "rows": rows[:limit],
-            "limitations": result["limitations"],
+            "limitations": list(dict.fromkeys([*result["limitations"], SCHEDULER_ABSENCE_NOTE])),
         }
     )
 

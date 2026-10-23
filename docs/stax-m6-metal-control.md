@@ -48,6 +48,13 @@ denominator was zero, and the selected Metal durations summed to 13,583 ns.
 The full capture's total duration is in the JSON evidence. Sums of span durations
 are not GPU utilization, and a command buffer can contain multiple kernels.
 
+The pinned native `stax compare` reports 299 `pet_samples` for this zero-CPU
+archive because it includes synthetic target markers. This was reproduced on
+M6 as well as in the M1 pilot. Use the project's explicit `cpu_samples` and
+CPU-hotspot denominator to distinguish them. The M1 pilot retains an
+[optional upstream comparison patch](https://github.com/redis-performance/topdown-profiler/blob/bc96a8d38563c624976d960c746a972291dd6952/examples/stax-compare-cpu-samples.patch);
+the installed pinned CLI remains unchanged.
+
 ## Reproduce the source control
 
 Use the pinned Stax revision and the source/build instructions in the linked

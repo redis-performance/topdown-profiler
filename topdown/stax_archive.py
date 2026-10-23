@@ -17,6 +17,7 @@ from topdown.apple_json import unicode_scalars
 SUPPORTED_ARCHIVE_VERSIONS = (3,)
 UPSTREAM_REVISION = "aedd85e08894fc3250ec975a486544d091e11281"
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
+SCHEDULER_ABSENCE_NOTE = "No archived off-CPU intervals does not establish no blocking; scheduler capture can be unavailable."
 
 
 class StaxError(ValueError):
@@ -333,6 +334,15 @@ def _validate_run(run):
     return run
 
 
+def off_cpu_quality(run, observed):
+    return {
+        "reported_off_cpu_intervals": run["off_cpu_intervals"],
+        "observed_off_cpu_intervals": observed,
+        "off_cpu_record_counts_match": run["off_cpu_intervals"] == observed,
+        "off_cpu_observed": observed > 0,
+    }
+
+
 def _observability(archive):
     source = _object(archive.get("observability", {}), "observability")
     records = list(_array(archive.get("application_records", []), "application records"))
@@ -484,6 +494,7 @@ def _normalize(archive):
             {"tid": tid, "name": names.get(tid), "kind": "target-lane" if target_lane else "cpu-thread", **dict(counts)}
         )
     cpu_samples = sum(t["sample_count"] for t in threads)
+    off_cpu_intervals = sum(t.get("off_cpu_interval_count", 0) for t in threads)
     cpu_rows = [sample for sample in samples if sample["kind"] == "cpu-stack"]
     missing = sum(not stacks.rows[sample["stack_id"]] for sample in cpu_rows)
     unresolved = sum(
@@ -505,6 +516,7 @@ def _normalize(archive):
             "cpu_samples_without_user_stack": missing,
             "cpu_samples_with_unresolved_user_leaf": unresolved,
             "sampling_observed": cpu_samples > 0,
+            **off_cpu_quality(run, off_cpu_intervals),
             "pmu_availability": "unverified",
             "native_loss_accounting": "not represented by the v3 archive",
             "symbol_names": "archived ranges; not demangled",
@@ -535,6 +547,7 @@ def _normalize(archive):
         "limitations": [
             "Sample shares describe observed stack hits, not CPU time or TMA pipeline slots.",
             "Scheduler interval totals may overlap; they are not a utilization denominator.",
+            SCHEDULER_ABSENCE_NOTE,
             "Raw PMU fields are retained without summing; zero does not establish counter availability.",
             "Synthetic target spans are separate from CPU intervals and native GPU hardware counters.",
             "Symbols use archived names without demangling; source artifacts remain required for disassembly.",

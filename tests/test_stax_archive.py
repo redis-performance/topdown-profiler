@@ -110,6 +110,9 @@ def test_native_addresses_counters_and_interval_units(stax_archive):
     assert table[result["stack_table"][result["samples"][0]["kernel_stack_id"]][0]]["name"] is None
     assert result["threads"][0]["on_cpu_interval_ns"] == 30
     assert result["threads"][0]["off_cpu_interval_ns"] == 30
+    assert result["quality"]["observed_off_cpu_intervals"] == 1
+    assert result["quality"]["off_cpu_record_counts_match"] is True
+    assert result["quality"]["off_cpu_observed"] is True
     assert doc["metadata"]["artifacts"][0]["size_bytes"] == stax_archive.stat().st_size
 
 
