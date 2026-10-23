@@ -8,7 +8,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from topdown.storage.base import StorageBackend, escape_like, window_hours
-from topdown.storage.apple_json import TEXT_KEY, decode_document, encode_document
+from topdown.apple_json import TEXT_KEY, decode_document, encode_document
 from topdown.storage.models import Run, Sample
 from topdown.storage.schema import POSTGRESQL_SCHEMA
 from topdown.storage.sql_queries import SqlNodeQueries

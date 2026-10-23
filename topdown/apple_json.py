@@ -2,6 +2,7 @@
 
 import json
 import re
+from itertools import chain
 
 TEXT_KEY = "_topdown_apple_json_text"
 _SURROGATE = re.compile(r"[\ud800-\udfff]")
@@ -9,6 +10,28 @@ _SURROGATE = re.compile(r"[\ud800-\udfff]")
 
 def sql_text(value):
     return "\x00" not in value and _SURROGATE.search(value) is None
+
+
+def unicode_scalars(value):
+    stack = [(iter((value,)), None)]
+    active = set()
+    while stack:
+        try:
+            item = next(stack[-1][0])
+        except StopIteration:
+            _, identity = stack.pop()
+            if identity is not None:
+                active.remove(identity)
+            continue
+        if isinstance(item, str) and _SURROGATE.search(item):
+            return False
+        if isinstance(item, (dict, list, tuple)):
+            identity = id(item)
+            if identity not in active:
+                active.add(identity)
+                values = chain(item.keys(), item.values()) if isinstance(item, dict) else iter(item)
+                stack.append((values, identity))
+    return True
 
 
 def _jsonb_strings(value):

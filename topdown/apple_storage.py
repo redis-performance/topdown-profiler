@@ -129,6 +129,10 @@ def _validate_profile(result, rows):
 
 
 def validate_result(result: dict) -> None:
+    from topdown.apple_json import unicode_scalars
+
+    if not unicode_scalars(result):
+        raise AppleProfileError("Native Apple JSON requires valid Unicode scalar values")
     if not isinstance(result, dict) or not isinstance(result.get("measurement_kind"), str):
         raise AppleProfileError("Require a native Apple profile.json, stat.json or soc.json result")
     if result.get("tma_available") is not False or result.get("tma") != dict.fromkeys(TMA_ROOTS):
@@ -199,7 +203,7 @@ def validate_run_options(process_name: str | None, labels: dict | None) -> None:
         raise AppleProfileError("Labels must map strings to strings")
     if process_name is not None and (not isinstance(process_name, str) or not process_name.strip()):
         raise AppleProfileError("Require a nonempty process name")
-    from topdown.storage.apple_json import sql_text
+    from topdown.apple_json import sql_text
 
     values = ([process_name] if process_name is not None else []) + [part for pair in (labels or {}).items() for part in pair]
     if any(not sql_text(value) for value in values):

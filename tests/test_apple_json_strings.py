@@ -6,7 +6,7 @@ import pytest
 
 from topdown.apple_storage import store_apple_result, validate_run_options
 from topdown.collector.apple import AppleProfileError, TMA_ROOTS
-from topdown.storage.apple_json import TEXT_KEY, decode_document, encode_document
+from topdown.apple_json import TEXT_KEY, decode_document, encode_document
 from topdown.storage.models import Run
 
 
@@ -87,3 +87,41 @@ def check_native_string_storage(backend):
 
 def test_sqlite_retains_native_strings_and_pages(sqlite_backend):
     check_native_string_storage(sqlite_backend)
+
+
+@pytest.mark.parametrize("value", ["\ud800", "\udfff", {"nested": ["value", {"\ud800": 1}]}])
+def test_native_artifact_decoder_rejects_unpaired_unicode_before_storage(value, tmp_path, sqlite_backend):
+    from topdown.collector.apple_files import decode_json_object
+
+    source = json.dumps({"native": value}).encode()
+    with pytest.raises(ValueError, match="Unicode scalar"):
+        decode_json_object(source)
+    path = tmp_path / "stat.json"
+    path.write_bytes(source)
+    with pytest.raises(AppleProfileError, match="Unicode scalar"):
+        store_apple_result(sqlite_backend, path)
+    assert sqlite_backend.list_runs() == []
+
+
+def test_native_decoder_preserves_valid_surrogate_pairs_and_nul():
+    from topdown.collector.apple_files import decode_json_object
+
+    assert decode_json_object(b'{"emoji":"\\ud83d\\ude00","nul":"before\\u0000after"}') == {
+        "emoji": "😀", "nul": "before\x00after"}
+
+
+def test_unicode_checks_do_not_hang_on_circular_direct_python_inputs():
+    from topdown.apple_storage import validate_result
+
+    result = {"measurement_kind": "process-accounted-fixed-counters", "tma_available": False,
+              "tma": dict.fromkeys(TMA_ROOTS), "scope": {"pid": 42}, "counters": {"instructions": 1, "cycles": 1}}
+    result["extra"] = result
+    with pytest.raises(AppleProfileError, match="Circular|circular"):
+        validate_result(result)
+
+
+def test_direct_validation_rejects_unpaired_scalars_before_formatting_errors():
+    from topdown.apple_storage import validate_result
+
+    with pytest.raises(AppleProfileError, match="Unicode scalar"):
+        validate_result({"measurement_kind": "bad\ud800kind"})
