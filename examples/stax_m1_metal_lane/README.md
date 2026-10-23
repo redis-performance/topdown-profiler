@@ -95,6 +95,25 @@ invented CPU samples and 299 real Metal target spans. The topdown importer
 retained the raw IDs but did not infer P/E core type or PMU scope. This is a
 software-path fixture, not a hardware-counter validation.
 
+## Cumulative KPC software-path control
+
+The [cumulative fixture](fake_cumulative_daemon.rs) emits invented per-thread
+KPC snapshots that rise at each PET tick. Apply the
+[core-identity patch](../stax-m1-core-identity.patch), then the
+[per-thread delta patch](../stax-m1-kpc-delta.patch), to a clean checkout of the
+pinned Stax revision using `git apply --unidiff-zero` for each. Build and ad hoc
+sign the patched `stax-server` and the `fake_cumulative_daemon` example as in
+the raw CPU identity control. Use the private-socket `stax record` and
+`stax save` commands above with the Metal app.
+
+The [M1 control](../../docs/stax-m1-kpc-accumulation-control.json) compares a
+core-ID-only server against the server with per-thread differencing. Both
+archived 348 invented PET/PMC samples and 299 real Metal spans. The patch
+rebases on the first sample, a counter decrease, vector shape change, or an
+all-zero KPC error vector. XNU emits an all-zero vector when a thread counter
+buffer is not ready; treating that as a baseline would inflate the next
+sample. The test proves the software path, not hardware counter validity.
+
 ## Synthetic CPU/PMU software-path control
 
 The separate [fake sample daemon](fake_sample_daemon.rs) verifies the software

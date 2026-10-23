@@ -9,7 +9,7 @@
   },
   "method": "Apply the proposed core-identity patch, then run a rootless fake daemon that emits invented cumulative PET/PMC snapshots at successive ticks. Capture the same real M1 Metal target with a core-ID-only Stax server and a server additionally patched for per-thread differencing. No root helper or hardware PMU collection was used.",
   "core_identity_patch_sha256": "9cbbe03e5d05bbf64c5c127102df6d9e2cfe20fb86e356ca9191c1082860d20e",
-  "delta_patch_sha256": "9c3838ff5a8e349f3b66d84a9c05b22ceebd94488707c4ff0c2737b83980fa79",
+  "delta_patch_sha256": "f29cdbcb745ee05d766617f3dd95a3263f6a2bda92444fdb4c098de00539ac37",
   "fake_daemon_source_sha256": "1ec25d858a8af92236abdab8e12b5b90397c7e281e7cfbbdd1540410d31ef1fb",
   "signed_fake_daemon_sha256": "171eb1fc3d740f96e1a99c589a92b436fd7157123118145a222eb8c5e09afad5",
   "fixture": {
@@ -31,16 +31,17 @@
     "sum_archived_cycles": 6072600
   },
   "after_delta_patch": {
-    "signed_server_sha256": "58a42798e995277da00982013be8cc65fe639112d2bc3ab023729d095aaf7a60",
-    "archive_sha256": "a3ce63a850a540729020a8a3a62e42efac265f4e9f765b17930b8c4e7461a54d",
+    "signed_server_sha256": "db01596a07a897eec97b9999c77dca77957789917880c9d047a6be3b3e59382f",
+    "archive_sha256": "f248e4b684b6a282d2d158dee9994671a6108b23df898bcf65f0c5bc51f348e2",
     "cpu_samples": 348,
     "initial_archived_cycles": [0, 100, 100, 100, 100],
     "sum_archived_cycles": 34700,
-    "first_snapshot_withheld_as_baseline": true
+    "first_snapshot_withheld_as_baseline": true,
+    "all_zero_buffer_error_rebases_next_nonzero_snapshot": true
   },
   "topdown_after_patch_import": {
     "public_import_and_sample_query_succeeded": true,
-    "stored_run_id": "d13152a5-d4c5-4a4e-9c31-0a06e767a999",
+    "stored_run_id": "5fe9fa36-6411-40a8-8406-54e948d163bc",
     "stored_cpu_samples": 348,
     "stored_target_stack_samples": 299,
     "cpu_samples_with_trace_cpu_id": 348,
@@ -48,9 +49,9 @@
     "pmu_counter_semantics": "unverified because v3 does not record conversion provenance"
   },
   "checks": {
-    "stax_parser_library_tests": "7 passed, including per-thread differencing and reset/vector-change rebasing",
+    "stax_parser_library_tests": "8 passed, including per-thread differencing, reset/vector-change rebasing and all-zero buffer error handling",
     "stax_server_release_build": "passed",
     "real_m1_gpu_checksum": 4915200
   },
-  "limitations": "The PET records and PMU values are synthetic; the control demonstrates Stax software behavior, not actual M1 hardware counter values or installed-kernel PET semantics. The proposed patch is not installed upstream. A per-thread delta can include work on several CPUs between ticks and must not be attributed entirely to the trace CPU ID. Stax v3 lacks an explicit PMU-semantics provenance marker, so an importer cannot distinguish patched from unpatched archives. Native record loss and thread-ID reuse remain unvalidated."
+  "limitations": "The PET records and PMU values are synthetic; the control demonstrates Stax software behavior, not actual M1 hardware counter values or installed-kernel PET semantics. The proposed patch is not installed upstream. A per-thread delta can include work on several CPUs between ticks and must not be attributed entirely to the trace CPU ID. Stax v3 lacks an explicit capture-time PMU-semantics marker, so an importer cannot distinguish patched from unpatched archives. Its manifest provenance is generated at save and discarded on reopen; a conversion marker there could mislabel a reopened old run. Native record loss and thread-ID reuse remain unvalidated."
 }

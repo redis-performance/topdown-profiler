@@ -6,13 +6,13 @@ index 16080aa..3dcb57c 100644
 -    /// Per-thread CPU performance counter deltas at this PET tick.
 +    /// Per-thread accumulated CPU performance counter snapshot at this PET tick.
 diff --git a/stax-mac-kperf-parse/src/pipeline.rs b/stax-mac-kperf-parse/src/pipeline.rs
-index edca225..8e24f14 100644
+index edca225..1d8b9fe 100644
 --- a/stax-mac-kperf-parse/src/pipeline.rs
 +++ b/stax-mac-kperf-parse/src/pipeline.rs
 @@ -39 +39 @@
 -use std::collections::BTreeMap;
 +use std::collections::{BTreeMap, HashMap};
-@@ -66,0 +67,24 @@ const SAMPLE_COUNTERS_LOG_PERIOD: Duration = Duration::from_secs(2);
+@@ -66,0 +67,29 @@ const SAMPLE_COUNTERS_LOG_PERIOD: Duration = Duration::from_secs(2);
 +#[derive(Default)]
 +struct PmcDeltaTracker {
 +    previous: HashMap<u32, Vec<u64>>,
@@ -23,6 +23,11 @@ index edca225..8e24f14 100644
 +    fn observe(&mut self, tid: u32, snapshot: &[u64]) -> Vec<u64> {
 +        if snapshot.is_empty() {
 +            return Vec::new();
++        }
++        if snapshot.iter().all(|&value| value == 0) {
++            self.previous.remove(&tid);
++            self.rebases += 1;
++            return vec![0; snapshot.len()];
 +        }
 +        let previous = self.previous.insert(tid, snapshot.to_vec());
 +        if let Some(previous) = previous {
@@ -37,39 +42,39 @@ index edca225..8e24f14 100644
 +    }
 +}
 +
-@@ -83,0 +108 @@ pub struct Pipeline {
+@@ -83,0 +113 @@ pub struct Pipeline {
 +    pmc_deltas: PmcDeltaTracker,
-@@ -200,0 +226 @@ impl Pipeline {
+@@ -200,0 +231 @@ impl Pipeline {
 +            pmc_deltas: PmcDeltaTracker::default(),
-@@ -352,0 +379 @@ impl Pipeline {
+@@ -352,0 +384 @@ impl Pipeline {
 +            let pmc_deltas = &mut self.pmc_deltas;
-@@ -355,0 +383 @@ impl Pipeline {
+@@ -355,0 +388 @@ impl Pipeline {
 +                let pmc = pmc_deltas.observe(sample.tid, sample.pmc);
-@@ -364 +392 @@ impl Pipeline {
+@@ -364 +397 @@ impl Pipeline {
 -                if !sample.pmc.is_empty() {
 +                if !pmc.is_empty() {
-@@ -366 +394 @@ impl Pipeline {
+@@ -366 +399 @@ impl Pipeline {
 -                    if let Some(&c) = sample.pmc.first() {
 +                    if let Some(&c) = pmc.first() {
-@@ -369 +397 @@ impl Pipeline {
+@@ -369 +402 @@ impl Pipeline {
 -                    if let Some(&i) = sample.pmc.get(1) {
 +                    if let Some(&i) = pmc.get(1) {
-@@ -383,2 +411,2 @@ impl Pipeline {
+@@ -383,2 +416,2 @@ impl Pipeline {
 -                let cycles = sample.pmc.first().copied().unwrap_or(0);
 -                let instructions = sample.pmc.get(1).copied().unwrap_or(0);
 +                let cycles = pmc.first().copied().unwrap_or(0);
 +                let instructions = pmc.get(1).copied().unwrap_or(0);
-@@ -386 +414 @@ impl Pipeline {
+@@ -386 +419 @@ impl Pipeline {
 -                    .and_then(|i| sample.pmc.get(i).copied())
 +                    .and_then(|i| pmc.get(i).copied())
-@@ -389 +417 @@ impl Pipeline {
+@@ -389 +422 @@ impl Pipeline {
 -                    .and_then(|i| sample.pmc.get(i).copied())
 +                    .and_then(|i| pmc.get(i).copied())
-@@ -463,0 +492 @@ impl Pipeline {
+@@ -463,0 +497 @@ impl Pipeline {
 +            pmc_deltas,
-@@ -516,0 +546 @@ impl Pipeline {
+@@ -516,0 +551 @@ impl Pipeline {
 +        log::info!("PMU snapshot rebases (first sample, counter reset or vector change): {}", pmc_deltas.rebases);
-@@ -615 +645,23 @@ mod tests {
+@@ -615 +650,34 @@ mod tests {
 -    use super::MachTimebase;
 +    use super::{MachTimebase, PmcDeltaTracker};
 +
@@ -92,5 +97,16 @@ index edca225..8e24f14 100644
 +        assert_eq!(tracker.observe(42, &[150, 50]), [30, 10]);
 +        assert_eq!(tracker.observe(42, &[180, 60, 3]), [0, 0, 0]);
 +        assert_eq!(tracker.observe(42, &[210, 80, 9]), [30, 20, 6]);
++        assert_eq!(tracker.rebases, 3);
++    }
++
++    #[test]
++    fn zero_buffer_error_never_becomes_delta_baseline() {
++        let mut tracker = PmcDeltaTracker::default();
++        assert_eq!(tracker.observe(42, &[100, 200]), [0, 0]);
++        assert_eq!(tracker.observe(42, &[120, 240]), [20, 40]);
++        assert_eq!(tracker.observe(42, &[0, 0]), [0, 0]);
++        assert_eq!(tracker.observe(42, &[140, 280]), [0, 0]);
++        assert_eq!(tracker.observe(42, &[160, 320]), [20, 40]);
 +        assert_eq!(tracker.rebases, 3);
 +    }

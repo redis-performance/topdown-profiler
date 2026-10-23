@@ -74,11 +74,18 @@ profiles must not be presented as Intel TMA funnels.
   treats each PET snapshot as a delta. The
   [M1 accumulation control](stax-m1-kpc-accumulation-control.json) demonstrates
   the inflation with synthetic snapshots and tests a proposed per-thread
-  differencing patch. A first snapshot or counter reset requires a new baseline;
+  differencing patch. A first snapshot, counter reset, or all-zero buffer error
+  requires a new baseline;
   report lost baseline coverage and native record loss. Record conversion
   provenance in the archive before an importer treats PMU fields as deltas.
   Even a valid thread delta may span several cores between samples, so a trace
   CPU ID alone cannot assign the whole delta to a P or E core.
+  Store conversion provenance with each captured run and preserve it through
+  open/save. Stax currently writes `SavedRunArchiveProvenance` from the saving
+  server and drops that manifest field when reconstructing `SavedRunArchive`.
+  A server-build marker on the manifest could therefore mislabel an old run
+  after it is reopened and saved again. Test that older archives remain
+  `unknown` after such a round trip.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
