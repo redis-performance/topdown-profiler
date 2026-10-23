@@ -315,15 +315,18 @@ counts are a storage and routing check rather than a performance comparison.
 
 ## Live Redis pilot
 
+### Privileged helper setup (deferred)
+
 The pinned `staxd` makes its Unix socket world writable (`0666`) and has no
 peer UID check. Its generated LaunchDaemon plist does not restrict the socket
-through a launchd `Sockets` entry. The pilot therefore uses an ephemeral root
-helper socket inside a directory owned by the profiling user with mode `0700`.
+through a launchd `Sockets` entry. A future privileged capture would use an
+ephemeral root helper socket inside a directory owned by the profiling user
+with mode `0700`.
 Other local UIDs cannot traverse that directory; processes running as the same
 user remain trusted. The pinned session driver also returned early after a
 partially successful kperf/kdebug setup without teardown. Apply the small
-[teardown guard patch](../examples/stax-m1-teardown.patch) before running its
-root helper:
+[teardown guard patch](../examples/stax-m1-teardown.patch) before any later
+privileged capture:
 
 ```sh
 cd /private/tmp/stax-m1-pilot
@@ -337,9 +340,9 @@ codesign --verify /Users/fco/.cargo/bin/staxd
 install -d -m 700 /private/tmp/stax-m1-private
 ```
 
-The host owner starts the helper in a separate Terminal and leaves it running
-for the capture. Closing it ends the privileged session; no LaunchDaemon is
-installed. The pilot verifies that the socket is root-owned and that its
+For that later capture, the host owner starts the helper in a separate Terminal
+and leaves it running. Closing it ends the privileged session; no LaunchDaemon
+is installed. The runner verifies that the socket is root-owned and that its
 containing directory is owned by the profiling user with no group or other
 permissions:
 
@@ -571,3 +574,19 @@ acceptance budget, set before examining a profiled result, is at most 10%
 median throughput loss and at most 20% median p99 latency increase, with zero
 GET misses and no material Stax event loss. More rounds are required if paired
 results straddle either limit or show comparable order effects.
+
+## Current M1 recommendation
+
+| Capability | M1 result | Use today |
+|---|---|---|
+| Process fixed cycles and instructions | Native `RUSAGE_INFO_V6` Redis controls succeeded | Use `topdown apple stat` with its recorded process and time scope. |
+| Symbolized CPU hotspots | Native fixed-counter capture retained 23,844 Redis stack samples | Use the native Apple report and its sample-count denominator. |
+| Metal command-buffer correlation | Rootless Stax recorded 299 real M1 target spans and verified origin-link software behavior with invented CPU samples | Keep the Stax lane experimental; use its target spans as timed app markers, not GPU hardware counters. |
+| Stax CPU PET/PMU | Parser, archive, and SQLite paths passed synthetic controls; live kperf capture and counter semantics remain unverified without a root helper | Keep hardware PMU totals and P/E attribution unavailable. The archive importer exposes raw fields with an `unverified` semantics status. |
+| Apple M1 TMA funnel | Event positions, denominators, and P/E formulas remain uncalibrated | Do not report Intel-style slot percentages. |
+
+PR #46 remains a draft M1 pilot. Promotion requires an independently reviewed
+live capture, immutable per-run PMU configuration and conversion provenance,
+native loss accounting, P/E validation, and paired Redis overhead measurements
+under the declared budget. The current rootless work supports software-path
+review while the host's no-root-helper preference remains in effect.
