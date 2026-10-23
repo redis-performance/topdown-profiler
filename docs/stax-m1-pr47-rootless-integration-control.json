@@ -1,0 +1,42 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_pr": 47,
+  "topdown_revision": "c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Rootless functional control: monkeypatch doctor only in the Python test process to permit an unprivileged fake helper that emits zero kperf records; real Stax CLI/server and M1 Metal app executed through PR47 record_profile, then imported into SQLite",
+  "raw_local_path": "/private/tmp/stax-m1-pr47-fake-control-001",
+  "sha256": {
+    "capture.json": "b62be39b225c87eb091a87095a0a3fad3c1ed810aa08fe104b09fab0f708511c",
+    "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+    "archive/manifest.json": "a1e60fee63489853e03f9a818cddc009fecb82de7ab57327faaf3e89129dc5cd",
+    "archive/events.jsonl": "d6bd574111b95396f161848eda6e6d715405b4107940c564d5f735672761dcc0"
+  },
+  "target": {
+    "passes": 300,
+    "checksum": 4915200,
+    "expected_checksum": 4915200,
+    "reported_spans": 299,
+    "exit_code": 0
+  },
+  "capture": {
+    "status": "completed",
+    "target_exited_before_limit": true,
+    "run_summary_cpu_pet_samples": 0
+  },
+  "archive": {
+    "format_version": 3,
+    "ingested_target_spans": 299,
+    "cpu_samples": 0,
+    "target_stack_samples": 299,
+    "spans_dropped": 0
+  },
+  "sqlite": {
+    "stored_target_spans": 299,
+    "stored_cpu_samples": 0,
+    "cpu_hotspot_denominator": 0,
+    "sample_kind": "target-span-stack"
+  },
+  "privileged_cpu_sampling_verified": false,
+  "gpu_hardware_counters_verified": false,
+  "limitations": "Doctor policy was bypassed only for a fake rootless helper; this does not establish real helper permission, CPU stack collection, PMU counts, or production capture acceptance."
+}

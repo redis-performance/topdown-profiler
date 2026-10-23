@@ -1,0 +1,124 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "method": "Six sequential unprofiled Redis 8.6.0/memtier 2.5.2 rounds; each flushes, preloads 10000 keys, warms up for 5 s, then measures 30 s of mixed 1:1 SET/GET",
+  "source_sha256": "9d45a404a8e138000233ff5a917b3e6a28d1295ea3bb45d4db4180fc5564416b",
+  "raw_local_path": "/private/tmp/stax-m1-baseline-variability-001/metadata.json",
+  "revisions": {
+    "redis": "006e6a6a602ac5265a676b3aebe9f8ba65459190",
+    "memtier": "f3ff1793d39bf19077957e986f966206eb349de7"
+  },
+  "executables_sha256": {
+    "redis_server": "2f668b956b2a6953f77c49b8c35ef4a3e8a041488a8229c25253b2d076593bd9",
+    "redis_cli": "aa4441e4bf58af049649818fded409fe34a043f122f7a2578c20d9f42af75fb7",
+    "memtier": "1084c96574d548f919f5cdeb5352a11176cd55bdb38f5071443b9be49b548f8d"
+  },
+  "settings": {
+    "prefill_keys": 10000,
+    "data_size_bytes": 64,
+    "warmup_seconds": 5,
+    "measure_seconds": 30,
+    "ratio": "1:1",
+    "threads": 2,
+    "clients_per_thread": 10,
+    "pipeline": 4,
+    "key_prefix": "stax:",
+    "key_minimum": 1,
+    "key_maximum": 10000,
+    "key_pattern": "R:R"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "operations": 16174304,
+      "duration_s": 30.001,
+      "operations_per_second": 539125.4958168061,
+      "p50_latency_ms": 0.143,
+      "p99_latency_ms": 0.327,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 6848
+    },
+    {
+      "round": 2,
+      "operations": 16158268,
+      "duration_s": 30.001,
+      "operations_per_second": 538590.9803006566,
+      "p50_latency_ms": 0.143,
+      "p99_latency_ms": 0.327,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 6928
+    },
+    {
+      "round": 3,
+      "operations": 16120936,
+      "duration_s": 30.0,
+      "operations_per_second": 537364.5333333333,
+      "p50_latency_ms": 0.143,
+      "p99_latency_ms": 0.327,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 6960
+    },
+    {
+      "round": 4,
+      "operations": 16170828,
+      "duration_s": 30.0,
+      "operations_per_second": 539027.6,
+      "p50_latency_ms": 0.143,
+      "p99_latency_ms": 0.327,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 6976
+    },
+    {
+      "round": 5,
+      "operations": 17433684,
+      "duration_s": 30.0,
+      "operations_per_second": 581122.8,
+      "p50_latency_ms": 0.135,
+      "p99_latency_ms": 0.335,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 7008
+    },
+    {
+      "round": 6,
+      "operations": 17314592,
+      "duration_s": 30.0,
+      "operations_per_second": 577153.0666666667,
+      "p50_latency_ms": 0.127,
+      "p99_latency_ms": 0.359,
+      "get_miss_fraction": 0.0,
+      "redis_peak_rss_kb_observed": 7008
+    }
+  ],
+  "summary": {
+    "operations_per_second": {
+      "median": 539076.547908403,
+      "mean": 552064.0793529104,
+      "min": 537364.5333333333,
+      "max": 581122.8,
+      "stdev": 21018.203154259074,
+      "cv_percent": 3.8072035367515835,
+      "max_deviation_from_median_percent": 7.799681187158858,
+      "median_absolute_deviation": 1098.7910914079985
+    },
+    "p50_latency_ms": {
+      "median": 0.143,
+      "mean": 0.13899999999999998,
+      "min": 0.127,
+      "max": 0.143,
+      "stdev": 0.006693280212272597,
+      "cv_percent": 4.815309505232085,
+      "max_deviation_from_median_percent": 11.188811188811176,
+      "median_absolute_deviation": 0.0
+    },
+    "p99_latency_ms": {
+      "median": 0.327,
+      "mean": 0.33366666666666667,
+      "min": 0.327,
+      "max": 0.359,
+      "stdev": 0.012816655830077767,
+      "cv_percent": 3.8411555934299,
+      "max_deviation_from_median_percent": 9.78593272171253,
+      "median_absolute_deviation": 0.0
+    }
+  },
+  "inference": "The last two rounds rose about 8% above the first four; cause is not established. Do not infer a Stax overhead budget from this unprofiled sequence alone. Interleave profiled and unprofiled rounds."
+}

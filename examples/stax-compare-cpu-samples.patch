@@ -1,0 +1,95 @@
+diff --git a/cli/src/main.rs b/cli/src/main.rs
+index 0e869bc..8a6abb6 100644
+--- a/cli/src/main.rs
++++ b/cli/src/main.rs
+@@ -1866,9 +1866,11 @@ fn summarize_archive(archive: &SavedRunArchive) -> ArchiveCompareStats {
+         .collect();
+ 
+     for thread in &archive.aggregator.threads {
+-        stats.pet_samples = stats
+-            .pet_samples
+-            .saturating_add(thread.pet_samples.len() as u64);
++        if thread.tid < SYNTH_TID_BASE {
++            stats.pet_samples = stats
++                .pet_samples
++                .saturating_add(thread.pet_samples.len() as u64);
++        }
+         for interval in &thread.intervals {
+             let duration_ns = interval.end_ns.saturating_sub(interval.start_ns);
+             match &interval.kind {
+@@ -1913,6 +1915,10 @@ fn summarize_archive(archive: &SavedRunArchive) -> ArchiveCompareStats {
+         }
+     }
+     stats.target_lanes = stats.lanes.len() as u64;
++    if let Some(run) = archive.runs.last() {
++        // The run counts kernel PET ticks even if per-thread history was capped.
++        stats.pet_samples = run.pet_samples;
++    }
+     stats
+ }
+ 
+@@ -3383,12 +3389,12 @@ mod tests {
+         write_threads,
+     };
+     use stax_live_proto::{
+-        OffCpuBreakdown, SavedAggregator, SavedArchiveBlob, SavedBinaryRegistry,
+-        SavedEventLogEntry, SavedInterval, SavedIntervalKind, SavedLoadedBinary, SavedPetSample,
+-        SavedPmuSample, SavedRunArchive, SavedRunArchiveBundle, SavedRunArchiveFiles,
+-        SavedRunArchiveManifest, SavedRunArchiveProvenance, SavedThread, SavedThreadName,
+-        TargetIngestDiagnostics, TargetLaneKind, TargetSpanGroup, TargetSpanListUpdate, ThreadInfo,
+-        ThreadsUpdate,
++        OffCpuBreakdown, RunId, RunState, RunSummary, SavedAggregator, SavedArchiveBlob,
++        SavedBinaryRegistry, SavedEventLogEntry, SavedInterval, SavedIntervalKind,
++        SavedLoadedBinary, SavedPetSample, SavedPmuSample, SavedRunArchive, SavedRunArchiveBundle,
++        SavedRunArchiveFiles, SavedRunArchiveManifest, SavedRunArchiveProvenance, SavedThread,
++        SavedThreadName, StopReason, TargetIngestDiagnostics, TargetLaneKind, TargetSpanGroup,
++        TargetSpanListUpdate, ThreadInfo, ThreadsUpdate,
+     };
+ 
+     #[test]
+@@ -3705,7 +3711,7 @@ mod tests {
+ 
+     #[test]
+     fn summarize_archive_counts_target_and_origin_dimensions() {
+-        let archive = SavedRunArchive {
++        let mut archive = SavedRunArchive {
+             format_version: 1,
+             saved_at_unix_ns: 0,
+             runs: Vec::new(),
+@@ -3783,7 +3789,7 @@ mod tests {
+ 
+         let stats = summarize_archive(&archive);
+ 
+-        assert_eq!(stats.pet_samples, 1);
++        assert_eq!(stats.pet_samples, 0);
+         assert_eq!(stats.on_cpu_ns, 1_000);
+         assert_eq!(stats.off_cpu_ns, 2_000);
+         assert_eq!(stats.target_ns, 6_000);
+@@ -3798,6 +3804,27 @@ mod tests {
+         assert_eq!(stats.spans_dropped_target_worker_disconnected, 4);
+         assert_eq!(stats.lanes["GPU lane"].target_ns, 6_000);
+         assert_eq!(stats.lanes["GPU lane"].target_spans, 3);
++
++        let mut cpu_thread = archive.aggregator.threads[0].clone();
++        cpu_thread.tid = 42;
++        cpu_thread.intervals.clear();
++        archive.aggregator.threads.push(cpu_thread);
++        assert_eq!(summarize_archive(&archive).pet_samples, 1);
++
++        archive.runs.push(RunSummary {
++            id: RunId(1),
++            state: RunState::Stopped,
++            stop_reason: Some(StopReason::UserStop),
++            started_at_unix_ns: 0,
++            stopped_at_unix_ns: Some(10_000),
++            target_pid: Some(42),
++            label: "GPU only".to_owned(),
++            pet_samples: 0,
++            off_cpu_intervals: 0,
++        });
++        assert_eq!(summarize_archive(&archive).pet_samples, 0);
++        archive.runs[0].pet_samples = 7;
++        assert_eq!(summarize_archive(&archive).pet_samples, 7);
+     }
+ 
+     #[test]

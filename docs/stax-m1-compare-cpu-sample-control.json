@@ -1,0 +1,21 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "patch_sha256": "918927718866107970738f30db1244ac82c85f36f8d216618f7cec752edeafcd",
+  "archive_sha256": "9458940500f85d45c0558399c6398cf762fea9b746c5f1fa26fb5fcdaac03b13",
+  "archive_local_path": "/private/tmp/stax-m1-gpu-fake-control-3/metal.stax",
+  "stock_cli_sha256": "12c67c530ff00efd836a169e3789b887209536120513a80a33d2cc30b7de055e",
+  "patched_cli_sha256": "3c39700493171866ab205d4e116f16d394a440f7673796a49cb5e9a55798bb2d",
+  "method": "Offline stax compare --json of the same saved Metal target-lane archive against itself",
+  "archive_run_summary_cpu_pet_samples": 0,
+  "stock_compare_pet_samples": 299,
+  "patched_compare_pet_samples": 0,
+  "stock_and_patched_target_spans": 299,
+  "stax_cli_unit_tests": {
+    "passed": 39,
+    "failed": 0
+  },
+  "git_apply_cached_check": "passed against pinned Stax index",
+  "hardware_cpu_sampling_verified": false,
+  "gpu_hardware_counters_verified": false
+}

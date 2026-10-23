@@ -110,8 +110,35 @@ def test_memtier_summary_reports_latency_spread_and_rss():
     assert summary["observed_throughput_change_percent"] == pytest.approx(-10)
     assert summary["latency_ms"]["p50"]["change_percent"] == pytest.approx(20)
     assert summary["latency_ms"]["p99"]["change_percent"] == pytest.approx(20)
+    assert [row["order"] for row in summary["paired_changes_percent"]] == [
+        "baseline/stax", "stax/baseline",
+    ]
+    assert summary["paired_median_throughput_change_percent"] == pytest.approx(-10)
+    assert summary["paired_median_p99_latency_change_percent"] == pytest.approx(20)
     assert summary["observed_peak_rss_kb"]["stax"]["redis"]["max"] == 130
     assert summary["observed_peak_rss_kb"]["baseline"]["redis"]["median"] == 105
+
+
+def test_paired_summary_preserves_order_effects_and_zero_latency():
+    rounds = [
+        {"mode": mode, "memtier": {"operations_per_second": rate,
+                                     "p50_latency_ms": 0, "p99_latency_ms": p99},
+         "observed_peak_rss_kb": {}}
+        for mode, rate, p99 in (
+            ("baseline", 100, 0.3), ("stax", 90, 0.36),
+            ("stax", 120, 0.30), ("baseline", 110, 0.3),
+        )
+    ]
+    summary = PILOT.summarize(rounds, "memtier", 1000)
+    assert summary["paired_changes_percent"][0]["throughput_change_percent"] == pytest.approx(-10)
+    assert summary["paired_changes_percent"][1]["throughput_change_percent"] == pytest.approx(
+        (120 / 110 - 1) * 100
+    )
+    assert all(pair["p50_latency_change_percent"] is None for pair in summary["paired_changes_percent"])
+    assert summary["paired_median_p99_latency_change_percent"] == pytest.approx(10)
+    rounds[2]["mode"] = "baseline"
+    with pytest.raises(ValueError, match="each pair"):
+        PILOT.summarize(rounds, "memtier", 1000)
 
 
 def test_private_helper_socket_requires_private_directory_and_root_owner(monkeypatch):

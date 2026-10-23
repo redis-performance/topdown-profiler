@@ -105,7 +105,10 @@ budget; otherwise document the limitation or narrow the supported configuration.
   includes synthetic target-span markers: the
   [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there
   while its archive run summary has zero CPU PET samples. Validate CPU sampling
-  from the run summary and keep target marker counts separate.
+  from the run summary and keep target marker counts separate. An
+  [M1-tested proposed CLI correction](../examples/stax-compare-cpu-samples.patch)
+  demonstrates the separation against that saved archive; do not assume the
+  pinned upstream CLI includes it.
 - Reuse native Apple launch/attach and metadata conventions where applicable. If
   Stax supports collection by process name, provide portable discovery rather than
   routing macOS through the Linux `/proc` resolver or permission checks.

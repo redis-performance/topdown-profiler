@@ -240,6 +240,23 @@ def schedule(pairs: int) -> list[bool]:
     )
 
 
+def matched_pairs(rounds: list[dict]) -> list[tuple[dict, dict, str]]:
+    if len(rounds) % 2:
+        raise ValueError("paired summary requires an even number of rounds")
+    pairs = []
+    for first, second in zip(rounds[::2], rounds[1::2]):
+        if {first["mode"], second["mode"]} != {"baseline", "stax"}:
+            raise ValueError("each pair must contain one baseline and one Stax round")
+        baseline = first if first["mode"] == "baseline" else second
+        profiled = second if first["mode"] == "baseline" else first
+        pairs.append((baseline, profiled, f'{first["mode"]}/{second["mode"]}'))
+    return pairs
+
+
+def percent_change(baseline: float, candidate: float) -> float | None:
+    return (candidate / baseline - 1) * 100 if baseline > 0 else None
+
+
 def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
     def distribution(values: list[float]) -> dict[str, float]:
         return {"median": statistics.median(values), "min": min(values), "max": max(values)}
@@ -253,6 +270,23 @@ def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
         }
 
     if workload == "memtier":
+        paired = []
+        for index, (baseline_row, stax_row, order) in enumerate(matched_pairs(rounds), start=1):
+            baseline_metrics = baseline_row["memtier"]
+            stax_metrics = stax_row["memtier"]
+            paired.append({
+                "pair": index,
+                "order": order,
+                "throughput_change_percent": percent_change(
+                    baseline_metrics["operations_per_second"], stax_metrics["operations_per_second"]
+                ),
+                "p50_latency_change_percent": percent_change(
+                    baseline_metrics["p50_latency_ms"], stax_metrics["p50_latency_ms"]
+                ),
+                "p99_latency_change_percent": percent_change(
+                    baseline_metrics["p99_latency_ms"], stax_metrics["p99_latency_ms"]
+                ),
+            })
         rates = {mode: [row["memtier"]["operations_per_second"] for row in rounds if row["mode"] == mode]
                  for mode in ("baseline", "stax")}
         baseline = statistics.median(rates["baseline"])
@@ -269,16 +303,30 @@ def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
         for values in latency.values():
             values["change_percent"] = ((values["stax_median"] / values["baseline_median"] - 1) * 100
                                         if values["baseline_median"] > 0 else None)
+        p99_changes = [pair["p99_latency_change_percent"] for pair in paired
+                       if pair["p99_latency_change_percent"] is not None]
         return {
             "workload": "memtier",
             "baseline_median_operations_per_second": baseline,
             "stax_median_operations_per_second": sampled,
             "observed_throughput_change_percent": (sampled / baseline - 1) * 100,
+            "paired_changes_percent": paired,
+            "paired_median_throughput_change_percent": statistics.median(
+                pair["throughput_change_percent"] for pair in paired
+            ),
+            "paired_median_p99_latency_change_percent": (
+                statistics.median(p99_changes) if p99_changes else None
+            ),
             "throughput_operations_per_second": {mode: distribution(values) for mode, values in rates.items()},
             "latency_ms": latency,
             "observed_peak_rss_kb": rss(),
             "scope": "fixed-duration mixed SET/GET on one Redis process; includes client effects",
         }
+    paired = [
+        {"pair": index, "order": order,
+         "wall_time_change_percent": (profiled["elapsed_seconds"] / baseline["elapsed_seconds"] - 1) * 100}
+        for index, (baseline, profiled, order) in enumerate(matched_pairs(rounds), start=1)
+    ]
     elapsed = {"baseline": [], "stax": []}
     for row in rounds:
         elapsed[row["mode"]].append(row["elapsed_seconds"])
@@ -290,6 +338,10 @@ def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
         "baseline_median_seconds": baseline,
         "stax_median_seconds": sampled,
         "observed_wall_time_change_percent": (sampled / baseline - 1) * 100,
+        "paired_changes_percent": paired,
+        "paired_median_wall_time_change_percent": statistics.median(
+            pair["wall_time_change_percent"] for pair in paired
+        ),
         "elapsed_seconds": {mode: distribution(values) for mode, values in elapsed.items()},
         "observed_peak_rss_kb": rss(),
         "scope": "same Redis process, fixed request count; includes benchmark-client effects",

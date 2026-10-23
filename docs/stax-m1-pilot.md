@@ -200,6 +200,31 @@ pilot checks the archived run summary for positive CPU PET samples and records
 comparison counts only as sample markers. Target duration is parallel GPU
 work, not a CPU utilization denominator.
 
+A proposed [Stax CLI patch](../examples/stax-compare-cpu-samples.patch) uses
+the run summary's kernel PET count when available and excludes reserved
+synthetic lane IDs from the legacy archive fallback. Its SHA-256 is
+`918927718866107970738f30db1244ac82c85f36f8d216618f7cec752edeafcd`.
+The [offline control](stax-m1-compare-cpu-sample-control.json) compares the
+same saved M1 Metal archive with itself: the original CLI reports 299 PET
+samples and 299 target spans, while the patched CLI reports **zero** PET
+samples and 299 target spans. All 39 CLI unit tests pass with the patch, and
+it applies to the pinned Stax index. The patched CLI is staged only in the
+local Stax build; the installed baseline CLI and pilot interpretation remain
+unchanged pending upstream review.
+
+The concurrent optional collector draft, [PR #47](https://github.com/redis-performance/topdown-profiler/pull/47)
+at `c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579`, also passed an M1
+rootless [integration control](stax-m1-pr47-rootless-integration-control.json).
+First, its v3 importer loaded the saved 299-span Metal archive and stored it
+in SQLite with zero CPU samples and a zero CPU-hotspot denominator. Then its
+capture adapter launched the real M1 Metal app through the pinned Stax CLI and
+server, saved a directory archive, imported it, and returned all 299 named
+target spans. The app completed 300 GPU command buffers with the expected
+checksum and exited cleanly. The control substituted an unprivileged helper
+that emits no kperf records and bypassed only the adapter's helper-ownership
+preflight inside the test process; it does not validate privileged CPU stacks,
+PMU counters, or capture acceptance on macOS.
+
 ## Live Redis pilot
 
 The pinned `staxd` makes its Unix socket world writable (`0666`) and has no
@@ -293,7 +318,9 @@ that workload is separate from the Linux pilot. The memtier mode validates its
 reported rate against completed requests and duration, and flags runs where
 GET misses exceed 1%. Compare measured throughput and p50/p99 latency within
 the M1 host; the summary includes per-mode throughput ranges, median p50/p99
-latencies, and observed changes. The client version and CPU topology differ
+latencies, observed changes, and each adjacent baseline/Stax pair's order and
+throughput/latency changes. Use the paired values to inspect order effects
+before interpreting the pooled medians. The client version and CPU topology differ
 from Linux. The script samples Redis, Stax server, and recorder resident memory
 once per second in every round. Its summary gives median and peak observed RSS
 for each process and mode; it does not observe root `staxd` memory. Record actual
@@ -343,3 +370,20 @@ and memtier 2.5.2 completed 16,078,148 mixed operations in 30 seconds
 instructions and 63,963,907,601 cycles. That observation includes idle time
 around the client run and does not establish Stax overhead. There was no CPU
 affinity on this M1; the performance/other-core split remains in the summary.
+
+A second [unprofiled repeat control](stax-m1-memtier-repeat-control.json) ran
+six sequential rounds of that Redis 8.6.0/memtier 2.5.2 workload with a fresh
+10,000-key prefill and five-second warmup before each 30-second measurement.
+All six had zero GET misses. Throughput was 537,365–539,125 operations/s in
+rounds 1–4, then 581,123 and 577,153 operations/s in rounds 5–6. The six-round
+median was 539,077 operations/s, and the largest deviation from it was 7.80%.
+p99 latency ranged from 0.327 to 0.359 ms. The reason for the late throughput
+rise is unknown; this is observed unprofiled variation, not profiler overhead.
+The local raw metadata and command logs remain at
+`/private/tmp/stax-m1-baseline-variability-001`; their metadata SHA-256 is in
+the compact control. For the live pilot, use the planned interleaved pairs and
+treat an apparent effect that overlaps this drift as inconclusive. The working
+acceptance budget, set before examining a profiled result, is at most 10%
+median throughput loss and at most 20% median p99 latency increase, with zero
+GET misses and no material Stax event loss. More rounds are required if paired
+results straddle either limit or show comparable order effects.
