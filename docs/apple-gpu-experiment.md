@@ -364,6 +364,10 @@ in the retained logs. A session whose startup did not return an ID retains its
 180-second idle timeout. Cancellation during a debugger command is deferred because killing its client can leave an
 XPC profiling operation running after the session disappears. Other MCP tools
 remain responsive while that command finishes.
+Native storage checks cancellation before serialization, after connection setup
+and immediately before committing the run and its payload. An uncommitted
+cancelled store rolls back both rows. A run committed before cancellation
+remains available through `list_profiling_runs`.
 CLI Ctrl-C during replay also waits for the current bounded debugger command,
 closes its owned session, retains artifacts and exits with status 130.
 SIGTERM follows the same cleanup path and exits with status 143, including when

@@ -115,10 +115,14 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
         return self._row_to_run(row)
 
     def insert_apple_result(self, run: Run, document: dict) -> str:
+        from topdown.collector.apple_runtime import check_cancelled
+
+        check_cancelled()
         payload = encode_document(document)
         kind = document["result"]["measurement_kind"]
         conn = self._get_conn()
         try:
+            check_cancelled()
             conn.execute(
                 """INSERT INTO runs (run_id, started_at, ended_at, duration_seconds,
                    process_name, level, system_wide, labels) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
@@ -127,8 +131,9 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
             )
             conn.execute("INSERT INTO apple_results (run_id, measurement_kind, document) VALUES (%s, %s, %s)",
                          (run.run_id, kind, payload))
+            check_cancelled()
             conn.commit()
-        except Exception:
+        except BaseException:
             conn.rollback()
             raise
         return run.run_id

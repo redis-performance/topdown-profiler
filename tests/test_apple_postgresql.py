@@ -137,6 +137,22 @@ def test_jsonb_preserves_measured_fma_gpu_profiles(postgres_backend, tmp_path):
     check_measured_fma_storage(postgres_backend, tmp_path)
 
 
+@pytest.mark.parametrize("phase,failure", [("before-encode", "cancel"), ("connected", "cancel"), ("after-run", "cancel"),
+                                          ("after-document", "cancel"), ("after-run", "keyboard"),
+                                          ("after-document", "keyboard"), ("after-run", "exit"),
+                                          ("after-document", "exit")])
+def test_interrupted_native_insert_rolls_back_and_reuses_postgresql(postgres_backend, monkeypatch, phase, failure):
+    from tests.test_apple_cancelled_transactions import check_interrupted_transaction
+
+    check_interrupted_transaction(postgres_backend, monkeypatch, phase, failure)
+
+
+def test_postgresql_committed_native_result_survives_late_cancellation(postgres_backend, monkeypatch):
+    from tests.test_apple_cancelled_transactions import check_committed_result_survives_late_cancellation
+
+    check_committed_result_survives_late_cancellation(postgres_backend, monkeypatch)
+
+
 @pytest.mark.parametrize("failure", ["components", "duplicate-fields", "metadata", "timestamps"])
 def test_inconsistent_apple_imports_fail_before_jsonb_insert(postgres_backend, tmp_path, failure):
     from topdown.collector.apple import AppleProfileError
