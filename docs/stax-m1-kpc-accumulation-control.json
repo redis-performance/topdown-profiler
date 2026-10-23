@@ -41,7 +41,8 @@
   },
   "topdown_after_patch_import": {
     "public_import_and_sample_query_succeeded": true,
-    "stored_run_id": "863a07cd-4c51-4969-8732-2a5b73dd27d9",
+    "stored_run_id": "11dac4c3-03fe-49e8-800c-649b87bf2ce7",
+    "normalized_result_schema_version": 2,
     "stored_cpu_samples": 348,
     "stored_target_stack_samples": 299,
     "cpu_samples_with_trace_cpu_id": 348,

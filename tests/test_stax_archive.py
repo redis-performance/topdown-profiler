@@ -234,6 +234,7 @@ def test_target_spans_do_not_inflate_cpu_time_or_claim_trace_cpu_id(stax_archive
     assert result["quality"]["cpu_samples_with_trace_cpu_id"] == 0
     run = store_stax_result(sqlite_backend, stax_archive)
     page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    assert page["metadata"]["result_schema_version"] == 2
     target = next(row for row in page["rows"] if row["kind"] == "target-span-stack")
     assert "trace_cpu_id" not in target
     assert "pmc" not in target

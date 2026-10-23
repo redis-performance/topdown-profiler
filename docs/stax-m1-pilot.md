@@ -488,6 +488,8 @@ synthetic IDs.
 The importer exposes this field and PMU values only on CPU PET rows, even if a
 synthetic target-span marker carries `cpu` or `pmc` members in an archive; the
 marker is not a CPU-residency or hardware-counter observation.
+Newly stored Stax results use normalized result schema version 2 for this row
+shape; previously stored version 1 results remain queryable as saved.
 These IDs cannot establish core residency or P/E event behavior until a
 privileged capture and independent topology validation are available.
 XNU's [PET implementation](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kperf/pet.c)
