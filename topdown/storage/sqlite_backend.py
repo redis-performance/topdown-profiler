@@ -111,7 +111,13 @@ class SQLiteBackend(SqlNodeQueries, StorageBackend):
             return None
         return self._row_to_run(row)
 
+    def insert_stax_result(self, run: Run, document: dict) -> str:
+        return self._insert_profile_document(run, document, "stax_results")
+
     def insert_apple_result(self, run: Run, document: dict) -> str:
+        return self._insert_profile_document(run, document, "apple_results")
+
+    def _insert_profile_document(self, run: Run, document: dict, table: str) -> str:
         from topdown.collector.apple_runtime import check_cancelled
 
         check_cancelled()
@@ -126,7 +132,7 @@ class SQLiteBackend(SqlNodeQueries, StorageBackend):
                 (run.run_id, run.started_at.isoformat(), run.ended_at.isoformat() if run.ended_at else None,
                  run.duration_seconds, run.process_name, run.level, int(run.system_wide), json.dumps(run.labels)),
             )
-            conn.execute("INSERT INTO apple_results (run_id, measurement_kind, document) VALUES (?, ?, ?)",
+            conn.execute(f"INSERT INTO {table} (run_id, measurement_kind, document) VALUES (?, ?, ?)",
                          (run.run_id, kind, payload))
             check_cancelled()
             conn.commit()
@@ -135,12 +141,24 @@ class SQLiteBackend(SqlNodeQueries, StorageBackend):
             raise
         return run.run_id
 
+    def get_stax_result(self, run_id: str) -> dict | None:
+        row = self._get_conn().execute("SELECT document FROM stax_results WHERE run_id = ?", (run_id,)).fetchone()
+        return json.loads(row["document"]) if row else None
+
     def get_apple_result(self, run_id: str) -> dict | None:
         row = self._get_conn().execute("SELECT document FROM apple_results WHERE run_id = ?", (run_id,)).fetchone()
         return json.loads(row["document"]) if row else None
 
+    def get_stax_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
+                             offset: int = 0, limit: int = 100) -> dict | None:
+        return self._get_profile_result_page("stax_results", run_id, omit_fields, section, offset, limit)
+
     def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
                               offset: int = 0, limit: int = 100) -> dict | None:
+        return self._get_profile_result_page("apple_results", run_id, omit_fields, section, offset, limit)
+
+    def _get_profile_result_page(self, table: str, run_id: str, omit_fields: tuple[str, ...], section: str | None,
+                                 offset: int, limit: int) -> dict | None:
         params = {"run_id": run_id, "path": "$.result." + section if section is not None else None,
                   "offset": min(offset, 2**63 - 1), "end": min(offset + limit, 2**63 - 1)}
         paths = []
@@ -166,12 +184,13 @@ class SQLiteBackend(SqlNodeQueries, StorageBackend):
                                )
                            ), '') || ']')) END
                        END AS page
-                FROM apple_results a WHERE a.run_id = :run_id
+                FROM {table} a WHERE a.run_id = :run_id
             """, params).fetchone()
         except sqlite3.OperationalError as exc:
             if "no such function" not in str(exc):
                 raise
-            return super().get_apple_result_page(run_id, omit_fields, section, offset, limit)
+            fallback = super().get_stax_result_page if table == "stax_results" else super().get_apple_result_page
+            return fallback(run_id, omit_fields, section, offset, limit)
         if row is None:
             return None
         document = json.loads(row["document"])

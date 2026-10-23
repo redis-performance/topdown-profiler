@@ -67,6 +67,8 @@ def make_runner(
     """
     collector = resolve_collector(config)
 
+    if collector == "stax":
+        raise RuntimeError("Stax is a sampling collector; use 'topdown stax record' or collect_stax_profile instead of slot TMA")
     if collector == "apple":
         from topdown.collector.apple import APPLE_COLLECTION_MESSAGE
 
