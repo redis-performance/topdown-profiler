@@ -1,6 +1,9 @@
 # Stax pilot and integration plan
 
-Status: proposed; no Stax installation, profiling pilot, or integration has been completed.
+Status: Linux build and preflight tested; live capture needs host permissions.
+See the [Linux pilot report](stax-linux-pilot.md) for pinned revisions, results,
+and remaining checks. Apple validation is being handled separately on the M6.
+No Stax collector integration has been implemented.
 
 ## Goal
 

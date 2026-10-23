@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-23",
+  "host": "fco-tp",
+  "os": "Linux fco-tp 6.17.0-35-generic #35~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 19:30:42 UTC 2 x86_64 x86_64 x86_64 GNU/Linux",
+  "cpu_model": "Intel Core Ultra 7 155U",
+  "topdown_base": "0763ba3",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "redis_revision": "006e6a6a602ac5265a676b3aebe9f8ba65459190",
+  "pmu_tools_revision": "2568760ffc9394ddaa7a71f0c39930e780cf2dca",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "redis_version": "Redis server v=8.6.0 sha=006e6a6a:0 malloc=libc bits=64 build=19aefb9fd38f22b4",
+  "memtier_version": "memtier_benchmark v=255.255.255 sha=113c3755:1 bits=64 libevent=2.1.12-stable openssl=OpenSSL 3.0.13 30 Jan 2024",
+  "binary_sha256": {
+    "redis-server": "1b336de2bf7c5e617d8f06f101f8f119570310fe7149c856c84fe47b59b47065",
+    "memtier_benchmark": "c75451ab94e395198232dfac217e7a83279eebf19d92040d2cca4217b7d70ac0",
+    "stax": "bde69caf35fa41851a6fab7726d80f65463f91f0445aa1b96796a16fa0163cb3",
+    "stax-server": "4ce7169e671fb2aa1e0a9bb5d69b722ed069bc198904b4970d906dad84b26f5b",
+    "staxd": "35c5d6a7945322ede1e1ea73c369fb37e03bd31540c3b81a3b61d3a6e035bce2"
+  },
+  "initial_sysctls": {
+    "kernel.perf_event_paranoid": 1,
+    "kernel.perf_event_mlock_kb": 516
+  },
+  "preflight": [
+    {
+      "name": "perf-process",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-e",
+        "task-clock,cycles,instructions",
+        "--",
+        "sleep",
+        "0.1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "perf-system-wide",
+      "argv": [
+        "perf",
+        "stat",
+        "-a",
+        "-e",
+        "task-clock",
+        "--",
+        "sleep",
+        "0.1"
+      ],
+      "exit_code": 255
+    },
+    {
+      "name": "perf-l1-tma",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-e",
+        "{cpu_core/slots/,cpu_core/topdown-retiring/,cpu_core/topdown-bad-spec/,cpu_core/topdown-fe-bound/,cpu_core/topdown-be-bound/}",
+        "--",
+        "sleep",
+        "0.1"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "stax_attach": {
+    "frequency_hz": 900,
+    "dwarf_unwind": true,
+    "samples": 0,
+    "intervals": 0,
+    "error": "stax: started run 1\nerror: recorder failed: perf_event_open on cpu 0 failed: Permission denied (os error 13) (need perf_event_paranoid low enough, or the daemon)\n\nLocation:\n    stax-linux-capture/src/session.rs:1022:28"
+  },
+  "native_tma": {
+    "memtier_exit": 0,
+    "toplev_exit": 0,
+    "raw_metric_rows": 64,
+    "csv_header": "Timestamp,CPUs,Area,Value,Unit,Description,Sample,Stddev,Multiplex,Bottleneck,Idle",
+    "example_raw_row": "1.000341466,core,Frontend_Bound,37.9,% Slots,,frontend_retired.latency_ge_4,0.0,100.0,,",
+    "expected": {
+      "metric_name": "Frontend_Bound",
+      "value": 37.9,
+      "unit": "% Slots",
+      "cpu_group": "core"
+    },
+    "observed_parser_result": {
+      "metric_name": "core",
+      "value": 0.0,
+      "unit": "37.9",
+      "status": "100.0"
+    },
+    "interpretation": "Functional capture only. Background compilation and shared-host load; not an overhead baseline. Raw capture not imported."
+  },
+  "tests": {
+    "topdown": {
+      "passed": 1925,
+      "skipped": 126
+    },
+    "stax_linux_capture": {
+      "passed": 18,
+      "failed": 0
+    }
+  },
+  "pending": [
+    "successful_stax_capture",
+    "stack_quality",
+    "overhead_pairs",
+    "archive_reopen",
+    "archive_compare"
+  ],
+  "local_artifact_directory": "/home/fco/.cache/topdown-stax-linux-pilot"
+}
