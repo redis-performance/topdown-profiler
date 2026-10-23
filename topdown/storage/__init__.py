@@ -15,5 +15,9 @@ def get_backend(config) -> StorageBackend:
     else:
         backend = SQLiteBackend(db_path=config.db_path)
 
-    backend.initialize()
+    try:
+        backend.initialize()
+    except BaseException:
+        backend.close()
+        raise
     return backend
