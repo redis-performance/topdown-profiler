@@ -1,0 +1,115 @@
+{
+  "host": "MacBookAir10,1 Apple M1",
+  "macos": "27.0.1",
+  "probe_source": "topdown/collector/apple_gpu_probe.swift",
+  "probe_source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+  "probe_executable_sha256": "18907ba31da3e76610f9e774715d3deda261b695e8ff47e6e3b1c824b22ca692",
+  "timebase": {
+    "numer": 125,
+    "denom": 3
+  },
+  "units": "nanoseconds since mach_absolute_time epoch",
+  "method": "mach_absolute_time before and after child Metal probe; round MTLCommandBuffer.gpuStartTime/gpuEndTime host seconds to ns",
+  "runs": [
+    {
+      "mode": "compute",
+      "host_before_ns": 244784241915416,
+      "host_after_ns": 244784289010875,
+      "gpu_min_start_ns": 244784281692042,
+      "gpu_max_end_ns": 244784283296750,
+      "command_count": 3,
+      "all_positive_duration": true,
+      "all_bracketed": true,
+      "checksum_verified": true,
+      "commands": [
+        {
+          "start_ns": 244784281692042,
+          "end_ns": 244784282034917
+        },
+        {
+          "start_ns": 244784282310042,
+          "end_ns": 244784282647542
+        },
+        {
+          "start_ns": 244784282959375,
+          "end_ns": 244784283296750
+        }
+      ]
+    },
+    {
+      "mode": "alu",
+      "host_before_ns": 244784289263625,
+      "host_after_ns": 244784332639583,
+      "gpu_min_start_ns": 244784326768750,
+      "gpu_max_end_ns": 244784327599375,
+      "command_count": 3,
+      "all_positive_duration": true,
+      "all_bracketed": true,
+      "checksum_verified": true,
+      "commands": [
+        {
+          "start_ns": 244784326768750,
+          "end_ns": 244784326839667
+        },
+        {
+          "start_ns": 244784327197917,
+          "end_ns": 244784327264250
+        },
+        {
+          "start_ns": 244784327529167,
+          "end_ns": 244784327599375
+        }
+      ]
+    },
+    {
+      "mode": "memory",
+      "host_before_ns": 244784332852916,
+      "host_after_ns": 244784367047875,
+      "gpu_min_start_ns": 244784364423917,
+      "gpu_max_end_ns": 244784364986500,
+      "command_count": 3,
+      "all_positive_duration": true,
+      "all_bracketed": true,
+      "checksum_verified": true,
+      "commands": [
+        {
+          "start_ns": 244784364423917,
+          "end_ns": 244784364437750
+        },
+        {
+          "start_ns": 244784364750542,
+          "end_ns": 244784364764417
+        },
+        {
+          "start_ns": 244784364978500,
+          "end_ns": 244784364986500
+        }
+      ]
+    },
+    {
+      "mode": "stream",
+      "host_before_ns": 244784367243541,
+      "host_after_ns": 244784398997916,
+      "gpu_min_start_ns": 244784396505000,
+      "gpu_max_end_ns": 244784396988417,
+      "command_count": 3,
+      "all_positive_duration": true,
+      "all_bracketed": true,
+      "checksum_verified": true,
+      "commands": [
+        {
+          "start_ns": 244784396505000,
+          "end_ns": 244784396524250
+        },
+        {
+          "start_ns": 244784396790417,
+          "end_ns": 244784396807750
+        },
+        {
+          "start_ns": 244784396971125,
+          "end_ns": 244784396988417
+        }
+      ]
+    }
+  ]
+}

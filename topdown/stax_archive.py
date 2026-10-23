@@ -263,6 +263,15 @@ def load_archive(path):
         result["clock"]["domain"] = {"linux": "CLOCK_MONOTONIC", "macos": "mach_absolute_time nanoseconds"}.get(
             provenance["os"], "upstream monotonic clock"
         )
+        if provenance["os"] == "macos":
+            result["quality"]["pmu_counter_semantics"] = "unverified"
+            result["quality"]["pmu_counter_semantics_reason"] = (
+                "XNU source returns cumulative KPC thread snapshots; "
+                "no validated capture-time delta conversion provenance was found"
+            )
+            result["limitations"].append(
+                "macOS PMU fields cannot be summed as per-sample deltas without verified conversion provenance."
+            )
         return {
             "metadata": {
                 "collector": "stax",
@@ -407,9 +416,12 @@ def _normalize(archive):
         )
         for sample in _array(thread["pet_samples"], "samples"):
             check_cancelled()
-            pmc = _object(sample["pmc"], "PMU snapshot")
+            pmc = _object(sample["pmc"], "PMU fields")
             for key, value in pmc.items():
                 uint(value, f"PMU {key}")
+            cpu = sample.get("cpu")
+            if cpu is not None:
+                cpu = uint(cpu, "sample CPU ID", 32)
             samples.append(
                 {
                     "tid": tid,
@@ -417,7 +429,8 @@ def _normalize(archive):
                     "kind": "target-span-stack" if target_lane else "cpu-stack",
                     "stack_id": stacks.intern(sample["stack"]),
                     "kernel_stack_id": stacks.intern(sample["kernel_stack"]),
-                    "pmc": pmc,
+                    **({"pmc": pmc} if not target_lane else {}),
+                    **({"trace_cpu_id": cpu} if cpu is not None and not target_lane else {}),
                 }
             )
             counts["target_stack_sample_count" if target_lane else "sample_count"] += 1
@@ -515,6 +528,7 @@ def _normalize(archive):
             "cpu_sample_counts_match": run["pet_samples"] == cpu_samples,
             "cpu_samples_without_user_stack": missing,
             "cpu_samples_with_unresolved_user_leaf": unresolved,
+            "cpu_samples_with_trace_cpu_id": sum("trace_cpu_id" in sample for sample in cpu_rows),
             "sampling_observed": cpu_samples > 0,
             **off_cpu_quality(run, off_cpu_intervals),
             "pmu_availability": "unverified",
@@ -549,6 +563,7 @@ def _normalize(archive):
             "Scheduler interval totals may overlap; they are not a utilization denominator.",
             SCHEDULER_ABSENCE_NOTE,
             "Raw PMU fields are retained without summing; zero does not establish counter availability.",
+            "Trace CPU IDs are raw kdebug indices; sampled-thread residency, core type and PMU scope remain unvalidated.",
             "Synthetic target spans are separate from CPU intervals and native GPU hardware counters.",
             "Symbols use archived names without demangling; source artifacts remain required for disassembly.",
         ],

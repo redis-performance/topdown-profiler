@@ -1,0 +1,63 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_pr": 47,
+  "topdown_revision": "c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "experimental_pmu_patch_sha256": "fdf2eff435c67e84239b41e7d228c137d09d64fd2d3ab9d76695da5cda3107a0",
+  "fake_sample_daemon_source_sha256": "a35cf3725797b7910b435c29ded837135b2faae9445a3b53fb9cdc4c4af7ca4f",
+  "fake_sample_daemon_signed_sha256": "333be218cc928c19ef4a51915239df8b83777fc3b67f1f58aa9b0f975a8cf974",
+  "raw_local_path": "/private/tmp/stax-m1-pr47-synthetic-pmu-001",
+  "raw_sha256": {
+    "capture.json": "131d9b37be84d975ed5527acd7879af05222a3530fc8c1c0b1436608b506eb25",
+    "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+    "archive/manifest.json": "7e56e7350d43c07c2c32aa152139c2641a58b77277e664d5e44c4a5cb6c4b186",
+    "archive/events.jsonl": "8979b335d2279144e1bd41d87da17e8109a43ba9c018382a55f0766897a50916"
+  },
+  "method": "Rootless software-path fixture: fake Stax daemon enforces M1 PMU config and emits invented PET/PMC records; PR47 helper-socket ownership preflight was bypassed only inside the test process; real patched Stax server, CLI, M1 GPU app, archive and SQLite importer were exercised",
+  "required_class_mask": 3,
+  "required_config_words": [
+    163,
+    0,
+    0,
+    203,
+    0,
+    0,
+    0,
+    0
+  ],
+  "fixture_pmc_per_sample": {
+    "cycles": 100,
+    "instructions": 200,
+    "l1d_misses": 13,
+    "branch_mispreds": 17
+  },
+  "capture": {
+    "status": "completed",
+    "target_exit_code": 0,
+    "run_summary_pet_samples": 78,
+    "target_exited_before_limit": true
+  },
+  "archive_and_storage": {
+    "cpu_samples": 78,
+    "all_cpu_samples_match_fixture": true,
+    "cpu_hotspot_denominator": 78,
+    "target_stack_samples": 299,
+    "real_gpu_command_buffers": 300,
+    "real_gpu_checksum": 4915200,
+    "target_spans_recorded": 299,
+    "target_spans_dropped": 0
+  },
+  "compare_json": {
+    "pinned_cli_pet_samples": 377,
+    "patched_cli_pet_samples": 78,
+    "target_spans_both": 299
+  },
+  "privileged_cpu_sampling_verified": false,
+  "apple_pmu_hardware_verified": false,
+  "gpu_hardware_counters_verified": false,
+  "limitations": "The fake daemon values and stack are invented. This validates software mapping and unit separation only; real root helper, kperf data, PMU availability, origin linking and overhead acceptance remain untested.",
+  "macos_parser_unit_tests": {
+    "passed": 5,
+    "failed": 0
+  }
+}

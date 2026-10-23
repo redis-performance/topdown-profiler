@@ -44,6 +44,22 @@ def test_atomic_labeled_result_and_cascade(sqlite_backend, stax_archive):
     assert backend.get_stax_result(run.run_id) is None
 
 
+def test_legacy_normalized_result_remains_queryable(sqlite_backend, stax_archive):
+    run = store_stax_result(sqlite_backend, stax_archive)
+    document = sqlite_backend.get_stax_result(run.run_id)
+    document["metadata"]["result_schema_version"] = 1
+    document["result"]["samples"][0]["cpu"] = 4
+    sqlite_backend._get_conn().execute(
+        "UPDATE stax_results SET document = ? WHERE run_id = ?", (json.dumps(document), run.run_id)
+    )
+    sqlite_backend._get_conn().commit()
+
+    page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    assert page["metadata"]["result_schema_version"] == 1
+    assert page["rows"][0]["cpu"] == 4
+    assert page["rows"][0]["pmc"]["cycles"] == 2**64 - 1
+
+
 def test_failed_document_rolls_back_run(sqlite_backend, stax_archive):
     conn = sqlite_backend._get_conn()
     conn.execute(

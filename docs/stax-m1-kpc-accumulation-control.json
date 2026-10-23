@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-23",
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "source_basis": {
+    "xnu_kpc_thread": "https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kern/kpc_thread.c",
+    "xnu_kperf_kpc": "https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kperf/kperf_kpc.c",
+    "finding": "kpc_get_curthread_counters returns the current thread's accumulated KPC buffer; the pinned Stax parser and pipeline forwarded each sampled vector as if it were an interval delta"
+  },
+  "method": "Apply the proposed core-identity patch, then run a rootless fake daemon that emits invented cumulative PET/PMC snapshots at successive ticks. Capture the same real M1 Metal target with a core-ID-only Stax server and a server additionally patched for per-thread differencing. No root helper or hardware PMU collection was used.",
+  "core_identity_patch_sha256": "9cbbe03e5d05bbf64c5c127102df6d9e2cfe20fb86e356ca9191c1082860d20e",
+  "delta_patch_sha256": "f29cdbcb745ee05d766617f3dd95a3263f6a2bda92444fdb4c098de00539ac37",
+  "fake_daemon_source_sha256": "1ec25d858a8af92236abdab8e12b5b90397c7e281e7cfbbdd1540410d31ef1fb",
+  "signed_fake_daemon_sha256": "171eb1fc3d740f96e1a99c589a92b436fd7157123118145a222eb8c5e09afad5",
+  "fixture": {
+    "counter_class_mask": 1,
+    "synthetic_thread_id": 42,
+    "trace_cpu_ids": [0, 4],
+    "snapshot_cycles_formula": "100 * sample_number",
+    "snapshot_instructions_formula": "200 * sample_number",
+    "real_m1_gpu_command_buffers_per_run": 300,
+    "stax_target_spans_per_run": 299,
+    "origin_links": 0
+  },
+  "before_delta_patch": {
+    "signed_server_sha256": "a5afc47c288aeaf5c4ed03d3d9aa28ccaa385f892dd1dc0af141de5d0e32ca94",
+    "archive_sha256": "e92107f6ee126c7e085d1839968b7a8e1c3c7e008e19630f749c64c305eff853",
+    "cpu_samples": 348,
+    "initial_archived_cycles": [100, 200, 300, 400, 500],
+    "last_archived_cycles": 34800,
+    "sum_archived_cycles": 6072600
+  },
+  "after_delta_patch": {
+    "signed_server_sha256": "db01596a07a897eec97b9999c77dca77957789917880c9d047a6be3b3e59382f",
+    "archive_sha256": "f248e4b684b6a282d2d158dee9994671a6108b23df898bcf65f0c5bc51f348e2",
+    "cpu_samples": 348,
+    "initial_archived_cycles": [0, 100, 100, 100, 100],
+    "sum_archived_cycles": 34700,
+    "first_snapshot_withheld_as_baseline": true,
+    "all_zero_buffer_error_rebases_next_nonzero_snapshot": true
+  },
+  "topdown_after_patch_import": {
+    "public_import_and_sample_query_succeeded": true,
+    "stored_run_id": "11dac4c3-03fe-49e8-800c-649b87bf2ce7",
+    "normalized_result_schema_version": 2,
+    "stored_cpu_samples": 348,
+    "stored_target_stack_samples": 299,
+    "cpu_samples_with_trace_cpu_id": 348,
+    "first_sample_cycles": 0,
+    "target_spans_with_cpu_id_or_pmu_fields": 0,
+    "pmu_counter_semantics": "unverified",
+    "pmu_counter_semantics_reason": "no validated capture-time delta conversion provenance was found"
+  },
+  "checks": {
+    "stax_parser_library_tests": "8 passed, including per-thread differencing, reset/vector-change rebasing and all-zero buffer error handling",
+    "stax_server_release_build": "passed",
+    "real_m1_gpu_checksum": 4915200
+  },
+  "limitations": "The PET records and PMU values are synthetic; the control demonstrates Stax software behavior, not actual M1 hardware counter values or installed-kernel PET semantics. The proposed patch is not installed upstream. A per-thread delta can include work on several CPUs between ticks and must not be attributed entirely to the trace CPU ID. Stax v3 lacks an explicit capture-time PMU-semantics marker, so an importer cannot distinguish patched from unpatched archives. Its manifest provenance is generated at save and discarded on reopen; a conversion marker there could mislabel a reopened old run. Native record loss and thread-ID reuse remain unvalidated. The pinned parser narrows the kdebug arg5 thread ID to u32; possible collisions also need an audit before per-thread baselines are trusted."
+}

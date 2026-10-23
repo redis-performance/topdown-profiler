@@ -1,0 +1,159 @@
+{
+  "date": "2026-10-23",
+  "host": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "xctrace": "xctrace version 27.1 (27A9275)",
+    "gpudebug": "gpudebug 1.0",
+    "gpu_replay": {
+      "status": "known_gpu_generation_limit",
+      "reason": "Xcode 27.1 GPU replay profiling requires Apple M3 / A17 Pro or later; a native M1 profile attempt returned this requirement.",
+      "next_step": "Use Instruments Metal System Trace with Performance Limiters or Performance Utilizations; source checkouts can run examples/apple_gpu/record_instruments.py."
+    },
+    "templates": [
+      "CPU Counters",
+      "CPU Profiler",
+      "Time Profiler",
+      "Processor Trace"
+    ],
+    "hardware_access": "unverified",
+    "tma": {
+      "Frontend_Bound": null,
+      "Bad_Speculation": null,
+      "Backend_Bound": null,
+      "Retiring": null
+    },
+    "cpu": "Apple M1",
+    "os_build": "26A434",
+    "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066",
+    "developer_tools_security": "Developer mode is currently enabled.",
+    "programmable_counters": {
+      "status": "unverified",
+      "reason": "Counter access requires a successful native probe; installed templates do not verify access.",
+      "next_step": "topdown apple probe --mode counters --output <new-directory>"
+    },
+    "note": "Installed templates do not establish PMU access. No permission settings were changed."
+  },
+  "redis_revision": "d85b5f4c2cc597da78989bc48d6b38b895c186f6",
+  "redis_binary_sha256": "a5ca88abc09c74b1e5e6dde6619b29b976fb69215e40b554272e5f60b871b155",
+  "workload": {
+    "commands": [
+      "SET",
+      "GET"
+    ],
+    "requests_per_command": 30000000,
+    "clients": 50,
+    "pipeline": 16,
+    "warmup_requests_per_command": 1000000,
+    "transport": "private Unix socket",
+    "elapsed_seconds": 23.363106875011,
+    "reported": [
+      {
+        "test": "SET",
+        "rps": "2187705.00",
+        "avg_latency_ms": "0.316",
+        "min_latency_ms": "0.064",
+        "p50_latency_ms": "0.319",
+        "p95_latency_ms": "0.383",
+        "p99_latency_ms": "0.503",
+        "max_latency_ms": "1.399"
+      },
+      {
+        "test": "GET",
+        "rps": "3111065.25",
+        "avg_latency_ms": "0.209",
+        "min_latency_ms": "0.056",
+        "p50_latency_ms": "0.207",
+        "p95_latency_ms": "0.279",
+        "p99_latency_ms": "0.375",
+        "max_latency_ms": "2.271"
+      }
+    ]
+  },
+  "native_fixed": {
+    "mode": "fixed",
+    "duration_limit_seconds": 30,
+    "capture_status": "exported",
+    "profile_sha256": "2d598911eae3bc501be0e78059c450cfe2edde46648ab62bb9430294c1de25e1",
+    "sample_count": 23844,
+    "unresolved_stack_samples": 1,
+    "unmeasured_rows": 2,
+    "excluded_rows": 18922,
+    "hotspot_count": 320,
+    "top_hotspots": [
+      {
+        "function": "write",
+        "binary": "libsystem_kernel.dylib",
+        "leaf_samples": 1760,
+        "leaf_share": 0.07381311860426103,
+        "stack_samples": 1760
+      },
+      {
+        "function": "read",
+        "binary": "libsystem_kernel.dylib",
+        "leaf_samples": 1606,
+        "leaf_share": 0.06735447072638819,
+        "stack_samples": 1606
+      },
+      {
+        "function": "xzm_malloc_zone_size",
+        "binary": "libsystem_malloc.dylib",
+        "leaf_samples": 1410,
+        "leaf_share": 0.0591343734272773,
+        "stack_samples": 1410
+      },
+      {
+        "function": "mach_absolute_time",
+        "binary": "libsystem_kernel.dylib",
+        "leaf_samples": 1149,
+        "leaf_share": 0.048188223452440865,
+        "stack_samples": 1149
+      },
+      {
+        "function": "processCommand",
+        "binary": "redis-server",
+        "leaf_samples": 872,
+        "leaf_share": 0.0365710451266566,
+        "stack_samples": 11213
+      },
+      {
+        "function": "processMultibulkBuffer",
+        "binary": "redis-server",
+        "leaf_samples": 761,
+        "leaf_share": 0.03191578594195605,
+        "stack_samples": 4562
+      },
+      {
+        "function": "_xzm_free_tc",
+        "binary": "libsystem_malloc.dylib",
+        "leaf_samples": 761,
+        "leaf_share": 0.03191578594195605,
+        "stack_samples": 761
+      },
+      {
+        "function": "_platform_strchr",
+        "binary": "libsystem_platform.dylib",
+        "leaf_samples": 755,
+        "leaf_share": 0.031664150310350615,
+        "stack_samples": 755
+      },
+      {
+        "function": "malloc_size",
+        "binary": "libsystem_malloc.dylib",
+        "leaf_samples": 747,
+        "leaf_share": 0.0313286361348767,
+        "stack_samples": 2157
+      },
+      {
+        "function": "_xzm_malloc_tc",
+        "binary": "libsystem_malloc.dylib",
+        "leaf_samples": 746,
+        "leaf_share": 0.031286696862942456,
+        "stack_samples": 746
+      }
+    ],
+    "tma_available": false
+  },
+  "stax_capture_performed": false
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-23",
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "context": "Rootless native Apple probe after PR #47 merged into main and that main was merged into the M1 Stax pilot branch.",
+  "method": "Run topdown apple probe --mode m1 with DEVELOPER_DIR scoped to the command, then use public apple store, query and report commands on a fresh SQLite database.",
+  "raw_local_path": "/private/tmp/stax-m1-postmerge-native-probe-002",
+  "probe_sha256": "377b8efdf30c37f966b3b305b4d07f5af89a802b1cf8c3b880744061516746ec",
+  "profile_sha256": "e02771640bead0f1b4576d668ba1304ba52560b08e972291ed00df35f2369736",
+  "status": "counters_present",
+  "target_checksum_verified": true,
+  "sample_count": 556,
+  "ten_position_native_vectors": 556,
+  "vectors_with_at_least_three_positive_positions": 554,
+  "core_labeled_samples": {
+    "E Core": 34,
+    "P Core": 522
+  },
+  "stored_apple_run_id": "044c6bad-56c2-403c-bc67-49a24fc06716",
+  "public_store_succeeded": true,
+  "public_query_succeeded": true,
+  "public_hotspot_report_succeeded": true,
+  "alu_work_leaf_samples": 553,
+  "tma_available": false,
+  "limitations": "The native vector position-to-event mapping, loss, sampling rate, and TMA formulas remain unverified. This probe is a functional and storage regression check, not a Stax capture or PMU comparison. The Stax v3 archive does not preserve its raw kdebug CPU ID, even though this separate native Xcode profile has per-sample core labels."
+}

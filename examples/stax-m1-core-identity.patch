@@ -1,0 +1,138 @@
+diff --git a/cli/src/main.rs b/cli/src/main.rs
+index 0e869bc..75ba22a 100644
+--- a/cli/src/main.rs
++++ b/cli/src/main.rs
+@@ -3723,0 +3724 @@ mod tests {
++                        cpu: None,
+diff --git a/src/cmd_record_mac.rs b/src/cmd_record_mac.rs
+index 2abad45..eeadadf 100644
+--- a/src/cmd_record_mac.rs
++++ b/src/cmd_record_mac.rs
+@@ -210 +210 @@ impl SampleSink for LiveOnlySink {
+-            cpu: u32::MAX,
++            cpu: ev.cpu.unwrap_or(u32::MAX),
+diff --git a/src/live_only_sink.rs b/src/live_only_sink.rs
+index ff6c644..24a06cc 100644
+--- a/src/live_only_sink.rs
++++ b/src/live_only_sink.rs
+@@ -71 +71 @@ impl SampleSink for LiveOnlySink {
+-            cpu: u32::MAX,
++            cpu: ev.cpu.unwrap_or(u32::MAX),
+diff --git a/stax-live-proto/src/lib.rs b/stax-live-proto/src/lib.rs
+index 406bf8e..cdd3989 100644
+--- a/stax-live-proto/src/lib.rs
++++ b/stax-live-proto/src/lib.rs
+@@ -2118,0 +2119,2 @@ pub struct SavedPetSample {
++    #[facet(default)]
++    pub cpu: Option<u32>,
+diff --git a/stax-live/src/aggregator.rs b/stax-live/src/aggregator.rs
+index b4db275..bcbdd96 100644
+--- a/stax-live/src/aggregator.rs
++++ b/stax-live/src/aggregator.rs
+@@ -149,0 +150 @@ pub struct PetSample {
++    pub cpu: Option<u32>,
+@@ -356,0 +358 @@ impl Aggregator {
++                        cpu: sample.cpu,
+@@ -439,0 +442 @@ impl Aggregator {
++                            cpu: sample.cpu,
+@@ -500,0 +504,12 @@ impl Aggregator {
++    ) {
++        self.record_pet_sample_on_cpu(tid, timestamp_ns, user_addrs, kernel_addrs, pmc, None);
++    }
++
++    pub fn record_pet_sample_on_cpu(
++        &mut self,
++        tid: u32,
++        timestamp_ns: u64,
++        user_addrs: &[u64],
++        kernel_addrs: &[u64],
++        pmc: PmuSample,
++        cpu: Option<u32>,
+@@ -508,0 +524 @@ impl Aggregator {
++            cpu,
+@@ -994,0 +1011,22 @@ fn target_lane_stack(stack: &[u64]) -> &[u64] {
++#[cfg(test)]
++mod cpu_identity_tests {
++    use super::*;
++
++    #[test]
++    fn saved_pet_samples_keep_cpu_identity_across_reopen() {
++        let mut aggregator = Aggregator::default();
++        aggregator.record_pet_sample_on_cpu(42, 100, &[0x1234], &[], PmuSample::default(), Some(4));
++        aggregator.record_pet_sample(42, 200, &[0x5678], &[], PmuSample::default());
++
++        let saved = aggregator.to_saved();
++        assert_eq!(saved.threads[0].pet_samples[0].cpu, Some(4));
++        assert_eq!(saved.threads[0].pet_samples[1].cpu, None);
++
++        let mut reopened = Aggregator::default();
++        reopened.replace_from_saved(saved);
++        let reopened_samples: Vec<_> = reopened.iter_pet_samples(Some(42)).collect();
++        assert_eq!(reopened_samples[0].1.cpu, Some(4));
++        assert_eq!(reopened_samples[1].1.cpu, None);
++    }
++}
++
+diff --git a/stax-mac-capture/src/sample_sink.rs b/stax-mac-capture/src/sample_sink.rs
+index ed70379..77f224a 100644
+--- a/stax-mac-capture/src/sample_sink.rs
++++ b/stax-mac-capture/src/sample_sink.rs
+@@ -68,0 +69 @@ pub struct SampleEvent<'a> {
++    pub cpu: Option<u32>,
+diff --git a/stax-mac-kperf-parse/src/parser.rs b/stax-mac-kperf-parse/src/parser.rs
+index f4aef69..16080aa 100644
+--- a/stax-mac-kperf-parse/src/parser.rs
++++ b/stax-mac-kperf-parse/src/parser.rs
+@@ -36,0 +37 @@ pub struct Sample<'a> {
++    pub cpu: u32,
+@@ -72 +73 @@ enum State {
+-    InSample { tid: u32, timestamp_ns: u64 },
++    InSample { tid: u32, timestamp_ns: u64, cpu: u32 },
+@@ -115,0 +117 @@ impl Parser {
++                    cpu: rec.cpuid,
+@@ -120 +122 @@ impl Parser {
+-                if let State::InSample { tid, timestamp_ns } = self.state {
++                if let State::InSample { tid, timestamp_ns, cpu } = self.state {
+@@ -155,0 +158 @@ impl Parser {
++                        cpu,
+@@ -384,0 +388,13 @@ mod tests {
++
++    #[test]
++    fn preserves_cpu_from_sample_start_record() {
++        let mut parser = Parser::new();
++        let mut out = None;
++        let mut first = start();
++        first.cpuid = 4;
++        let mut last = end();
++        last.cpuid = 0;
++        parser.feed(&first, |_| {});
++        parser.feed(&last, |sample| out = Some(sample.cpu));
++        assert_eq!(out, Some(4));
++    }
+diff --git a/stax-mac-kperf-parse/src/pipeline.rs b/stax-mac-kperf-parse/src/pipeline.rs
+index 2704c84..edca225 100644
+--- a/stax-mac-kperf-parse/src/pipeline.rs
++++ b/stax-mac-kperf-parse/src/pipeline.rs
+@@ -394,0 +395 @@ impl Pipeline {
++                    cpu: Some(sample.cpu),
+diff --git a/stax-server/src/main.rs b/stax-server/src/main.rs
+index dad133b..9b0584c 100644
+--- a/stax-server/src/main.rs
++++ b/stax-server/src/main.rs
+@@ -1903,0 +1904,7 @@ mod tests {
++    #[test]
++    fn old_pet_sample_json_without_cpu_keeps_unknown_identity() {
++        let bytes = br#"{"timestamp_ns":100,"stack":[1],"kernel_stack":[],"pmc":{"cycles":0,"instructions":0,"l1d_misses":0,"branch_mispreds":0}}"#;
++        let sample: stax_live_proto::SavedPetSample = facet_json::from_slice(bytes).unwrap();
++        assert_eq!(sample.cpu, None);
++    }
++
+diff --git a/stax-server/src/recorder.rs b/stax-server/src/recorder.rs
+index 9b7b0e9..8fa40a7 100644
+--- a/stax-server/src/recorder.rs
++++ b/stax-server/src/recorder.rs
+@@ -281 +281 @@ impl LiveSink for ServerLiveSink {
+-        self.server.aggregator().write().record_pet_sample(
++        self.server.aggregator().write().record_pet_sample_on_cpu(
+@@ -291,0 +292 @@ impl LiveSink for ServerLiveSink {
++            (event.cpu != u32::MAX).then_some(event.cpu),

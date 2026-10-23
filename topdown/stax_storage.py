@@ -85,7 +85,7 @@ def store_stax_result(backend, path, process_name=None, labels=None, capture=Non
         labels=all_labels,
     )
     metadata.update(
-        result_schema_version=1,
+        result_schema_version=2,
         imported_at=datetime.now(timezone.utc).isoformat(),
         capture=capture or {},
         capture_settings_status="recorded" if capture else "unavailable",

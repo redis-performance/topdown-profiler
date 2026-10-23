@@ -1,0 +1,55 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_pr": 47,
+  "topdown_revision": "b6d2897440d62840f7bf3e7bf18fb275fab495e7",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Rootless code-path audit with the fake daemon modified to alternate kdebug KdBuf.cpuid values 0 and 4 for successive invented PET/PMC samples. It used the app\u2019s actual submitting thread ID, the real M1 Metal app, Stax server and PR47 capture adapter. No root helper or hardware counters were used.",
+  "raw_local_path": "/private/tmp/stax-m1-origin-fixture/control-coretag-001",
+  "sha256": {
+    "fake_coretag_source": "df6f871c2442a3152ddaa55174be97d094454c349ae8d3f4c6c78feb93569ead",
+    "signed_fake_daemon": "5a851dc643d09a06aa49732fed0e228a5509fe4db94e24e5d00212388c54acba",
+    "capture.json": "657c9d88592ec01c6271b9fc7e01d84aa02a8d0f0d2844036eb760eca49c9bc4",
+    "archive/manifest.json": "6e036f73c23fb6f84fe0d2e2f49b942b9cadc3e861e5fa88ef32e1ea3dead3ae",
+    "archive/events.jsonl": "fb76f916d2c8140faa14c8f4ac0a176282e6e2d14e3b8c38201f8bd7093383b6"
+  },
+  "source_observation": {
+    "kdebug_input_field": "KdBuf.cpuid is a u32 on each raw record",
+    "parser": "stax-mac-kperf-parse/src/parser.rs Sample and State::InSample keep timestamp_ns, tid, stack frames and pmc; they do not retain cpuid",
+    "aggregator": "stax-live/src/aggregator.rs PetSample does not contain cpuid",
+    "v3_archive": "stax-live-proto/src/lib.rs SavedPetSample has timestamp_ns, stack, kernel_stack, pmc; no cpuid",
+    "topdown_importer": "PR47 topdown/stax_archive.py cannot recover a per-sample CPU ID from this v3 archive"
+  },
+  "fixture": {
+    "alternating_synthetic_cpuid_values": [
+      0,
+      4
+    ],
+    "invented_pmu_per_sample": {
+      "cycles": 100,
+      "instructions": 200,
+      "l1d_misses": 13,
+      "branch_mispreds": 17
+    },
+    "requested_frequency_hz": 99
+  },
+  "capture": {
+    "status": "completed",
+    "target_exit_code": 0,
+    "real_gpu_command_buffers": 300,
+    "gpu_checksum": 4915200,
+    "cpu_samples": 347,
+    "linked_gpu_spans": 299,
+    "target_spans": 299,
+    "imported_cpu_sample_keys": [
+      "kernel_stack_id",
+      "kind",
+      "pmc",
+      "stack_id",
+      "tid",
+      "timestamp_ns"
+    ],
+    "archive_has_per_sample_cpuid": false,
+    "archive_has_per_sample_core_type": false
+  },
+  "limitation": "Synthetic CPU ID tags are not measurements of P/E core residency. This control demonstrates that pinned Stax v3 drops the raw CPU ID before archive import. Even a future privileged M1 capture cannot stratify its saved PET/PMC values by core from this archive alone. Preserve core identity upstream, or provide separate independently verified core-scoped captures, before claiming P/E-specific counter interpretation."
+}

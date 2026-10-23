@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from topdown.stax_archive import StaxError, load_archive
+from topdown.stax_storage import query_stax_result, store_stax_result
 
 
 def archive_document():
@@ -103,6 +104,8 @@ def test_native_addresses_counters_and_interval_units(stax_archive):
     result = doc["result"]
     assert result["tma_available"] is False
     assert result["samples"][0]["pmc"]["cycles"] == 2**64 - 1
+    assert "trace_cpu_id" not in result["samples"][0]
+    assert result["quality"]["cpu_samples_with_trace_cpu_id"] == 0
     table = {f["address"]: f for f in result["frame_table"]}
     frames = [table[a] for a in result["stack_table"][result["samples"][0]["stack_id"]]]
     assert [frame["name"] for frame in frames] == ["hot", "caller", "hot"]
@@ -143,6 +146,45 @@ def test_events_override_stale_aggregates(stax_archive):
     assert result["result"]["frame_table"][0]["name"] == "hot"
 
 
+@pytest.mark.parametrize("event_replay", [False, True])
+def test_optional_raw_cpu_id_survives_import_and_query(stax_archive, sqlite_backend, event_replay):
+    doc = archive_document()
+    first = doc["aggregator"]["threads"][0]["pet_samples"][0]
+    first["cpu"] = 0
+    second = copy.deepcopy(first)
+    second.update(timestamp_ns=121, cpu=4)
+    doc["aggregator"]["threads"][0]["pet_samples"].append(second)
+    doc["runs"][0]["pet_samples"] = 2
+    if event_replay:
+        doc["events"] = archive_events(doc)
+        doc["aggregator"]["threads"] = []
+    stax_archive.write_text(json.dumps(doc))
+
+    run = store_stax_result(sqlite_backend, stax_archive)
+    page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    assert [row["trace_cpu_id"] for row in page["rows"]] == [0, 4]
+    assert page["result"]["quality"]["cpu_samples_with_trace_cpu_id"] == 2
+
+
+def test_macos_pmu_snapshots_are_not_presented_as_verified_deltas(stax_archive):
+    doc = archive_document()
+    doc["provenance"]["os"] = "macos"
+    stax_archive.write_text(json.dumps(doc))
+    result = load_archive(stax_archive)["result"]
+    assert result["quality"]["pmu_counter_semantics"] == "unverified"
+    assert "cumulative KPC thread snapshots" in result["quality"]["pmu_counter_semantics_reason"]
+    assert any("cannot be summed as per-sample deltas" in text for text in result["limitations"])
+
+
+@pytest.mark.parametrize("cpu", [True, -1, 2**32, 1.5, "4"])
+def test_invalid_raw_cpu_id_rejected(stax_archive, cpu):
+    doc = archive_document()
+    doc["aggregator"]["threads"][0]["pet_samples"][0]["cpu"] = cpu
+    stax_archive.write_text(json.dumps(doc))
+    with pytest.raises(StaxError, match="sample CPU ID"):
+        load_archive(stax_archive)
+
+
 @pytest.mark.parametrize("event_log", [False, True])
 def test_directory_and_manifest_import(tmp_path, event_log):
     doc = archive_document()
@@ -161,12 +203,14 @@ def test_directory_and_manifest_import(tmp_path, event_log):
     assert a["result"]["frame_table"][0]["name"] == "hot"
 
 
-def test_target_spans_do_not_inflate_cpu_time(stax_archive):
+def test_target_spans_do_not_inflate_cpu_time_or_claim_trace_cpu_id(stax_archive, sqlite_backend):
     doc = archive_document()
+    marker = copy.deepcopy(doc["aggregator"]["threads"][0]["pet_samples"][0])
+    marker["cpu"] = 4
     doc["aggregator"]["threads"].append(
         {
             "tid": 4293918720,
-            "pet_samples": [doc["aggregator"]["threads"][0]["pet_samples"][0]],
+            "pet_samples": [marker],
             "intervals": [
                 {
                     "start_ns": 100,
@@ -185,6 +229,15 @@ def test_target_spans_do_not_inflate_cpu_time(stax_archive):
     assert result["counts"]["cpu_samples"] == 1
     assert result["counts"]["target_stack_samples"] == 1
     assert result["samples"][1]["kind"] == "target-span-stack"
+    assert "trace_cpu_id" not in result["samples"][1]
+    assert "pmc" not in result["samples"][1]
+    assert result["quality"]["cpu_samples_with_trace_cpu_id"] == 0
+    run = store_stax_result(sqlite_backend, stax_archive)
+    page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    assert page["metadata"]["result_schema_version"] == 2
+    target = next(row for row in page["rows"] if row["kind"] == "target-span-stack")
+    assert "trace_cpu_id" not in target
+    assert "pmc" not in target
 
 
 def test_open_interval_uses_last_event(stax_archive):

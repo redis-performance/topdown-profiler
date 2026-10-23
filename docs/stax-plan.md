@@ -5,11 +5,17 @@ criteria below remain required before claiming platform support.
 
 An optional v3 CLI/SQL/MCP integration is available for experimental testing.
 The [Linux VM validation](stax-vm-pilot.md) includes real captures and measured
-overhead; its low-pipeline latency result does not meet the declared budget.
+overhead. A [five-pair follow-up](stax-vm-latency-followup.md) confirmed that
+its low-pipeline latency result does not meet the declared budget; a diagnostic
+main-thread-only prototype also failed the longer-run budget and lost thread
+coverage, so no workaround is adopted.
 The [Intel Linux pilot](stax-linux-pilot.md) now validates live capture, replay,
-and CLI/SQL/MCP queries after the operator enabled perf permissions. Its shared-host
-performance trials do not establish the overhead budget. Privileged M1/M6 Stax
-CPU acceptance remains pending helper setup.
+and CLI/SQL/MCP queries after the operator enabled perf permissions. Its
+shared-host performance trials do not establish the overhead budget.
+The [M1 pilot](stax-m1-pilot.md) has rootless controls but no
+privileged CPU capture. The [M6 Metal control](stax-m6-metal-control.md)
+verified rootless target-span ingestion with zero CPU samples; M6 CPU/PMU
+capture requires its own host-specific acceptance check.
 
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes
@@ -52,9 +58,72 @@ profiles must not be presented as Intel TMA funnels.
   Measure throughput and latency changes, record variability, and inspect profiler
   resource use. Begin with a 30-second capture and adjust duration or frequency if
   sample quality or overhead requires it.
+- For overhead acceptance, start a fresh owned Stax server for each profiled
+  round, save its archive, then stop it; keep baseline rounds free of that
+  server. Record server CPU time and RSS over the measurement window and at
+  save/import peaks. The [Intel Linux pilot](stax-linux-pilot.md) retained
+  server history across rounds, so its rising RSS cannot be assigned to one
+  capture. The M1 rootless runner already isolates servers per profiled round.
+- Include a separate latency-sensitive, low-pipeline control. In the
+  [Linux VM pilot](stax-vm-pilot.md), pipeline-16 median throughput and PING
+  p99 met the declared budget while pipeline-1 PING p99 exceeded it sharply.
+  The [longer follow-up](stax-vm-latency-followup.md) measured a 1,434.11%
+  median paired PING p99 increase over five 30-second pairs with pinned Stax;
+  that result motivates a host-specific tail check and does not predict M1/M6
+  behavior. Report the probe's latency unit and scope separately from the
+  main workload's end-to-end latency.
 - Inspect thread breakdowns, self/total hotspots, flamegraphs, and one hot function's
   disassembly. Record unresolved symbols, truncated stacks, dropped events, and
   whether expected threads and wait information are visible.
+- For Apple Silicon PMU fields, record the sampled CPU/core identity and test
+  counter meaning on performance and efficiency cores separately. The pinned
+  Stax v3 path discards `KdBuf.cpuid` before saving PET samples, as shown in
+  the [M1 core-attribution audit](stax-m1-core-attribution-audit.json). An
+  importer cannot reconstruct that identity from the archive. Keep per-core
+  claims unavailable until upstream preserves it or captures are independently
+  verified to be core-scoped. A proposed
+  [core-identity patch](../examples/stax-m1-core-identity.patch) preserves the
+  raw trace ID in a rootless control, but this is not proof of thread residency.
+- Validate macOS KPC counter semantics before adding or interpreting PMU
+  totals. XNU returns cumulative per-thread counters; the pinned Stax path
+  treats each PET snapshot as a delta. The
+  [M1 accumulation control](stax-m1-kpc-accumulation-control.json) demonstrates
+  the inflation with synthetic snapshots and tests a proposed per-thread
+  differencing patch. A first snapshot, counter reset, or all-zero buffer error
+  requires a new baseline;
+  report lost baseline coverage and native record loss. Record conversion
+  provenance in the archive before an importer treats PMU fields as deltas.
+  Even a valid thread delta may span several cores between samples, so a trace
+  CPU ID alone cannot assign the whole delta to a P or E core.
+  Store conversion provenance with each captured run and preserve it through
+  open/save. Stax currently writes `SavedRunArchiveProvenance` from the saving
+  server and drops that manifest field when reconstructing `SavedRunArchive`.
+  A server-build marker on the manifest could therefore mislabel an old run
+  after it is reopened and saved again. Test that older archives remain
+  `unknown` after such a round trip. The
+  [M1 open/save control](stax-m1-save-provenance-control.json) confirms that
+  the current server replaces a source archive's producer version when saving.
+- Save the PMU configuration with the captured run: KPC class mask, fixed and
+  configurable counter counts, exact configuration words, KPEP event-to-sample
+  slot mapping, CPU family, and the conversion mode. Verify the configuration
+  remains the same through capture, and mark a run invalid if another profiler
+  changes host-wide PMU state. The [M1 KPEP probe](stax-m1-kpep.json) showed
+  accepted events at sample slots 2 and 5 rather than adjacent positions;
+  event names or zero values alone do not establish the mapping or availability.
+- For a live M1 capture, bracket the profiled interval with process-scoped
+  `RUSAGE_INFO_V6` fixed cycle/instruction readings and compare them with
+  Stax's summed, provenance-labeled thread deltas as a sanity check. Report
+  first-sample and reset gaps, target thread coverage, and differing process
+  scope; these are not expected to be identical. Use scheduler evidence for
+  any P/E attribution, because the same trace CPU at adjacent PET ticks does
+  not rule out migration between those ticks.
+  The proposed M1 delta patch advances the per-thread baseline even when Stax
+  later drops an empty-user-stack sample; its diagnostic PMU sum includes that
+  parsed sample while the saved archive does not. Reconcile parsed, emitted,
+  and archived sample counts before comparing totals.
+  Audit the pinned parser's `rec.arg5 as u32` thread-ID conversion against the
+  host's 64-bit kdebug IDs before relying on per-thread baselines; a collision
+  would mix independent cumulative streams. Also test a thread-ID reuse case.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
@@ -108,12 +177,44 @@ budget; otherwise document the limitation or narrow the supported configuration.
   the TMA hierarchy, with a separate result document linked to the shared run.
   Separate sample counts, scheduler intervals, and synthetic target-span durations;
   do not assume their totals form a wall-time utilization denominator. Preserve
-  existing TMA queries and stored-run compatibility.
+  requested sampling frequency separately from observed sample count and
+  capture duration, because configured cadence does not prove delivered samples.
+  Preserve existing TMA queries and stored-run compatibility. The
+  [M1 shared SQLite control](stax-m1-storage-coexistence-control.json)
+  verifies Apple and Stax run routing with real native Apple data and a
+  separate rootless Stax archive.
+  Preserve optional raw per-sample CPU IDs when a Stax archive provides them;
+  [the rootless M1 core-identity control](stax-m1-core-identity-control.json)
+  verifies a proposed upstream parser-to-archive patch and topdown import.
+  A raw ID is not a validated P/E core label or PMU scope. Keep it and PMU
+  values off synthetic target-span rows even if their saved sample shape
+  permits `cpu` and `pmc` members.
+  In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
+  includes synthetic target-span markers: the
+  [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there
+  while its archive run summary has zero CPU PET samples. Validate CPU sampling
+  from the run summary and keep target marker counts separate. An
+  [M1-tested proposed CLI correction](../examples/stax-compare-cpu-samples.patch)
+  demonstrates the separation against that saved archive; do not assume the
+  pinned upstream CLI includes it.
 - Reuse native Apple launch/attach and metadata conventions where applicable. If
   Stax supports collection by process name, provide portable discovery rather than
   routing macOS through the Linux `/proc` resolver or permission checks.
 - Test lifecycle failures, capability reporting, storage compatibility, and unit
-  separation. Use real captures for platform acceptance checks.
+  separation. For target spans, report linked and unlinked origin counts plus
+  `no_thread`, `no_stack`, and `too_far` reasons; keep captured origin thread IDs
+  distinct from successfully linked CPU stacks. The
+  [M1 rootless join control](stax-m1-origin-link-control.json) covers the
+  software path with invented samples. Its
+  [cadence control](stax-m1-origin-cadence-control.json) shows that the link
+  fraction can fall sharply as delivered samples become sparser even when the
+  requested frequency stays fixed. Check observed sample rate and origin-link
+  fraction in real captures before accepting CPU-to-target attribution.
+- Treat native sampling loss as unknown while the v3 archive lacks daemon and
+  parser drop counters. The [M1 source audit](stax-m1-loss-accounting-audit.json)
+  locates counters that are currently logged but not retained in a structured
+  result. Preserve them across the RPC and archive boundary before claiming
+  complete capture; a positive PET sample count alone is insufficient.
 
 ## Phase 3: CLI and MCP access
 
@@ -127,7 +228,8 @@ budget; otherwise document the limitation or narrow the supported configuration.
   capture metadata. Report incompatible comparisons explicitly.
 - Document macOS and Linux setup and a complete Redis example.
 - Treat cooperating GPU spans as explicit target instrumentation, not automatic
-  GPU hardware-counter collection. Keep native Metal replay available separately.
+  GPU hardware-counter collection. Keep native Metal replay on supported devices
+  and the M1 Instruments counter path available separately.
 
 ## Phase 4: CI evaluation
 

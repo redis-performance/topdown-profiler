@@ -1,0 +1,104 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_pr": 47,
+  "topdown_revision": "b6d2897440d62840f7bf3e7bf18fb275fab495e7",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Rootless software-path control: real M1 Metal app reports submitting pthread_threadid_np to a private file; fake unprivileged daemon uses that ID in invented PET/PMC samples every 20 ms; PR47 capture adapter, Stax experimental server, v3 archive, and SQLite import exercised. Helper ownership preflight bypassed only within the test process.",
+  "raw_local_path": "/private/tmp/stax-m1-origin-fixture/control-002",
+  "sha256": {
+    "fake_sample_daemon_source": "840d5909f99177df68dbe3080ec71c63072c6ad8e5886dbfc91afd83a1646b3e",
+    "metal_lane_swift_source": "0caec2b1f803e7ca3f73256122333d258cb81f59b1baf0197c4f8d32c55afccb",
+    "signed_fake_daemon": "229b8ca9feead117aa195e38c1a9f3d8ae568c60a566b05d54e2a6db85cdfa76",
+    "signed_metal_app": "d2148f43f5516d175345e9ac4a047022b0565dddf3d232038898db3e85efd7cd",
+    "capture.json": "2c67ec3669f08a5c293747e470e77a296528bb5011dc67f6fb34eb4ae501d3f2",
+    "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+    "archive/manifest.json": "4709cef5b5e1a57fea0fe20ae65455721c30afa90b6cac583b3368f200ea8ef8",
+    "archive/events.jsonl": "8db32c18bbb51bb919fa77ae2f556132e8f38fdca417b4e4d642e6ca1634751d"
+  },
+  "fixture": {
+    "required_class_mask": 3,
+    "required_config_words": [
+      163,
+      0,
+      0,
+      203,
+      0,
+      0,
+      0,
+      0
+    ],
+    "invented_pmu_per_cpu_sample": {
+      "cycles": 100,
+      "instructions": 200,
+      "l1d_misses": 13,
+      "branch_mispreds": 17
+    },
+    "requested_frequency_hz": 99,
+    "fake_daemon_nominal_period_ms": 20,
+    "submitting_thread_id": 2681922
+  },
+  "capture": {
+    "status": "completed",
+    "target_exit_code": 0,
+    "target_exited_before_limit": true,
+    "run_summary_cpu_pet_samples": 341,
+    "real_gpu_command_buffers": 300,
+    "gpu_checksum": 4915200,
+    "expected_gpu_checksum": 4915200,
+    "run_wall_duration_seconds": 7.777957,
+    "observed_cpu_samples_per_run_wall_second": 43.84
+  },
+  "archive_and_storage": {
+    "cpu_samples": 341,
+    "target_stack_samples": 299,
+    "target_spans": 299,
+    "spans_with_origin": 299,
+    "spans_linked_origin": 299,
+    "spans_unlinked_origin": 0,
+    "spans_origin_invalid_tid": 0,
+    "spans_origin_no_thread": 0,
+    "spans_origin_no_stack": 0,
+    "spans_origin_too_far": 0,
+    "origin_stack_max_distance_ns": 50000000,
+    "linked_distance_min_ns": 667,
+    "linked_distance_avg_ns": 8962282,
+    "linked_distance_max_ns": 22653083,
+    "sqlite_run_id": "14c3b9cb-b13c-4c05-82b9-dfd60e11772e",
+    "sqlite_stored_intervals_with_submitting_origin_tid": 299,
+    "sqlite_target_origin_tids": [
+      2681922
+    ],
+    "all_cpu_samples_match_fixture": true,
+    "cpu_samples_with_unresolved_user_leaf": 341,
+    "cli_import_run_id": "1fb148b4-7f2a-43b3-a40c-0f05f43444d9"
+  },
+  "negative_controls": {
+    "zero_kperf_records": {
+      "archive": "/private/tmp/stax-m1-pr47-latest-capture-001/archive",
+      "cpu_samples": 0,
+      "target_spans": 299,
+      "spans_linked_origin": 0,
+      "spans_origin_no_thread": 299
+    },
+    "invented_samples_on_wrong_thread": {
+      "archive": "/private/tmp/stax-m1-pr47-synthetic-pmu-001/archive",
+      "cpu_samples": 78,
+      "target_spans": 299,
+      "spans_linked_origin": 0,
+      "spans_origin_no_thread": 299,
+      "fixture_thread_id": 42
+    }
+  },
+  "privileged_helper_used": false,
+  "hardware_cpu_sampling_verified": false,
+  "apple_pmu_hardware_verified": false,
+  "gpu_hardware_counters_verified": false,
+  "limitations": "All PET stacks and PMU values came from the fake daemon, not kperf. Linked origins prove only the software thread/time join and persistence path. The 341 samples do not establish the requested 99 Hz cadence, real CPU attribution, Apple PMU availability, TMA slots, or GPU hardware utilization.",
+  "compare_json": {
+    "pinned_cli_pet_samples": 640,
+    "proposed_patched_cli_pet_samples": 341,
+    "target_spans_both": 299,
+    "linked_origins_both": 299,
+    "interpretation": "Pinned CLI includes 299 target stack markers in pet_samples; proposed patch uses archived run summary for CPU PET samples."
+  }
+}

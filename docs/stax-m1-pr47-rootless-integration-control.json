@@ -1,0 +1,100 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_pr": 47,
+  "topdown_revision": "c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Rootless functional control: monkeypatch doctor only in the Python test process to permit an unprivileged fake helper that emits zero kperf records; real Stax CLI/server and M1 Metal app executed through PR47 record_profile, then imported into SQLite",
+  "raw_local_path": "/private/tmp/stax-m1-pr47-fake-control-001",
+  "sha256": {
+    "capture.json": "b62be39b225c87eb091a87095a0a3fad3c1ed810aa08fe104b09fab0f708511c",
+    "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+    "archive/manifest.json": "a1e60fee63489853e03f9a818cddc009fecb82de7ab57327faaf3e89129dc5cd",
+    "archive/events.jsonl": "d6bd574111b95396f161848eda6e6d715405b4107940c564d5f735672761dcc0"
+  },
+  "target": {
+    "passes": 300,
+    "checksum": 4915200,
+    "expected_checksum": 4915200,
+    "reported_spans": 299,
+    "exit_code": 0
+  },
+  "capture": {
+    "status": "completed",
+    "target_exited_before_limit": true,
+    "run_summary_cpu_pet_samples": 0
+  },
+  "archive": {
+    "format_version": 3,
+    "ingested_target_spans": 299,
+    "cpu_samples": 0,
+    "target_stack_samples": 299,
+    "spans_dropped": 0
+  },
+  "sqlite": {
+    "stored_target_spans": 299,
+    "stored_cpu_samples": 0,
+    "cpu_hotspot_denominator": 0,
+    "sample_kind": "target-span-stack"
+  },
+  "privileged_cpu_sampling_verified": false,
+  "gpu_hardware_counters_verified": false,
+  "limitations": "Doctor policy was bypassed only for a fake rootless helper; this does not establish real helper permission, CPU stack collection, PMU counts, or production capture acceptance.",
+  "latest_pr47_recheck": {
+    "revision": "275036cb30eae3b0fa5aae5155fbe81ca75a55d7",
+    "method": "M1 rootless recapture with fake zero-kperf helper and real GPU app; separate import of prior synthetic CPU/real GPU archive; helper ownership preflight bypassed only inside test process",
+    "capture_local_path": "/private/tmp/stax-m1-pr47-latest-capture-001",
+    "capture_sha256": {
+      "capture.json": "3154627390dbfc555b691b4228ed1256825e14fe993a7937f80d1ea672fa7c64",
+      "processes.json": "91411f7684051f7b4f0e24c34eb439d3ee7f5885d6e200dd8149cfbf15cc4b5e",
+      "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+      "archive/manifest.json": "607ef0fc2531cad776e41c08c84ff8393c39ed59bc43acdc9e74122cc9d0546c"
+    },
+    "capture_status": "completed",
+    "target_exit_code": 0,
+    "real_gpu_command_buffers": 300,
+    "reported_target_spans": 299,
+    "run_summary_cpu_pet_samples": 0,
+    "processes_json_matches_capture_metadata": true,
+    "synthetic_archive_import": {
+      "cpu_samples": 78,
+      "target_spans": 299,
+      "target_lanes": 1,
+      "cpu_hotspot_denominator": 78,
+      "pmc_fixture_preserved": true
+    },
+    "focused_stax_tests": {
+      "passed": 112,
+      "failed": 0
+    },
+    "privileged_sampling_verified": false,
+    "cli_import_of_synthetic_archive": {
+      "run_id": "8a55954d-29a9-47a5-a77f-64bb62aea3e8",
+      "labels": {
+        "collector": "stax",
+        "sampling_frequency_hz": "99",
+        "os": "macos",
+        "arch": "aarch64"
+      },
+      "cpu_samples": 78,
+      "target_stack_samples": 299,
+      "cpu_hotspot_denominator": 78,
+      "target_spans": 299,
+      "target_lanes": 1,
+      "sample_pmc_fixture": {
+        "cycles": 100,
+        "instructions": 200,
+        "l1d_misses": 13,
+        "branch_mispreds": 17
+      },
+      "note": "sampling_frequency_hz is the requested setting; the synthetic helper emitted about 10 samples per second instead"
+    },
+    "no_helper_preflight": {
+      "revision": "b6d2897440d62840f7bf3e7bf18fb275fab495e7",
+      "doctor_capture_prerequisites_present": false,
+      "doctor_reason": "macOS capture requires the separately installed, signed Stax privileged helper",
+      "record_failed_before_launch": true,
+      "record_output_directory_created": false,
+      "archive_import_remains_available": true
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Real Metal command buffers reported through stax-target with an unprivileged fake staxd sending empty kdebug batches; no CPU or PMU collection",
+  "source_sha256": {
+    "lib.rs": "eedc36c9287acb7671949e768fdda9cc53dc1fe81736a9df07939681e8604d3d",
+    "metal_lane.swift": "237e6e6e256a81bc14acf353e714009dc6343ef1538e908da882e3abd94c6eec",
+    "fake_daemon.rs": "d1b5b3779628c9eef96e1e8065a6b869fb6c2be79881614348814f6121c8fa07"
+  },
+  "binary_sha256": {
+    "swift_probe": "3e4c872c1a2c3aa763f8aae65ef6424e862a75f656d4ba08901e4144a9aab773",
+    "fake_daemon": "f469a62b9e5f7965fa38c55277c4dcdc031a0b37a3a8f5b2ea6ef3fa3aee3a5c"
+  },
+  "passes": 300,
+  "checksum": 4915200,
+  "expected_checksum": 4915200,
+  "reporting_gate_active_passes": 299,
+  "bridge_reported_spans": 299,
+  "stax_target_lane": "M1 Metal command buffers",
+  "stax_named_span": "M1 Metal add_one",
+  "stax_record_kperf_samples": 0,
+  "stax_target_spans_recorded": 299,
+  "stax_target_spans_dropped": 0,
+  "stax_target_time_ns": 21489090,
+  "origin_links": 0,
+  "origin_unlinked_no_thread": 299,
+  "archive": {
+    "format_version": 3,
+    "bytes": 24615486,
+    "sha256": "9458940500f85d45c0558399c6398cf762fea9b746c5f1fa26fb5fcdaac03b13",
+    "run_summary_cpu_pet_samples": 0
+  },
+  "compare_json": {
+    "pet_samples_field": 299,
+    "target_spans_field": 299,
+    "note": "compare pet_samples includes synthetic target markers despite zero run-summary CPU PET samples"
+  },
+  "views_equal_after_save_open": {
+    "threads": true,
+    "top": true,
+    "flame": true,
+    "diagnose": true
+  },
+  "views_sha256": {
+    "threads": "7446bcae804f35e68bf3169fca8d9b641eb884ece52473fa1ed85c79c018e7fc",
+    "top": "15c696f13b6d5abcf1fabf320d46b57b2e763639d9b7dd19b381c87b807f4db5",
+    "flame": "0d2a12ad5d19850b335b9c432663d78f12bca112b4106f01d2a08aa5af7807f7",
+    "diagnose": "018192e4b4f7d93b1964f1bd037453022bf7aa479859b6829c726ccd09a01a12"
+  },
+  "hardware_cpu_sampling_verified": false,
+  "gpu_hardware_counters_verified": false
+}
