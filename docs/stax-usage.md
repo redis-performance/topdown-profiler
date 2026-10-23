@@ -98,7 +98,8 @@ The target inherits the private Stax socket, allowing instrumented programs to
 report cooperating spans. The adapter launches it and attaches by PID; startup
 before attachment can be missed. It stops the owned process group after capture.
 An attached process is never signaled. Interactive terminal input is unavailable;
-launched target output is retained in `target.log`.
+launched target output is retained in `target.log`. Use a foreground command;
+a daemonizing command can leave the profiled process group.
 
 Target reports retain producer-supplied timestamps, span counts, origin-thread
 links and ingest diagnostics. A Metal lane label can come from simulated GPU
@@ -128,7 +129,8 @@ unresolved addresses remain visible.
 
 ## Artifacts and lifecycle
 
-Captures own a temporary Unix socket and server, with its WebSocket listener on
+Captures use a per-user advisory lock: a simultaneous Stax capture fails before
+starting tools. They own a temporary Unix socket and server, with its WebSocket listener on
 an ephemeral loopback port. They do not reuse an existing Stax server. MCP
 captures share the existing serialized native-capture worker with Apple profiling.
 

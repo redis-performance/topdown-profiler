@@ -1,6 +1,6 @@
 """Optional Stax subprocess capture with a private, owned query server."""
 
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 import hashlib
 import json
 import os
@@ -14,9 +14,31 @@ import tempfile
 import time
 import sys
 
+from topdown.apple_json import unicode_scalars
 from topdown.collector.apple import AppleProfileError
 from topdown.collector.apple_runtime import _signal_owned, check_cancelled, sleep, uncancellable
 from topdown.stax_archive import StaxError, capture_summary, uint
+
+
+@contextmanager
+def _capture_lock():
+    import fcntl
+
+    path = Path("/tmp") / f".topdown-stax-{os.getuid()}.lock"
+    descriptor = os.open(
+        path, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0), 0o600
+    )
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+            raise StaxError("Stax capture lock must be a private regular file owned by this user")
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise StaxError("Another Stax capture for this user is active; retry after it finishes") from exc
+        yield
+    finally:
+        os.close(descriptor)
 
 
 def _executable(variable, default):
@@ -196,8 +218,9 @@ def record_profile(*, output, pid=None, command=None, duration_seconds=5, freque
         or not command
         or any(not isinstance(arg, str) or "\x00" in arg for arg in command)
         or not command[0].strip()
+        or not unicode_scalars(command)
     ):
-        raise StaxError("Command must be a nonempty executable argv list without NUL characters")
+        raise StaxError("Command must be a nonempty executable argv list with valid Unicode and no NUL characters")
     if type(duration_seconds) is not int or not 1 <= duration_seconds <= 3600:
         raise StaxError("Duration must be a whole number between 1 and 3600 seconds")
     if type(frequency_hz) is not int or not 1 <= frequency_hz <= 10000:
@@ -206,7 +229,14 @@ def record_profile(*, output, pid=None, command=None, duration_seconds=5, freque
     if not capabilities["capture_prerequisites_present"]:
         raise StaxError("; ".join(capabilities["reasons"]))
     check_cancelled()
+    with _capture_lock():
+        return _record_profile(output, pid, command, duration_seconds, frequency_hz, capabilities)
+
+
+def _record_profile(output, pid, command, duration_seconds, frequency_hz, capabilities):
     output = Path(output).expanduser().resolve()
+    if not unicode_scalars(str(output)):
+        raise StaxError("Stax output paths require valid Unicode scalar values")
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
     tools = capabilities["executables"]
     metadata = {

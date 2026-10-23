@@ -287,3 +287,24 @@ def test_macos_helper_requires_private_directory_and_root_socket(fake_stax, monk
     assert result["helper_socket_present"] is True
     assert result["helper_socket_private"] is (private and root_owned)
     assert result["capture_prerequisites_present"] is (private and root_owned)
+
+
+def test_capture_lock_excludes_another_process_and_releases_after_failure():
+    program = "from topdown.collector.stax import _capture_lock\nwith _capture_lock():\n print('acquired')\n"
+    with stax._capture_lock():
+        result = subprocess.run(
+            [sys.executable, "-c", program],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).resolve().parents[1],
+            timeout=3,
+        )
+        assert result.returncode != 0 and "Another Stax capture" in result.stderr
+    result = subprocess.run(
+        [sys.executable, "-c", program],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parents[1],
+        timeout=3,
+    )
+    assert result.returncode == 0 and "acquired" in result.stdout
