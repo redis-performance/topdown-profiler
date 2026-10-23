@@ -303,6 +303,9 @@ XPC profiling operation running after the session disappears. Other MCP tools
 remain responsive while that command finishes.
 CLI Ctrl-C during replay also waits for the current bounded debugger command,
 closes its owned session, retains artifacts and exits with status 130.
+SIGTERM follows the same cleanup path and exits with status 143, including when
+SIGINT was ignored by the shell that launched the CLI. Repeated SIGTERM does
+not interrupt cleanup. A forced SIGKILL cannot run Python cleanup.
 
 | Tool | Purpose |
 |---|---|

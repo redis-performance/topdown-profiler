@@ -30,23 +30,27 @@ def _defer_keyboard_interrupt():
     if threading.current_thread() is not threading.main_thread():
         yield
         return
-    previous = signal.getsignal(signal.SIGINT)
-    if not callable(previous):
+    previous = {signum: handler for signum in (signal.SIGINT, signal.SIGTERM)
+                if callable(handler := signal.getsignal(signum))}
+    if not previous:
         yield
         return
     pending = None
 
     def remember(signum, frame):
         nonlocal pending
-        pending = signum, frame
+        if pending is None or signum == signal.SIGTERM:
+            pending = signum, frame
 
-    signal.signal(signal.SIGINT, remember)
+    for signum in previous:
+        signal.signal(signum, remember)
     try:
         yield
     finally:
-        signal.signal(signal.SIGINT, previous)
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
         if pending is not None and sys.exc_info()[0] is None:
-            previous(*pending)
+            previous[pending[0]](*pending)
 
 
 def validate_options(mode="compute", passes=4, items=16384, execution="overlapping"):
