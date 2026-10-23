@@ -14,7 +14,7 @@ def _json_object(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError(f"Duplicate Apple JSON field: {key}")
+            raise ValueError(f"Duplicate Apple JSON field: {key!r}")
         result[key] = value
     return result
 

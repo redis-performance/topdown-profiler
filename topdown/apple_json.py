@@ -12,7 +12,7 @@ def sql_text(value):
     return "\x00" not in value and _SURROGATE.search(value) is None
 
 
-def unicode_scalars(value):
+def _strings_match(value, predicate):
     stack = [(iter((value,)), None)]
     active = set()
     while stack:
@@ -23,7 +23,7 @@ def unicode_scalars(value):
             if identity is not None:
                 active.remove(identity)
             continue
-        if isinstance(item, str) and _SURROGATE.search(item):
+        if isinstance(item, str) and not predicate(item):
             return False
         if isinstance(item, (dict, list, tuple)):
             identity = id(item)
@@ -34,19 +34,13 @@ def unicode_scalars(value):
     return True
 
 
-def _jsonb_strings(value):
-    if isinstance(value, str):
-        return sql_text(value)
-    if isinstance(value, dict):
-        return all(_jsonb_strings(key) and _jsonb_strings(item) for key, item in value.items())
-    if isinstance(value, (list, tuple)):
-        return all(_jsonb_strings(item) for item in value)
-    return True
+def unicode_scalars(value):
+    return _strings_match(value, lambda text: _SURROGATE.search(text) is None)
 
 
 def encode_document(document):
     payload = json.dumps(document, allow_nan=False)
-    if _jsonb_strings(document):
+    if _strings_match(document, sql_text):
         return payload
     return json.dumps({TEXT_KEY: payload}, allow_nan=False)
 

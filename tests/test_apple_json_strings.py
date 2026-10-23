@@ -125,3 +125,25 @@ def test_direct_validation_rejects_unpaired_scalars_before_formatting_errors():
 
     with pytest.raises(AppleProfileError, match="Unicode scalar"):
         validate_result({"measurement_kind": "bad\ud800kind"})
+
+
+@pytest.mark.parametrize("leaf", ["ordinary", "before\x00after"])
+def test_string_validation_does_not_reduce_the_native_json_nesting_limit(leaf):
+    value = leaf
+    for _ in range(400):
+        value = [value]
+    document = {"result": {"measurement_kind": "native-test", "deep": value}, "metadata": {}}
+    decoded = decode_document(json.loads(encode_document(document)))
+    recovered = decoded["result"]["deep"]
+    for _ in range(400):
+        recovered = recovered[0]
+    assert recovered == leaf
+
+
+def test_duplicate_invalid_unicode_keys_produce_a_serializable_error():
+    from topdown.collector.apple_files import decode_json_object
+
+    with pytest.raises(ValueError, match="Duplicate") as error:
+        decode_json_object(b'{"\\ud800":1,"\\ud800":2}')
+    assert r"\ud800" in str(error.value)
+    str(error.value).encode("utf-8")
