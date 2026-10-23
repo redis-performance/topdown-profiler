@@ -11,6 +11,12 @@ from topdown.collector.apple import TMA_ROOTS
 from topdown.storage.models import Run, Sample
 
 
+def test_jsonb_retains_native_strings_and_pages(postgres_backend):
+    from tests.test_apple_json_strings import check_native_string_storage
+
+    check_native_string_storage(postgres_backend)
+
+
 @pytest.fixture
 def postgres_backend():
     dsn = os.environ.get("TOPDOWN_TEST_DSN")

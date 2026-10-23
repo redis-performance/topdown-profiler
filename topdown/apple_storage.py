@@ -198,6 +198,11 @@ def validate_run_options(process_name: str | None, labels: dict | None) -> None:
         raise AppleProfileError("Labels must map strings to strings")
     if process_name is not None and (not isinstance(process_name, str) or not process_name.strip()):
         raise AppleProfileError("Require a nonempty process name")
+    from topdown.storage.apple_json import sql_text
+
+    values = ([process_name] if process_name is not None else []) + [part for pair in (labels or {}).items() for part in pair]
+    if any(not sql_text(value) for value in values):
+        raise AppleProfileError("Run labels and process names require valid Unicode without NUL characters")
 
 
 def store_apple_result(backend, path: Path, process_name: str | None = None, labels: dict | None = None) -> Run:
@@ -237,6 +242,7 @@ def store_apple_result(backend, path: Path, process_name: str | None = None, lab
             if isinstance(environment.get(key), str):
                 all_labels.setdefault(key, environment[key])
     all_labels.update(collector="apple", measurement_kind=result["measurement_kind"], time_basis=time_basis)
+    validate_run_options(process_name, all_labels)
     run = Run(started_at=started, ended_at=ended, duration_seconds=(ended - started).total_seconds() if ended else 0,
               process_name=process_name, level=0, system_wide=system_wide, labels=all_labels)
     metadata = {"imported_at": imported.isoformat(), "source_sha256": source_sha256, "time_basis": time_basis,

@@ -32,8 +32,9 @@ def _check_storage_options(store, label, db):
     if not store and (label or db):
         raise AppleProfileError("Use --store with --label or --db when capturing Apple results")
     from topdown.collector.labels import parse_label_args
+    from topdown.apple_storage import validate_run_options
 
-    parse_label_args(label)
+    validate_run_options(None, parse_label_args(label))
 
 
 def _profile_summary(profile, output):
