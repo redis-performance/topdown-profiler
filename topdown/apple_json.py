@@ -6,6 +6,11 @@ from itertools import chain
 
 TEXT_KEY = "_topdown_apple_json_text"
 _SURROGATE = re.compile(r"[\ud800-\udfff]")
+_SURROGATE_TOKEN = re.compile(r"[\ud800-\udfff]|\\u[dD][89a-fA-F][0-9a-fA-F]{2}")
+
+
+def surrogate_tokens(source):
+    return _SURROGATE_TOKEN.search(source) is not None
 
 
 def sql_text(value):

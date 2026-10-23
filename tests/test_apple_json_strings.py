@@ -147,3 +147,18 @@ def test_duplicate_invalid_unicode_keys_produce_a_serializable_error():
         decode_json_object(b'{"\\ud800":1,"\\ud800":2}')
     assert r"\ud800" in str(error.value)
     str(error.value).encode("utf-8")
+
+
+@pytest.mark.parametrize("source", [b'{"value":"\\uD800"}', b'{"value":"\\uDdFF"}', '{"value":"\ud800"}'])
+def test_native_unicode_fast_path_handles_escape_case_and_literal_surrogates(source):
+    from topdown.collector.apple_files import decode_json_object
+
+    with pytest.raises(ValueError, match="Unicode scalar"):
+        decode_json_object(source)
+
+
+def test_custom_numeric_decoders_cannot_introduce_invalid_unicode():
+    from topdown.collector.apple_files import NativeJSONDecoder
+
+    with pytest.raises(ValueError, match="Unicode scalar"):
+        json.loads('{"number":1}', cls=NativeJSONDecoder, parse_int=lambda value: "\ud800")
