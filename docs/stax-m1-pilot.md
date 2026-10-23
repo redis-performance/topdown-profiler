@@ -1,7 +1,7 @@
 # Stax on Apple M1: pilot evidence and runbook
 
 Status: source, build, and unprivileged server checks completed on 23 October
-2026. A live Stax recording is pending installation of its macOS root helper.
+2026. A live Stax recording is pending a short-lived macOS root helper session.
 This is a platform pilot for [PR #38's Stax plan](https://github.com/redis-performance/topdown-profiler/pull/38),
 not a new collector or a claim of Intel TMA support.
 
@@ -10,15 +10,17 @@ not a new collector or a claim of Intel TMA support.
 | Input | Value |
 |---|---|
 | Host | MacBookAir10,1, Apple M1, macOS 27.0.1 (26A434) |
-| Xcode | 27.1; full Xcode selected only for build commands through `DEVELOPER_DIR` |
+| Xcode | 27.1; full Xcode selected for builds and native Instruments through `DEVELOPER_DIR` |
 | Rust | 1.93.1 |
 | Stax | `aedd85e08894fc3250ec975a486544d091e11281` (0.1.1 CLI) |
-| Redis | `d85b5f4c2cc597da78989bc48d6b38b895c186f6` (8.2.2) |
+| Redis control | `d85b5f4c2cc597da78989bc48d6b38b895c186f6` (8.2.2) |
+| Redis mixed pilot | `006e6a6a602ac5265a676b3aebe9f8ba65459190` (8.6.0, matching the Linux pilot) |
+| memtier mixed pilot | `f3ff1793d39bf19077957e986f966206eb349de7` (2.5.2) |
 
 The Stax release build used `CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0`
-and the repository lockfile. The three binaries were staged in `~/.cargo/bin`
-and signed ad hoc because this host has no valid Apple Development or Developer
-ID identity. Their pre-signing SHA-256 values are:
+and the repository lockfile. The three original binaries were staged in
+`~/.cargo/bin` and signed ad hoc because this host has no valid Apple
+Development or Developer ID identity. Their pre-signing SHA-256 values are:
 
 | Binary | SHA-256 |
 |---|---|
@@ -30,6 +32,17 @@ The installed binaries have different hashes after code signing. The pilot
 harness records their installed hashes in `metadata.json`; compare those for
 actual run identity.
 
+The staged `staxd` was subsequently replaced with the
+[teardown-patched](../examples/stax-m1-teardown.patch) binary. The patch SHA-256
+is `60bbd2b9163ea6663fcc783bc8d3b3c4c88cf02df97ec7843caab47e58607fd7`.
+The patched binary's pre-signing SHA-256 is
+`73d32a600b6bb62569feb9591c7e9b91191c0cdd63ec362a1142919586fee5b0`;
+the installed ad hoc signed SHA-256 is
+`2abaeafb83ae152dea57c83b1532b64edb6e3a5a481ec87d688a6dcc9c9031fe`.
+The patched daemon compiled and its direct-run socket was smoke-tested without
+root: the socket was `0666` inside a `0700` directory. Its crate currently has
+no unit tests; the real cleanup path still needs a privileged capture check.
+
 `cargo build --release --locked -p stax -p stax-server -p staxd` failed with
 `'cassert' file not found` under the selected Command Line Tools. The same
 command succeeded with
@@ -37,7 +50,7 @@ command succeeded with
 --verify` and a private, unprivileged `stax-server` smoke test succeeded:
 `stax status` returned `no active run`. This check did not attempt collection.
 
-Redis was built from the pinned source with `MALLOC=libc`, no TLS, `-O3`,
+Redis 8.2.2 was built from the pinned source with `MALLOC=libc`, no TLS, `-O3`,
 `-fno-omit-frame-pointer`, and `-g`. The explicit `OPT` avoids its default
 `-flto`; with LTO, `dsymutil` could not reopen the temporary object and did
 not create useful standalone debug information. The final Redis binary SHA-256
@@ -46,6 +59,17 @@ Its dSYM DWARF file SHA-256 is
 `59c078d59de5f0e0219303ea5c7b45898b2e3e5562dac38b3c2e4e9e9bf9bdcf`,
 and both files share Mach-O UUID `87AA7F24-00CC-32A6-8944-CEBB72510943`.
 Preserve the exact binary and dSYM alongside any final captured archive.
+
+Redis 8.6.0 uses `MALLOC=libc`, no TLS, `-O2 -fno-omit-frame-pointer`, and `-g`.
+Its binary SHA-256 is
+`2f668b956b2a6953f77c49b8c35ef4a3e8a041488a8229c25253b2d076593bd9`.
+The matching dSYM DWARF SHA-256 is
+`6772789a9d3ee667af2fd3824bd42aaccc7e73b4723de4b0ca8fa0df515aeb23`.
+memtier 2.5.2 was built locally with TLS disabled; its binary SHA-256 is
+`1084c96574d548f919f5cdeb5352a11176cd55bdb38f5071443b9be49b548f8d`.
+The previously installed memtier 1.3.0 emitted a zero-duration JSON result
+with a rate inconsistent with its completed request count. The 2.5.2 build
+reported consistent count, duration, and throughput in a local smoke test.
 
 ## M1 counter review
 
@@ -76,54 +100,96 @@ recording. Keep live acceptance separate from this configuration check.
 
 ## Live Redis pilot
 
-Stax requires `staxd` as a root LaunchDaemon on macOS. After reviewing the
-source and signed binary, the host owner can install it once:
+The pinned `staxd` makes its Unix socket world writable (`0666`) and has no
+peer UID check. Its generated LaunchDaemon plist does not restrict the socket
+through a launchd `Sockets` entry. The pilot therefore uses an ephemeral root
+helper socket inside a directory owned by the profiling user with mode `0700`.
+Other local UIDs cannot traverse that directory; processes running as the same
+user remain trusted. The pinned session driver also returned early after a
+partially successful kperf/kdebug setup without teardown. Apply the small
+[teardown guard patch](../examples/stax-m1-teardown.patch) before running its
+root helper:
 
 ```sh
-sudo env STAX_CODESIGN_IDENTITY=- /Users/fco/.cargo/bin/stax setup --yes
-test -S /var/run/staxd.sock
+cd /private/tmp/stax-m1-pilot
+git apply --unidiff-zero /private/tmp/topdown-m1-stax/examples/stax-m1-teardown.patch
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0 \
+  cargo build --release --locked -p staxd
+install -m 755 target/release/staxd /Users/fco/.cargo/bin/staxd
+codesign --force --sign - /Users/fco/.cargo/bin/staxd
+codesign --verify /Users/fco/.cargo/bin/staxd
+install -d -m 700 /private/tmp/stax-m1-private
 ```
 
-Build a symbolized Redis from the pinned source and create its dSYM:
+The host owner starts the helper in a separate Terminal and leaves it running
+for the capture. Closing it ends the privileged session; no LaunchDaemon is
+installed:
 
 ```sh
+sudo /Users/fco/.cargo/bin/staxd \
+  --socket /private/tmp/stax-m1-private/staxd.sock
+```
+
+Build a symbolized Redis 8.6.0 from the pinned source and create its dSYM;
+build memtier 2.5.2 from its pinned source:
+
+```sh
+cd /private/tmp/redis86-m1-stax
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
-  make -j2 OPT='-O3 -fno-omit-frame-pointer' MALLOC=libc BUILD_TLS=no \
-  redis-server redis-cli redis-benchmark
+  make -j2 OPT='-O2 -fno-omit-frame-pointer' MALLOC=libc BUILD_TLS=no \
+  redis-server redis-cli
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   xcrun dsymutil src/redis-server -o src/redis-server.dSYM
+cd /private/tmp/memtier-m1-stax
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+autoreconf -ivf
+PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig \
+  ./configure --disable-tls CXXFLAGS='-O2 -g -fno-omit-frame-pointer'
+make -j2
 ```
 
-From this repository, run two baseline/profiled pairs. The script starts a
-private Stax server and a private Redis Unix socket, warms Redis before each
-fixed-count SET/GET benchmark, and uses an ABBA order to reduce drift. It
+From this repository, run three baseline/profiled pairs. This follows the
+Linux pilot's Redis 8.6 workload: 10,000 prefilled keys, 64-byte values,
+5 seconds of warmup, then 30 seconds of mixed 1:1 SET/GET using two memtier
+threads, ten clients per thread, and pipeline depth four. The script starts a
+private Stax server and a private Redis instance on loopback, and balances
+run order to reduce drift. It
 stops only the recorder it started. Each profiled round saves a `.stax`
 archive, reopens it, and checks that the all-thread view, self/total hotspot
-views, flame view, and diagnostics are unchanged. It retains raw
-benchmark CSV, Stax views, commands, hashes, and environment metadata:
+views, flame view, diagnostics, and any successful `processCommand`
+annotation are unchanged. An unavailable annotation is retained as a recorded
+error without losing the archive. It retains raw
+memtier JSON, Stax views, commands, hashes, and environment metadata:
 
 ```sh
 python3 examples/stax_redis_pilot.py \
-  --output /private/tmp/stax-redis-m1-001 \
+  --output /private/tmp/stax-memtier-m1-001 \
   --stax-revision aedd85e08894fc3250ec975a486544d091e11281 \
-  --redis-revision d85b5f4c2cc597da78989bc48d6b38b895c186f6 \
-  --redis-server /private/tmp/redis-m1-stax/src/redis-server \
-  --redis-cli /private/tmp/redis-m1-stax/src/redis-cli \
-  --redis-benchmark /private/tmp/redis-m1-stax/src/redis-benchmark \
+  --redis-revision 006e6a6a602ac5265a676b3aebe9f8ba65459190 \
+  --memtier-revision f3ff1793d39bf19077957e986f966206eb349de7 \
+  --workload memtier --pairs 3 \
+  --daemon-socket /private/tmp/stax-m1-private/staxd.sock \
+  --redis-server /private/tmp/redis86-m1-stax/src/redis-server \
+  --redis-cli /private/tmp/redis86-m1-stax/src/redis-cli \
+  --memtier /private/tmp/memtier-m1-stax/memtier_benchmark \
   --stax-build-flags 'release locked debug=0 jobs=2; Xcode 27.1' \
-  --redis-build-flags 'OPT=-O3 -fno-omit-frame-pointer MALLOC=libc BUILD_TLS=no'
+  --redis-build-flags 'OPT=-O2 -fno-omit-frame-pointer MALLOC=libc BUILD_TLS=no'
 ```
 
-The script defaults to 30 million requests **per** SET and GET command in
-each round. Read the raw CSV as well as `metadata.json`: the measured wall
-time includes benchmark client effects, and the reported request rates have
-their own denominator. The script samples Redis, Stax server, and recorder
+For the earlier fixed-count Redis benchmark control, use
+`--workload redis-benchmark` with the 8.2.2 Redis and benchmark binaries;
+that workload is separate from the Linux pilot. The memtier mode validates its
+reported rate against completed requests and duration, and flags runs where
+GET misses exceed 1%. Compare measured throughput and p50/p99 latency within
+the M1 host; the client version and CPU topology differ from Linux. The script
+samples Redis, Stax server, and recorder
 resident memory once per second in every round; it does not observe root
 `staxd` memory. Record actual stack depth, unresolved symbols, waits,
 dropped events, helper resource use, and the disassembly of one observed hot
-symbol before accepting the pilot. Use `stax annotate SYMBOL` against the
-private server while the script runs, or reopen a saved archive in a separate
-server session afterward. Do not infer Intel pipeline-slot shares from Stax
+symbol before accepting the pilot. The default annotation target is
+`processCommand`; use `--annotate-symbol SYMBOL` when another function is hot.
+Do not infer Intel pipeline-slot shares from Stax
 samples or M1 fixed counters.
 
 The existing native Apple fixed-counter stack capture and M1 event-group
@@ -142,3 +208,22 @@ other-core counts. The observation includes startup and idle time around the
 benchmark, so those totals are proof of native counter access rather than a
 per-request estimate or a matched Stax comparison. The raw local `stat.json`
 SHA-256 is in the control summary.
+
+A separate [native fixed-counter stack capture](stax-m1-native-fixed.json)
+launched the same Redis binary and benchmark through Xcode 27.1. It produced
+23,844 target samples, one unresolved stack sample, and 320 distinct named
+hotspots. `processCommand` appeared in 11,213 stacks and was the leaf in 872;
+the report keeps those denominators separate. This capture includes startup
+and a 1-million-request warmup, so it establishes symbol and stack quality
+for the native path but is not a paired Stax overhead measurement. The raw
+45 MB profile remains local; its SHA-256 is in the compact summary.
+
+The cross-platform workload shape also has a
+[native M1 control](stax-m1-memtier-native-control.json): pinned Redis 8.6.0
+and memtier 2.5.2 completed 16,078,148 mixed operations in 30 seconds
+(535,938 operations/s computed from count and duration), with 0% GET misses,
+0.151 ms p50, and 0.327 ms p99 reported latency. A separate 35-second
+`topdown apple stat` observation of Redis returned 204,615,507,802
+instructions and 63,963,907,601 cycles. That observation includes idle time
+around the client run and does not establish Stax overhead. There was no CPU
+affinity on this M1; the performance/other-core split remains in the summary.

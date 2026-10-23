@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-23",
+  "host": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "cpu": "Apple M1",
+    "os_build": "26A434",
+    "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066"
+  },
+  "stax_capture_performed": false,
+  "redis": {
+    "revision": "006e6a6a602ac5265a676b3aebe9f8ba65459190",
+    "version": "8.6.0",
+    "binary_sha256": "2f668b956b2a6953f77c49b8c35ef4a3e8a041488a8229c25253b2d076593bd9",
+    "build_flags": "OPT=-O2 -fno-omit-frame-pointer MALLOC=libc BUILD_TLS=no"
+  },
+  "memtier": {
+    "revision": "f3ff1793d39bf19077957e986f966206eb349de7",
+    "version": "2.5.2",
+    "binary_sha256": "1084c96574d548f919f5cdeb5352a11176cd55bdb38f5071443b9be49b548f8d",
+    "configuration": {
+      "threads": 2,
+      "clients_per_thread": 10,
+      "pipeline": 4,
+      "set_get_ratio": "1:1",
+      "data_size_bytes": 64,
+      "key_count": 10000,
+      "key_prefix": "stax:",
+      "key_pattern": "R:R",
+      "prefilled_keys": 10000,
+      "warmup_seconds": 5,
+      "measurement_seconds": 30,
+      "transport": "127.0.0.1 TCP"
+    },
+    "metrics": {
+      "count": 16078148,
+      "duration_seconds": 30.0,
+      "operations_per_second": 535938.2666666667,
+      "reported_operations_per_second": 535935.19,
+      "p50_latency_ms": 0.151,
+      "p99_latency_ms": 0.327,
+      "get_miss_fraction": 0.0
+    },
+    "benchmark_wall_seconds": 30.22860624999157,
+    "raw_json_sha256": "91d43816d8fac33dab36782641a878117aede51452fb708f36dca9be7343ac80"
+  },
+  "native_stat": {
+    "api": "proc_pid_rusage",
+    "flavor": "RUSAGE_INFO_V6",
+    "observation_seconds": 35,
+    "observed_duration_ns": 35010308125,
+    "target_exited": false,
+    "counters_available": true,
+    "tma_available": false,
+    "counters": {
+      "instructions": 204615507802,
+      "cycles": 63963907601,
+      "user_time_ns": 10119292083,
+      "system_time_ns": 11490808042,
+      "user_time_mach": 242863010,
+      "system_time_mach": 275779393,
+      "performance_instructions": 203909860461,
+      "performance_cycles": 62879604050,
+      "other_instructions": 705647341,
+      "other_cycles": 1084303551,
+      "performance_user_time_ns": 9978966583,
+      "performance_system_time_ns": 11103779292,
+      "performance_user_time_mach": 239495198,
+      "performance_system_time_mach": 266490703,
+      "other_user_time_mach": 3367812,
+      "other_system_time_mach": 9288690,
+      "other_user_time_ns": 140325500,
+      "other_system_time_ns": 387028750
+    },
+    "raw_stat_sha256": "8f549b0314fbabbd2e9461b15bcff3685049542c1a0672ecc4ad8c95a5b93743"
+  },
+  "limitations": [
+    "Native stat window starts 0.5 seconds before memtier and includes about 4 seconds after it; counts are not per-request.",
+    "No Stax capture or overhead comparison.",
+    "No CPU affinity on this M1; core-kind mix may vary."
+  ]
+}

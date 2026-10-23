@@ -1,0 +1,21 @@
+diff --git a/staxd/src/session.rs b/staxd/src/session.rs
+index 408a60a..1a9546b 100644
+--- a/staxd/src/session.rs
++++ b/staxd/src/session.rs
+@@ -69,0 +70,4 @@ pub async fn run(
++    // Setup may fail after changing global kperf/kdebug state. Clean it up on
++    // every return path, including errors before the drain loop starts.
++    let cleanup = KperfTeardown(&fw);
++
+@@ -81 +85 @@ pub async fn run(
+-    teardown(&fw);
++    drop(cleanup);
+@@ -89,0 +94,8 @@ pub async fn run(
++struct KperfTeardown<'a>(&'a Frameworks);
++
++impl Drop for KperfTeardown<'_> {
++    fn drop(&mut self) {
++        teardown(self.0);
++    }
++}
++

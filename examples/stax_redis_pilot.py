@@ -1,7 +1,7 @@
 """Run a reproducible, isolated Redis/Stax sampling pilot on macOS.
 
 Stax is an external tool. This script starts its own unprivileged server and
-Redis instance; the macOS staxd helper must already be installed by the user.
+Redis instance; the macOS staxd helper must already be running on a private socket.
 """
 
 import argparse
@@ -9,11 +9,13 @@ import csv
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import platform
 import shutil
 import signal
+import socket
 import stat
 import statistics
 import subprocess
@@ -71,6 +73,62 @@ def benchmark_latency_ms(stdout: str) -> dict[str, dict[str, float]]:
     }
 
 
+def memtier_metrics(path: Path) -> dict:
+    document = json.loads(path.read_text())
+    stats = document["ALL STATS"]
+    duration_ms = stats["Runtime"]["Total duration"]
+    count = stats["Totals"]["Count"]
+    reported = stats["Totals"]["Ops/sec"]
+    if any(isinstance(value, bool) or not isinstance(value, (int, float))
+           or not math.isfinite(value) or value <= 0 for value in (duration_ms, count, reported)):
+        raise ValueError("memtier did not report positive duration, work, and throughput")
+    computed = count * 1000 / duration_ms
+    if abs(reported / computed - 1) > 0.05:
+        raise ValueError("memtier JSON throughput disagrees with count/duration")
+    gets = stats["Gets"]
+    if (not all(isinstance(gets[key], (int, float)) and not isinstance(gets[key], bool)
+                and math.isfinite(gets[key]) for key in ("Ops/sec", "Misses/sec"))
+            or gets["Ops/sec"] <= 0 or gets["Misses/sec"] < 0):
+        raise ValueError("memtier GET metrics are unavailable")
+    miss_fraction = gets["Misses/sec"] / gets["Ops/sec"]
+    if miss_fraction > 1:
+        raise ValueError("memtier GET miss fraction exceeds one")
+    percentiles = stats["Totals"]["Percentile Latencies"]
+    if any(not isinstance(percentiles[key], (int, float)) or isinstance(percentiles[key], bool)
+           or not math.isfinite(percentiles[key]) or percentiles[key] < 0 for key in ("p50.00", "p99.00")):
+        raise ValueError("memtier latency percentiles are unavailable")
+    return {
+        "count": count,
+        "duration_seconds": duration_ms / 1000,
+        "operations_per_second": computed,
+        "reported_operations_per_second": reported,
+        "p50_latency_ms": percentiles["p50.00"],
+        "p99_latency_ms": percentiles["p99.00"],
+        "get_miss_fraction": miss_fraction,
+    }
+
+
+def prefill_redis(redis_cli: Path, redis_socket: Path, output: Path, key_count: int) -> None:
+    command = [str(redis_cli), "-s", str(redis_socket), "--pipe"]
+    value = b"x" * 64
+    frames = bytearray()
+    for index in range(1, key_count + 1):
+        key = f"stax:{index}".encode()
+        frames.extend(b"*3\r\n$3\r\nSET\r\n")
+        for argument in (key, value):
+            frames.extend(f"${len(argument)}\r\n".encode())
+            frames.extend(argument + b"\r\n")
+    (output / "prefill.command.json").write_text(json.dumps(command, indent=2) + "\n")
+    result = subprocess.run(command, input=bytes(frames), capture_output=True, timeout=30, check=False)
+    (output / "prefill.stdout").write_bytes(result.stdout)
+    (output / "prefill.stderr").write_bytes(result.stderr)
+    if result.returncode or b"errors: 0" not in result.stdout:
+        raise RuntimeError(f"Redis prefill failed; logs: {output}")
+    size = run_command("prefill-dbsize", [str(redis_cli), "-s", str(redis_socket), "dbsize"], output)
+    if size.stdout.strip() != str(key_count):
+        raise RuntimeError(f"Redis prefill has {size.stdout.strip()} keys, expected {key_count}")
+
+
 def wait_for(predicate, process: subprocess.Popen | None, timeout: float, label: str) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -119,7 +177,19 @@ def schedule(pairs: int) -> list[bool]:
     )
 
 
-def summarize(rounds: list[dict], requests: int) -> dict:
+def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
+    if workload == "memtier":
+        rates = {mode: [row["memtier"]["operations_per_second"] for row in rounds if row["mode"] == mode]
+                 for mode in ("baseline", "stax")}
+        baseline = statistics.median(rates["baseline"])
+        sampled = statistics.median(rates["stax"])
+        return {
+            "workload": "memtier",
+            "baseline_median_operations_per_second": baseline,
+            "stax_median_operations_per_second": sampled,
+            "observed_throughput_change_percent": (sampled / baseline - 1) * 100,
+            "scope": "fixed-duration mixed SET/GET on one Redis process; includes client effects",
+        }
     elapsed = {"baseline": [], "stax": []}
     for row in rounds:
         elapsed[row["mode"]].append(row["elapsed_seconds"])
@@ -156,8 +226,9 @@ def monitor_rss(processes: dict[str, subprocess.Popen], stop: threading.Event,
 def pilot(args: argparse.Namespace) -> None:
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
-    paths = {name: executable(getattr(args, name)) for name in (
-        "stax", "stax_server", "redis_server", "redis_benchmark", "redis_cli")}
+    names = ["stax", "stax_server", "redis_server", "redis_cli"]
+    names.append("memtier" if args.workload == "memtier" else "redis_benchmark")
+    paths = {name: executable(getattr(args, name)) for name in names}
 
     def version(path: Path) -> str:
         result = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=10, check=False)
@@ -170,12 +241,22 @@ def pilot(args: argparse.Namespace) -> None:
         "redis_revision": args.redis_revision,
         "stax_build_flags": args.stax_build_flags,
         "redis_build_flags": args.redis_build_flags,
+        "memtier_revision": args.memtier_revision if args.workload == "memtier" else None,
         "host": read_host(),
         "executables": {name: {"path": str(path), "sha256": sha256(path), "version": version(path)}
                         for name, path in paths.items()},
-        "settings": {"requests_per_command": args.requests, "warmup_requests": args.warmup_requests,
-                     "clients": args.clients, "pipeline": args.pipeline, "pairs": args.pairs,
-                     "record_frequency_hz": args.frequency},
+        "settings": {"workload": args.workload,
+                     "requests_per_command": args.requests if args.workload == "redis-benchmark" else None,
+                     "warmup_requests": args.warmup_requests if args.workload == "redis-benchmark" else None,
+                     "clients": args.clients if args.workload == "redis-benchmark" else None,
+                     "pipeline": args.pipeline if args.workload == "redis-benchmark" else None,
+                     "pairs": args.pairs, "record_frequency_hz": args.frequency,
+                     "annotate_symbol": args.annotate_symbol,
+                     "memtier_seconds": args.memtier_seconds if args.workload == "memtier" else None,
+                     "memtier_warmup_seconds": args.memtier_warmup_seconds if args.workload == "memtier" else None,
+                     "memtier_threads": 2, "memtier_clients_per_thread": 10,
+                     "memtier_pipeline": 4, "memtier_key_count": 10_000,
+                     "memtier_data_size": 64, "memtier_ratio": "1:1"},
         "rounds": [],
     }
     (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
@@ -191,6 +272,9 @@ def pilot(args: argparse.Namespace) -> None:
         runtime_path = Path(runtime)
         redis_socket = runtime_path / "redis.sock"
         stax_socket = runtime_path / "stax.sock"
+        with socket.socket() as probe_socket:
+            probe_socket.bind(("127.0.0.1", 0))
+            redis_port = probe_socket.getsockname()[1]
         env = dict(os.environ, STAX_SERVER_SOCKET=str(stax_socket), STAX_SERVER_WS_BIND="127.0.0.1:0")
         try:
             with (output / "stax-server.log").open("w") as log:
@@ -198,7 +282,8 @@ def pilot(args: argparse.Namespace) -> None:
             wait_for(lambda: stax_socket.exists(), server, 20, "private stax-server")
             run_command("stax-status-initial", [str(paths["stax"]), "status"], output, env=env)
 
-            redis_cmd = [str(paths["redis_server"]), "--port", "0", "--unixsocket", str(redis_socket),
+            redis_cmd = [str(paths["redis_server"]), "--bind", "127.0.0.1", "--port", str(redis_port),
+                         "--io-threads", "1", "--unixsocket", str(redis_socket),
                          "--unixsocketperm", "700", "--save", "", "--appendonly", "no",
                          "--dir", str(runtime_path)]
             (output / "redis-server.command.json").write_text(json.dumps(redis_cmd, indent=2) + "\n")
@@ -219,15 +304,28 @@ def pilot(args: argparse.Namespace) -> None:
                 round_output.mkdir()
                 run_command("flush", [str(paths["redis_cli"]), "-s", str(redis_socket), "flushall"], round_output)
 
-                def benchmark_command(requests: int) -> list[str]:
+                def workload_command(measured: bool) -> list[str]:
+                    if args.workload == "memtier":
+                        seconds = args.memtier_seconds if measured else args.memtier_warmup_seconds
+                        result_file = round_output / ("benchmark.json" if measured else "warmup.json")
+                        return [str(paths["memtier"]), "--server=127.0.0.1", f"--port={redis_port}",
+                                "--threads=2", "--clients=10", "--pipeline=4", "--ratio=1:1",
+                                "--data-size=64", "--key-minimum=1", "--key-maximum=10000",
+                                "--key-pattern=R:R", "--key-prefix=stax:", f"--test-time={seconds}",
+                                "--hide-histogram", "--print-percentiles=50,99",
+                                f"--json-out-file={result_file}"]
+                    requests = args.requests if measured else args.warmup_requests
                     return [str(paths["redis_benchmark"]), "-s", str(redis_socket), "-t", "set,get",
                             "-n", str(requests), "-c", str(args.clients), "-P", str(args.pipeline), "--csv"]
 
-                run_command("warmup", benchmark_command(args.warmup_requests), round_output, timeout=120)
+                if args.workload == "memtier":
+                    prefill_redis(paths["redis_cli"], redis_socket, round_output, 10_000)
+                run_command("warmup", workload_command(False), round_output, timeout=120)
                 recorder = None
                 if profiled:
                     record_cmd = [str(paths["stax"]), "record", "--pid", str(redis.pid),
-                                  "--frequency", str(args.frequency), "--time-limit", "120",
+                                  "--frequency", str(args.frequency), "--time-limit",
+                                  "45" if args.workload == "memtier" else "120",
                                   "--daemon-socket", str(daemon_socket)]
                     (round_output / "record.command.json").write_text(json.dumps(record_cmd, indent=2) + "\n")
                     with (round_output / "record.stdout").open("w") as stdout, (
@@ -245,8 +343,8 @@ def pilot(args: argparse.Namespace) -> None:
                                                   daemon=True)
                     rss_thread.start()
                     start = time.monotonic_ns()
-                    benchmark = run_command("benchmark", benchmark_command(args.requests), round_output,
-                                            timeout=110)
+                    benchmark = run_command("benchmark", workload_command(True), round_output,
+                                            timeout=45 if args.workload == "memtier" else 110)
                     elapsed = (time.monotonic_ns() - start) / 1e9
                 finally:
                     rss_stop.set()
@@ -255,10 +353,13 @@ def pilot(args: argparse.Namespace) -> None:
                 if recorder is not None and recorder.returncode:
                     raise RuntimeError(f"Stax recording failed; logs: {round_output}")
                 row = {"mode": "stax" if profiled else "baseline", "elapsed_seconds": elapsed,
-                       "aggregate_requests_per_second": 2 * args.requests / elapsed,
-                       "rates_per_second": benchmark_rates(benchmark.stdout),
-                       "latency_ms": benchmark_latency_ms(benchmark.stdout),
                        "observed_peak_rss_kb": rss_maxima, "output": str(round_output)}
+                if args.workload == "memtier":
+                    row["memtier"] = memtier_metrics(round_output / "benchmark.json")
+                else:
+                    row["aggregate_requests_per_second"] = 2 * args.requests / elapsed
+                    row["rates_per_second"] = benchmark_rates(benchmark.stdout)
+                    row["latency_ms"] = benchmark_latency_ms(benchmark.stdout)
                 if profiled:
                     views = {
                         "threads": ["threads", "-n", "0"],
@@ -269,6 +370,13 @@ def pilot(args: argparse.Namespace) -> None:
                     }
                     for name, command in views.items():
                         run_command(name, [str(paths["stax"]), *command], round_output, env=env)
+                    if args.annotate_symbol:
+                        try:
+                            run_command("annotate", [str(paths["stax"]), "annotate", args.annotate_symbol],
+                                        round_output, env=env)
+                            views["annotate"] = ["annotate", args.annotate_symbol]
+                        except RuntimeError as exc:
+                            row["annotate_error"] = str(exc)
                     archive = round_output / "redis.stax"
                     run_command("save", [str(paths["stax"]), "save", str(archive)], round_output, env=env)
                     row["archive"] = str(archive)
@@ -287,7 +395,10 @@ def pilot(args: argparse.Namespace) -> None:
             if len(archives) >= 2:
                 run_command("compare", [str(paths["stax"]), "compare", "--json", *archives[:2]],
                             output, env=env)
-            metadata["summary"] = summarize(metadata["rounds"], args.requests)
+            metadata["summary"] = summarize(metadata["rounds"], args.workload, args.requests)
+            if args.workload == "memtier":
+                metadata["summary"]["valid_get_miss_fraction"] = all(
+                    row["memtier"]["get_miss_fraction"] <= 0.01 for row in metadata["rounds"])
             (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
         finally:
             stop_owned(recorder, interrupt=True)
@@ -303,25 +414,34 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--stax-revision", required=True, help="full upstream Git commit of the Stax binaries")
     parser.add_argument("--redis-revision", required=True, help="full upstream Git commit of the Redis binaries")
+    parser.add_argument("--workload", choices=("redis-benchmark", "memtier"), default="redis-benchmark")
+    parser.add_argument("--memtier-revision", help="upstream Git commit of the memtier binary")
     parser.add_argument("--stax-build-flags", default="unknown")
     parser.add_argument("--redis-build-flags", default="unknown")
     parser.add_argument("--stax", default="stax")
     parser.add_argument("--stax-server", default="stax-server", dest="stax_server")
     parser.add_argument("--redis-server", default="redis-server", dest="redis_server")
     parser.add_argument("--redis-benchmark", default="redis-benchmark", dest="redis_benchmark")
+    parser.add_argument("--memtier", default="memtier_benchmark")
     parser.add_argument("--redis-cli", default="redis-cli", dest="redis_cli")
-    parser.add_argument("--daemon-socket", default="/var/run/staxd.sock")
+    parser.add_argument("--daemon-socket", required=True, help="socket of the reviewed, private Stax helper")
     parser.add_argument("--pairs", type=int, default=2)
     parser.add_argument("--requests", type=int, default=30_000_000)
     parser.add_argument("--warmup-requests", type=int, default=1_000_000)
     parser.add_argument("--clients", type=int, default=50)
     parser.add_argument("--pipeline", type=int, default=16)
     parser.add_argument("--frequency", type=int, default=900)
+    parser.add_argument("--annotate-symbol", default="processCommand")
+    parser.add_argument("--memtier-seconds", type=int, default=30)
+    parser.add_argument("--memtier-warmup-seconds", type=int, default=5)
     args = parser.parse_args()
     if any(getattr(args, key) <= 0 for key in (
-        "pairs", "requests", "warmup_requests", "clients", "pipeline", "frequency"
+        "pairs", "requests", "warmup_requests", "clients", "pipeline", "frequency",
+        "memtier_seconds", "memtier_warmup_seconds"
     )):
         parser.error("numeric settings must be positive")
+    if args.workload == "memtier" and not args.memtier_revision:
+        parser.error("--memtier-revision is required for the memtier workload")
     pilot(args)
 
 
