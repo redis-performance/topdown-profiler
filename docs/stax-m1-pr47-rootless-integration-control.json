@@ -87,6 +87,14 @@
         "branch_mispreds": 17
       },
       "note": "sampling_frequency_hz is the requested setting; the synthetic helper emitted about 10 samples per second instead"
+    },
+    "no_helper_preflight": {
+      "revision": "b6d2897440d62840f7bf3e7bf18fb275fab495e7",
+      "doctor_capture_prerequisites_present": false,
+      "doctor_reason": "macOS capture requires the separately installed, signed Stax privileged helper",
+      "record_failed_before_launch": true,
+      "record_output_directory_created": false,
+      "archive_import_remains_available": true
     }
   }
 }

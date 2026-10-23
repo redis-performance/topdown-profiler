@@ -69,7 +69,25 @@
       2681922
     ],
     "all_cpu_samples_match_fixture": true,
-    "cpu_samples_with_unresolved_user_leaf": 341
+    "cpu_samples_with_unresolved_user_leaf": 341,
+    "cli_import_run_id": "1fb148b4-7f2a-43b3-a40c-0f05f43444d9"
+  },
+  "negative_controls": {
+    "zero_kperf_records": {
+      "archive": "/private/tmp/stax-m1-pr47-latest-capture-001/archive",
+      "cpu_samples": 0,
+      "target_spans": 299,
+      "spans_linked_origin": 0,
+      "spans_origin_no_thread": 299
+    },
+    "invented_samples_on_wrong_thread": {
+      "archive": "/private/tmp/stax-m1-pr47-synthetic-pmu-001/archive",
+      "cpu_samples": 78,
+      "target_spans": 299,
+      "spans_linked_origin": 0,
+      "spans_origin_no_thread": 299,
+      "fixture_thread_id": 42
+    }
   },
   "privileged_helper_used": false,
   "hardware_cpu_sampling_verified": false,

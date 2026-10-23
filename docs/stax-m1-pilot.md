@@ -268,6 +268,10 @@ all 299 linked spans into SQLite, preserving the origin thread ID in every
 stored span. This verifies the software join and persistence path only. The
 stack and PMU fields are fixture data, and neither hardware kperf sampling nor
 real CPU-to-GPU attribution has been verified.
+Two saved negative controls had 299 spans and zero links each: one had no CPU
+samples, and one had 78 invented samples on fixture thread `42` rather than
+the app's submitting thread. Both reported `no_thread=299`. The matched-thread
+control reported zero `no_thread`, `no_stack`, or `too_far` failures.
 
 ## Live Redis pilot
 
