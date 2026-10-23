@@ -1,0 +1,13 @@
+diff --git a/stax-linux-capture/src/sys.rs b/stax-linux-capture/src/sys.rs
+index 7d8275a..a12f38d 100644
+--- a/stax-linux-capture/src/sys.rs
++++ b/stax-linux-capture/src/sys.rs
+@@ -140,7 +140,7 @@ fn sampling_attr(
+ ) -> pe::bindings::perf_event_attr {
+     let mut attr = monotonic_attr();
+     attr.type_ = pe::bindings::PERF_TYPE_SOFTWARE;
+-    attr.config = pe::bindings::PERF_COUNT_SW_CPU_CLOCK as u64;
++    attr.config = pe::bindings::PERF_COUNT_SW_DUMMY as u64;
+     // Frequency mode: kernel auto-tunes the period to hit ~freq_hz.
+     attr.__bindgen_anon_1.sample_freq = freq_hz.max(1) as u64;
+     let mut sample_type = (pe::bindings::PERF_SAMPLE_TID

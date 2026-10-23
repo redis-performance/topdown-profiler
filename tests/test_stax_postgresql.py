@@ -54,12 +54,32 @@ def test_sql_reports_use_projected_documents(stored_sampling, monkeypatch):
     assert get_stax_thread_waits(backend, run.run_id)["rows"][0]["duration_ns"] == 30
 
 
+def test_old_documents_gain_wait_quality_without_reimport(stored_sampling):
+    backend, original = stored_sampling
+    document = backend.get_stax_result(original.run_id)
+    document["result"]["quality"] = {"sampling_observed": True}
+    document["result"]["limitations"] = []
+    run = Run(labels={"collector": "stax"})
+    backend.insert_stax_result(run, document)
+    report = get_stax_thread_waits(backend, run.run_id)
+    assert report["quality"]["sampling_observed"] is True
+    assert report["quality"]["observed_off_cpu_intervals"] == 1
+    assert report["quality"]["off_cpu_record_counts_match"] is True
+    assert report["quality"]["off_cpu_observed"] is True
+    assert any("does not establish no blocking" in note for note in report["limitations"])
+
+
 def test_real_m6_metal_excerpt_round_trip(sampling_backend):
     path = Path(__file__).parent / "test_data" / "stax_v3_m6_metal_excerpt.json"
     run = store_stax_result(sampling_backend, path, labels={"host_chip": "apple-m6"})
     hotspots = get_stax_hotspots(sampling_backend, run.run_id)
     assert hotspots["denominator_samples"] == 0
     assert hotspots["rows"] == []
+    waits = get_stax_thread_waits(sampling_backend, run.run_id)
+    assert waits["rows"] == []
+    assert waits["quality"]["off_cpu_observed"] is False
+    assert waits["quality"]["observed_off_cpu_intervals"] == 0
+    assert any("does not establish no blocking" in note for note in waits["limitations"])
     targets = get_stax_target_spans(sampling_backend, run.run_id)
     assert targets["rows"][0]["span_count"] == 2
     assert targets["rows"][0]["sum_target_span_ns"] == 13583

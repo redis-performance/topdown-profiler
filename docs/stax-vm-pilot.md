@@ -65,6 +65,9 @@ These are snapshots during recording, not peak memory during archive save/import
 
 No CI performance threshold is enabled. Use repeated, controlled measurements on
 the actual workload before making a performance decision.
+The [latency follow-up](stax-vm-latency-followup.md) repeats pipeline one with
+30-second windows and tests separate source controls; it confirms that a short
+median pass does not establish a reliable remedy.
 
 ## Functional and archive checks
 
