@@ -115,5 +115,6 @@ def make_runner(
     # default: toplev (Intel)
     from topdown.collector.toplev import ToplevRunner, ToplevOptions
 
-    options = ToplevOptions(level=level, pids=pids, system_wide=system_wide)
+    options = ToplevOptions(level=level, pids=pids, system_wide=system_wide,
+                            cpu_type=getattr(config, "toplev_cpu_type", None))
     return ToplevRunner(config.toplev_path, options)

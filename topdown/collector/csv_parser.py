@@ -4,6 +4,7 @@ Toplev has 13+ CSV format variations depending on version/flags.
 We auto-detect based on column count and content patterns.
 """
 
+import csv
 import re
 import logging
 from dataclasses import dataclass
@@ -37,6 +38,7 @@ class CsvFormat(Enum):
     # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
     # Produced by toplev with -x, --no-desc (10 columns)
     EXTENDED_10COL = "extended_10col"
+    EXTENDED_CPU_11COL = "extended_cpu_11col"
     # Fallback
     UNKNOWN = "unknown"
 
@@ -51,6 +53,7 @@ class ToplevSample:
     value: float
     unit: str
     status: str
+    cpu_group: str | None = None
 
     @property
     def level(self) -> int:
@@ -82,6 +85,12 @@ def _is_data_line(line: str) -> bool:
 
 def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
     """Detect CSV format from first few non-comment lines."""
+    for line in lines:
+        if not line.lstrip().lower().startswith(("timestamp", '"timestamp"')):
+            continue
+        header = [part.strip().lower() for part in next(csv.reader([line], delimiter=delimiter))]
+        if header[:5] == ["timestamp", "cpus", "area", "value", "unit"]:
+            return CsvFormat.EXTENDED_CPU_11COL
     data_lines = [
         ln for ln in lines
         if _is_data_line(ln)
@@ -90,7 +99,7 @@ def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
         return CsvFormat.UNKNOWN
 
     sample = data_lines[0]
-    cols = sample.split(delimiter)
+    cols = next(csv.reader([sample], delimiter=delimiter))
     ncols = len(cols)
 
     # Check if first column is a timestamp
@@ -116,6 +125,9 @@ def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
     # Extended format: toplev -x, --no-desc produces 10 columns
     # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
     if ncols >= 8 and has_timestamp:
+        cpu_column = cols[1].strip() in {"core", "atom", "cpu_core", "cpu_atom"} or CPU_RE.match(cols[1].strip())
+        if ncols >= 11 and (cpu_column or PERCENT_RE.match(cols[3].strip())) and not PERCENT_RE.match(cols[2].strip()):
+            return CsvFormat.EXTENDED_CPU_11COL
         return CsvFormat.EXTENDED_10COL
 
     # Try harder: check multiple lines for consistency
@@ -175,7 +187,7 @@ def _parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample
     if not _is_data_line(line):
         return None
 
-    cols = line.split(delimiter)
+    cols = next(csv.reader([line], delimiter=delimiter))
     cols = [c.strip() for c in cols]
 
     try:
@@ -246,6 +258,13 @@ def _parse_line(line: str, fmt: CsvFormat, delimiter: str = ",") -> ToplevSample
                 status=bottleneck,
             )
 
+        elif fmt == CsvFormat.EXTENDED_CPU_11COL:
+            cpu = parse_cpu(cols[1])
+            return ToplevSample(timestamp=float(cols[0]), cpu=cpu, metric_name=cols[2],
+                                value=parse_value(cols[3]), unit=cols[4],
+                                status=cols[9] if len(cols) > 9 else "",
+                                cpu_group=cols[1] if cpu is None else None)
+
     except (IndexError, ValueError) as e:
         logger.warning("Failed to parse line: %s (%s)", line, e)
         return None
@@ -263,7 +282,7 @@ def parse_output(text: str, delimiter: str = ",") -> list[ToplevSample]:
     if not data_lines:
         return []
 
-    fmt = detect_format(data_lines, delimiter)
+    fmt = detect_format(lines, delimiter)
     logger.debug("Detected CSV format: %s", fmt)
 
     samples = []
@@ -284,7 +303,7 @@ def parse_stream(lines: list[str], delimiter: str = ",") -> list[ToplevSample]:
     if not data_lines:
         return []
 
-    fmt = detect_format(data_lines[:5], delimiter)
+    fmt = detect_format(lines, delimiter)
 
     samples = []
     for line in data_lines:
@@ -293,3 +312,14 @@ def parse_stream(lines: list[str], delimiter: str = ",") -> list[ToplevSample]:
             samples.append(sample)
 
     return samples
+
+
+def sample_scope_labels(samples: list[ToplevSample], expected_group: str | None = None) -> dict[str, str]:
+    """Preserve one PMU group per stored run; averaging core and atom would lose its scope."""
+    groups = {group for sample in samples if isinstance(group := getattr(sample, "cpu_group", None), str) and group}
+    if len(groups) > 1:
+        raise RuntimeError("Toplev returned mixed CPU/PMU groups; select one with TOPDOWN_TOPLEV_CPU_TYPE=core or atom")
+    if expected_group and groups and groups != {expected_group}:
+        raise RuntimeError(f"Toplev returned PMU group {sorted(groups)} instead of requested {expected_group}")
+    group = next(iter(groups), expected_group)
+    return {"pmu_group": group} if group else {}
