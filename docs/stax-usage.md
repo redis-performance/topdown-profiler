@@ -162,4 +162,5 @@ exactly one `pid` or `command` argv list, plus optional labels, duration and fre
 Queries page `samples`, `intervals`, `wakeups`, `threads`, `frame_table`,
 `stack_table`, `target_lanes` and `application_records`, with limits of 1–1000 rows.
 
-See the [pilot plan](stax-plan.md) for platform and overhead acceptance criteria.
+See the [measured VM pilot](stax-vm-pilot.md) and [pilot plan](stax-plan.md) for
+results, limitations and platform/overhead acceptance criteria.

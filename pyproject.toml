@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "topdown-profiler"
 version = "0.3.1"
-description = "Linux CPU TMA for Intel, AMD Zen and ARM Neoverse; native Apple M1/M6 CPU/GPU profiling; CLI, MCP, SQLite and PostgreSQL."
+description = "CPU TMA for Intel, AMD Zen and ARM Neoverse; Apple M1/M6 CPU/GPU profiles; optional Stax sampling; CLI, MCP and SQL."
 authors = ["redis-performance"]
 readme = "README.md"
 license = "MIT"

@@ -223,7 +223,7 @@ def test_fast_command_is_retained_as_unreaped_cleanup_identity(fake_stax, tmp_pa
     assert_reaped(fake_stax)
 
 
-@pytest.mark.parametrize("command", [[], "echo hi", [""], ["echo", "\x00"], [True], ["echo", 1]])
+@pytest.mark.parametrize("command", [[], "echo hi", [""], ["echo", "\x00"], [True], ["echo", 1], ["echo", "\ud800"]])
 def test_invalid_command_never_starts_tools(fake_stax, tmp_path, command):
     with pytest.raises(StaxError, match="argv"):
         stax.record_profile(command=command, output=tmp_path / "capture")
