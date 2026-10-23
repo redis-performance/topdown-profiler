@@ -29,12 +29,21 @@
   "topdown": {
     "public_import_succeeded": true,
     "public_samples_query_succeeded": true,
-    "stored_run_id": "9f96aeec-021e-40dd-9394-18e7c01903f2",
+    "stored_run_id": "d9d62a0c-7050-4e8d-8cd3-38baf73ea8ab",
+    "normalized_result_schema_version": 2,
     "stored_cpu_samples": 348,
     "stored_cpu_samples_with_trace_cpu_id": 348,
     "queried_cpu_ids": [0, 4],
     "stored_target_stack_samples": 299,
-    "target_samples_with_trace_cpu_id": 0
+    "target_samples_with_trace_cpu_id": 0,
+    "target_samples_with_pmu_fields": 0
+  },
+  "stored_schema_compatibility": {
+    "older_version_1_run_id": "9f96aeec-021e-40dd-9394-18e7c01903f2",
+    "current_public_query_succeeded": true,
+    "older_cpu_id_field": "cpu",
+    "older_target_marker_has_pmu_fields": true,
+    "current_normalization_changes_only_new_imports": true
   },
   "checks": {
     "stax_parser_unit_tests": "5 passed",
