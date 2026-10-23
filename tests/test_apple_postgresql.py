@@ -201,3 +201,9 @@ def test_jsonb_preserves_capture_host_labels_across_imports(postgres_backend, tm
     from tests.test_apple_environment import check_import_environment
 
     check_import_environment(postgres_backend, tmp_path, monkeypatch)
+
+
+def test_jsonb_public_responses_reject_selected_legacy_surrogates(postgres_backend):
+    from tests.test_apple_json_strings import check_public_legacy_unicode_responses
+
+    check_public_legacy_unicode_responses(postgres_backend)

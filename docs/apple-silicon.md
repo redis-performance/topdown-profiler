@@ -109,6 +109,10 @@ not expose their inner fields; use the native query tools for those runs.
 Run labels and process names require valid Unicode without NUL so both SQL
 backends can store and filter them. Unpaired Unicode surrogates are rejected on
 import; valid emoji, newlines and escaped NUL payload values remain supported.
+Artifact basenames must also contain valid Unicode. Public summaries, selected
+pages and reports return an explicit error for legacy unpaired surrogates in
+their response; the storage backend retains the original archived document.
+Omitted observations do not prevent reading a clean summary or another page.
 
 The importer retains source scope, native M1 bottleneck shares, unmeasured rows,
 trace gaps, and null Intel TMA fields. It does not create floating-point Linux
