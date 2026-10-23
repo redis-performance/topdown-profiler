@@ -128,3 +128,12 @@ values are invented; it does not establish real kperf sampling, meaningful
 CPU attribution, hardware counters, or GPU utilization. The adapter's
 root-owned helper-socket preflight was bypassed only inside the rootless
 test process, with no privileged helper running.
+
+The [cadence control](../../docs/stax-m1-origin-cadence-control.json) repeated
+this rootless M1 capture twice at each of three invented sample periods. The
+requested Stax frequency remained 99 Hz throughout. At 20 ms, 299 and 298
+of 299 spans linked; at 50 ms, 287 and 286 linked; at 100 ms, 147 linked in
+both runs. Stax uses a 50 ms maximum origin-to-stack distance. The 50/100 ms
+controls were built from a copied fake daemon source with its sleep changed
+to that period. These are single-workload software controls, not measured
+hardware sampling rates or a universal link-completeness curve.

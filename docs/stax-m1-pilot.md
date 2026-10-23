@@ -273,6 +273,15 @@ samples, and one had 78 invented samples on fixture thread `42` rather than
 the app's submitting thread. Both reported `no_thread=299`. The matched-thread
 control reported zero `no_thread`, `no_stack`, or `too_far` failures.
 
+Six [rootless cadence captures](stax-m1-origin-cadence-control.json) held the
+requested frequency at 99 Hz and used the same 300-command-buffer M1 workload.
+At invented sample periods of 20, 50, and 100 ms, two runs linked respectively
+299/298, 287/286, and 147/147 of 299 spans. The 50 and 100 ms runs reported
+12/13 and 152/152 `too_far` failures; one 20 ms run reported a single
+`no_thread` startup miss. This is a software fixture result, but it shows why
+the requested frequency and the actual CPU sample count must both be checked
+before treating origin links as useful attribution.
+
 ## Live Redis pilot
 
 The pinned `staxd` makes its Unix socket world writable (`0666`) and has no

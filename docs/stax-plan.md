@@ -124,8 +124,11 @@ budget; otherwise document the limitation or narrow the supported configuration.
   `no_thread`, `no_stack`, and `too_far` reasons; keep captured origin thread IDs
   distinct from successfully linked CPU stacks. The
   [M1 rootless join control](stax-m1-origin-link-control.json) covers the
-  software path with invented samples, so use real captures for platform
-  acceptance checks.
+  software path with invented samples. Its
+  [cadence control](stax-m1-origin-cadence-control.json) shows that the link
+  fraction can fall sharply as delivered samples become sparser even when the
+  requested frequency stays fixed. Check observed sample rate and origin-link
+  fraction in real captures before accepting CPU-to-target attribution.
 
 ## Phase 3: CLI and MCP access
 
