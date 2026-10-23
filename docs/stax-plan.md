@@ -101,6 +101,11 @@ budget; otherwise document the limitation or narrow the supported configuration.
   Separate sample counts, scheduler intervals, and synthetic target-span durations;
   do not assume their totals form a wall-time utilization denominator. Preserve
   existing TMA queries and stored-run compatibility.
+  In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
+  includes synthetic target-span markers: the
+  [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there
+  while its archive run summary has zero CPU PET samples. Validate CPU sampling
+  from the run summary and keep target marker counts separate.
 - Reuse native Apple launch/attach and metadata conventions where applicable. If
   Stax supports collection by process name, provide portable discovery rather than
   routing macOS through the Linux `/proc` resolver or permission checks.

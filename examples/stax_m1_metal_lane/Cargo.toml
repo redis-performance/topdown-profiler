@@ -1,0 +1,11 @@
+[package]
+name = "stax-m1-metal-bridge"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+stax-target = { path = "../stax-target" }

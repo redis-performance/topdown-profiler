@@ -83,10 +83,32 @@ def comparison_metrics(stdout: str, archives: list[str]) -> dict[str, int]:
         baseline, candidate = counts["baseline"], counts["candidate"]
     except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
         raise ValueError("Stax compare JSON lacks the pinned archive metrics") from exc
-    if any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
+    if any(isinstance(value, bool) or not isinstance(value, int) or value < 0
            for value in (baseline, candidate)):
-        raise ValueError("Stax comparison has no positive PET sample counts")
-    return {"baseline_pet_samples": baseline, "candidate_pet_samples": candidate}
+        raise ValueError("Stax comparison has invalid sample-marker counts")
+    return {"baseline_sample_markers": baseline, "candidate_sample_markers": candidate}
+
+
+def archive_run(path: Path, expected_pid: int) -> dict[str, int]:
+    try:
+        with path.open() as source:
+            document = json.load(source)
+        version = document["format_version"]
+        runs = document["runs"]
+        if version != 3 or not isinstance(runs, list) or len(runs) != 1:
+            raise ValueError("Stax archive does not have the pinned v3 single-run layout")
+        run = runs[0]
+        if run["target_pid"] != expected_pid:
+            raise ValueError("Stax archive target PID differs from the profiled Redis")
+        pet_samples = run["pet_samples"]
+        off_cpu_intervals = run["off_cpu_intervals"]
+    except (KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Stax archive has invalid run metadata: {path}") from exc
+    if (any(isinstance(value, bool) or not isinstance(value, int) or value < 0
+            for value in (pet_samples, off_cpu_intervals)) or pet_samples == 0):
+        raise ValueError("Stax archive has no positive CPU PET sample count")
+    return {"format_version": version, "cpu_pet_samples": pet_samples,
+            "off_cpu_intervals": off_cpu_intervals}
 
 
 def memtier_metrics(path: Path) -> dict:
@@ -202,6 +224,14 @@ def validate_helper_socket(path: Path) -> dict[str, int | str]:
             "directory_owner_uid": directory.st_uid, "socket_owner_uid": endpoint.st_uid}
 
 
+def require_free_space(path: Path, minimum_gib: float) -> int:
+    free = shutil.disk_usage(path).free
+    if free < minimum_gib * 1024 ** 3:
+        raise RuntimeError(f"free disk space is {free / 1024 ** 3:.2f} GiB below the "
+                           f"{minimum_gib:.2f} GiB pilot reserve; output retained at {path}")
+    return free
+
+
 def schedule(pairs: int) -> list[bool]:
     if pairs < 1:
         raise ValueError("pairs must be positive")
@@ -287,6 +317,7 @@ def monitor_rss(processes: dict[str, subprocess.Popen], stop: threading.Event,
 def pilot(args: argparse.Namespace) -> None:
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
+    initial_free = require_free_space(output, args.min_free_gib)
     names = ["stax", "stax_server", "redis_server", "redis_cli"]
     names.append("memtier" if args.workload == "memtier" else "redis_benchmark")
     paths = {name: executable(getattr(args, name)) for name in names}
@@ -304,6 +335,8 @@ def pilot(args: argparse.Namespace) -> None:
         "redis_build_flags": args.redis_build_flags,
         "stax_experimental_apple_pmu": os.environ.get("STAX_EXPERIMENTAL_APPLE_PMU") == "1",
         "memtier_revision": args.memtier_revision if args.workload == "memtier" else None,
+        "disk_free_bytes_start": initial_free,
+        "min_free_gib": args.min_free_gib,
         "host": read_host(),
         "executables": {name: {"path": str(path), "sha256": sha256(path), "version": version(path)}
                         for name, path in paths.items()},
@@ -360,6 +393,7 @@ def pilot(args: argparse.Namespace) -> None:
 
             wait_for(redis_ready, redis, 20, "private Redis")
             for index, profiled in enumerate(schedule(args.pairs), start=1):
+                require_free_space(output, args.min_free_gib)
                 label = f"round-{index:02d}"
                 round_output = output / label
                 round_output.mkdir()
@@ -439,9 +473,11 @@ def pilot(args: argparse.Namespace) -> None:
                         except RuntimeError as exc:
                             row["annotate_error"] = str(exc)
                     archive = round_output / "redis.stax"
+                    require_free_space(output, args.min_free_gib)
                     run_command("save", [str(paths["stax"]), "save", str(archive)], round_output, env=env)
                     row["archive"] = str(archive)
                     row["archive_sha256"] = sha256(archive)
+                    row["archive_run"] = archive_run(archive, redis.pid)
                     run_command("open", [str(paths["stax"]), "open", str(archive)], round_output, env=env)
                     row["round_trip_equal"] = {}
                     for name, command in views.items():
@@ -449,6 +485,7 @@ def pilot(args: argparse.Namespace) -> None:
                                                round_output, env=env)
                         row["round_trip_equal"][name] = restored.stdout == (
                             round_output / f"{name}.stdout").read_text()
+                row["disk_free_bytes_after"] = shutil.disk_usage(output).free
                 metadata["rounds"].append(row)
                 (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
@@ -493,6 +530,8 @@ def main() -> None:
     parser.add_argument("--clients", type=int, default=50)
     parser.add_argument("--pipeline", type=int, default=16)
     parser.add_argument("--frequency", type=int, default=900)
+    parser.add_argument("--min-free-gib", type=float, default=1.5,
+                        help="stop before a round or archive save if disk free space is below this reserve")
     parser.add_argument("--annotate-symbol", default="processCommand")
     parser.add_argument("--memtier-seconds", type=int, default=30)
     parser.add_argument("--memtier-warmup-seconds", type=int, default=5)
@@ -504,6 +543,8 @@ def main() -> None:
         parser.error("numeric settings must be positive")
     if args.workload == "memtier" and not args.memtier_revision:
         parser.error("--memtier-revision is required for the memtier workload")
+    if not math.isfinite(args.min_free_gib) or args.min_free_gib <= 0:
+        parser.error("--min-free-gib must be a positive finite number")
     pilot(args)
 
 

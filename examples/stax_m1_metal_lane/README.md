@@ -1,0 +1,77 @@
+# M1 Metal command-buffer lane control
+
+This source-only example links an M1 Metal app to Stax's `stax-target` API.
+The Swift app reports completed command-buffer intervals in the host Mach
+clock domain. The Rust static library captures the submitting CPU origin and
+passes each interval to a named Metal lane. The fake daemon supplies **no
+kperf records**; it is only for testing target-span ingestion without root.
+Never use it to validate CPU sampling or Apple hardware counters.
+
+The [M1 result](../../docs/stax-m1-gpu-target-control.json) was produced with
+Stax `aedd85e08894fc3250ec975a486544d091e11281`, Xcode 27.1, and
+300 checksum-verified GPU command buffers. Stax ingested 299 spans after its
+capture gate became active, saved a v3 archive, and reproduced `threads`,
+`top`, `flame`, and `diagnose` exactly after reopening it. The 299 unlinked
+origins are expected: the fake daemon provided zero CPU samples. Stax's
+comparison field called `pet_samples` includes synthetic target markers in
+this case, while the archive's run summary correctly records zero CPU PET
+samples.
+
+To rebuild, use a disposable checkout of the pinned Stax revision. From this
+repository's root, copy the example into that workspace:
+
+```sh
+cp -R examples/stax_m1_metal_lane /private/tmp/stax-m1-pilot/stax-metal-bridge
+install -d /private/tmp/stax-m1-pilot/staxd/examples
+cp examples/stax_m1_metal_lane/fake_daemon.rs \
+  /private/tmp/stax-m1-pilot/staxd/examples/fake_daemon.rs
+```
+
+Add `"stax-metal-bridge",` to the workspace `members` list in Stax's root
+`Cargo.toml`. The example's `Cargo.toml` then resolves `../stax-target`.
+
+```sh
+cd /private/tmp/stax-m1-pilot
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0 \
+  cargo build --release -p stax-m1-metal-bridge
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0 \
+  cargo build --release --locked -p staxd --example fake_daemon
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  xcrun swiftc -O stax-metal-bridge/metal_lane.swift \
+  target/release/libstax_m1_metal_bridge.a \
+  -o /private/tmp/stax-m1-metal-lane
+codesign --force --sign - target/release/examples/fake_daemon
+codesign --force --sign - /private/tmp/stax-m1-metal-lane
+```
+
+On this Xcode host, directly linking a Rust `cdylib` failed with a misaligned
+Mach-O LINKEDIT string pool. The static-library bridge above linked and ran.
+The production Stax server and CLI can be the unmodified pinned binaries;
+the fake daemon is needed only for this rootless control. Start them on
+private sockets, then launch the app under Stax:
+
+```sh
+install -d -m 700 /private/tmp/stax-m1-gpu-demo
+/private/tmp/stax-m1-pilot/target/release/examples/fake_daemon \
+  /private/tmp/stax-m1-gpu-demo/helper.sock &
+GPU_FAKE_DAEMON_PID=$!
+STAX_SERVER_SOCKET=/private/tmp/stax-m1-gpu-demo/server.sock \
+  STAX_SERVER_WS_BIND=127.0.0.1:0 stax-server &
+GPU_STAX_SERVER_PID=$!
+trap 'kill "$GPU_STAX_SERVER_PID" "$GPU_FAKE_DAEMON_PID" 2>/dev/null || true' EXIT
+sleep 2
+STAX_SERVER_SOCKET=/private/tmp/stax-m1-gpu-demo/server.sock \
+  stax record --daemon-socket /private/tmp/stax-m1-gpu-demo/helper.sock \
+  -- /private/tmp/stax-m1-metal-lane 300
+STAX_SERVER_SOCKET=/private/tmp/stax-m1-gpu-demo/server.sock \
+  stax threads -n 0
+STAX_SERVER_SOCKET=/private/tmp/stax-m1-gpu-demo/server.sock \
+  stax top -n 20 --sort self
+```
+
+The app reports one span per completed **command buffer**. That timestamp
+does not separate multiple kernels within a command buffer and carries no
+GPU hardware counters. A real Stax helper is still needed to test CPU stack
+origins, waits, and PMU data alongside this GPU lane.

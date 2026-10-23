@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+from types import SimpleNamespace
 
 import pytest
 
@@ -39,17 +40,40 @@ def test_comparison_requires_requested_archives_and_samples():
     report = {"baseline": {"path": archives[0]}, "candidate": {"path": archives[1]},
               "metrics": {"pet_samples": {"baseline": 100, "candidate": 120}}}
     assert PILOT.comparison_metrics(json.dumps(report), archives) == {
-        "baseline_pet_samples": 100, "candidate_pet_samples": 120,
+        "baseline_sample_markers": 100, "candidate_sample_markers": 120,
     }
     report["candidate"]["path"] = "different.stax"
     with pytest.raises(ValueError, match="different archives"):
         PILOT.comparison_metrics(json.dumps(report), archives)
     report["candidate"]["path"] = archives[1]
     report["metrics"]["pet_samples"]["candidate"] = 0
-    with pytest.raises(ValueError, match="positive PET"):
+    assert PILOT.comparison_metrics(json.dumps(report), archives)["candidate_sample_markers"] == 0
+    report["metrics"]["pet_samples"]["candidate"] = -1
+    with pytest.raises(ValueError, match="invalid sample-marker"):
         PILOT.comparison_metrics(json.dumps(report), archives)
     with pytest.raises(ValueError, match="lacks the pinned archive metrics"):
         PILOT.comparison_metrics('{"ok":true}', archives)
+
+
+def test_archive_run_distinguishes_cpu_pet_samples_from_target_span_markers(tmp_path):
+    path = tmp_path / "redis.stax"
+    document = {"format_version": 3, "runs": [{"target_pid": 42, "pet_samples": 100,
+                                                 "off_cpu_intervals": 3}],
+                "aggregator": {"threads": [{"pet_samples": [1] * 200}]}}
+    path.write_text(json.dumps(document))
+    assert PILOT.archive_run(path, 42) == {"format_version": 3, "cpu_pet_samples": 100,
+                                          "off_cpu_intervals": 3}
+    document["runs"][0]["pet_samples"] = 0
+    path.write_text(json.dumps(document))
+    with pytest.raises(ValueError, match="no positive CPU PET"):
+        PILOT.archive_run(path, 42)
+    document["runs"][0]["pet_samples"] = 100
+    with pytest.raises(ValueError, match="target PID differs"):
+        PILOT.archive_run(path, 43)
+    document["format_version"] = 2
+    path.write_text(json.dumps(document))
+    with pytest.raises(ValueError, match="pinned v3"):
+        PILOT.archive_run(path, 42)
 
 
 def test_memtier_summary_rejects_broken_duration_or_rate(tmp_path):
@@ -122,11 +146,20 @@ def test_private_helper_socket_requires_private_directory_and_root_owner(monkeyp
         }
 
 
+def test_disk_reserve_stops_before_filling_pilot_output(tmp_path, monkeypatch):
+    monkeypatch.setattr(PILOT.shutil, "disk_usage", lambda _: SimpleNamespace(free=2 * 1024 ** 3))
+    assert PILOT.require_free_space(tmp_path, 1.5) == 2 * 1024 ** 3
+    monkeypatch.setattr(PILOT.shutil, "disk_usage", lambda _: SimpleNamespace(free=1024 ** 3))
+    with pytest.raises(RuntimeError, match="below the 1.50 GiB pilot reserve"):
+        PILOT.require_free_space(tmp_path, 1.5)
+
+
 @pytest.mark.parametrize("fail_second", [False, True])
 @pytest.mark.parametrize("workload", ["redis-benchmark", "memtier"])
 def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypatch, fail_second, workload):
     monkeypatch.setattr(PILOT.platform, "system", lambda: "Linux")
     monkeypatch.setenv("FAKE_BENCH_MARKER", str(tmp_path / "bench-count"))
+    monkeypatch.setenv("FAKE_STAX_PID_FILE", str(tmp_path / "stax-pid"))
     if fail_second:
         monkeypatch.setenv("FAKE_BENCH_FAIL_SECOND", "1")
     if workload == "memtier" and not fail_second:
@@ -141,13 +174,17 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
         while True: time.sleep(.05)
     """)
     stax = fake_executable(tmp_path / "fake-stax", """
-        import json, pathlib, signal, sys, time
+        import json, os, pathlib, signal, sys, time
         args = sys.argv[1:]
         if args[0] == 'record':
+            pathlib.Path(os.environ['FAKE_STAX_PID_FILE']).write_text(args[args.index('--pid') + 1])
             print('stax: started run 1', file=sys.stderr, flush=True)
             signal.signal(signal.SIGINT, lambda *_: exit(0))
             while True: time.sleep(.05)
-        elif args[0] == 'save': pathlib.Path(args[1]).write_text('archive')
+        elif args[0] == 'save':
+            pid = int(pathlib.Path(os.environ['FAKE_STAX_PID_FILE']).read_text())
+            pathlib.Path(args[1]).write_text(json.dumps({'format_version': 3,
+                'runs': [{'target_pid': pid, 'pet_samples': 100, 'off_cpu_intervals': 4}]}))
         elif args[0] == 'compare':
             print(json.dumps({'baseline': {'path': args[-2]}, 'candidate': {'path': args[-1]},
                               'metrics': {'pet_samples': {'baseline': 100, 'candidate': 120}}}))
@@ -207,7 +244,8 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
                               stax_build_flags="test", redis_build_flags="test", stax=stax, stax_server=server,
                               redis_server=redis_server, redis_cli=redis_cli, redis_benchmark=benchmark,
                               daemon_socket="/unused", pairs=2, requests=1000, warmup_requests=10,
-                              clients=2, pipeline=1, frequency=100, annotate_symbol="processCommand")
+                              clients=2, pipeline=1, frequency=100, min_free_gib=0.001,
+                              annotate_symbol="processCommand")
     if fail_second:
         with pytest.raises(RuntimeError, match="benchmark exited 7"):
             PILOT.pilot(args)
@@ -220,7 +258,7 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
     assert result["stax_experimental_apple_pmu"] is (workload == "memtier")
     assert [row["mode"] for row in result["rounds"]] == ["baseline", "stax", "stax", "baseline"]
     assert all(all(row["round_trip_equal"].values()) for row in result["rounds"] if row["mode"] == "stax")
-    assert all(Path(row["archive"]).read_text() == "archive" for row in result["rounds"]
+    assert all(row["archive_run"]["cpu_pet_samples"] == 100 for row in result["rounds"]
                if row["mode"] == "stax")
     if workload == "memtier":
         assert result["summary"]["baseline_median_operations_per_second"] == 1000
@@ -229,7 +267,7 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
                    for index in range(1, 5))
     else:
         assert result["summary"]["requests_per_command"] == 1000
-    assert result["comparison"] == {"baseline_pet_samples": 100, "candidate_pet_samples": 120}
+    assert result["comparison"] == {"baseline_sample_markers": 100, "candidate_sample_markers": 120}
     assert not list(output.rglob("stop.command.json"))
 
 
@@ -244,7 +282,7 @@ def test_absent_helper_fails_with_retained_preflight(tmp_path, monkeypatch):
                               redis_server=tool, redis_cli=tool, redis_benchmark=tool,
                               daemon_socket=str(tmp_path / "missing.sock"), pairs=1, requests=1,
                               warmup_requests=1, clients=1, pipeline=1, frequency=100,
-                              annotate_symbol="processCommand")
+                              annotate_symbol="processCommand", min_free_gib=0.001)
     with pytest.raises(RuntimeError, match="helper socket is absent"):
         PILOT.pilot(args)
     assert json.loads((output / "metadata.json").read_text())["host"]["machine"]

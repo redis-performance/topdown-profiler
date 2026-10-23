@@ -179,8 +179,26 @@ start/end properties must be read after completion. A command buffer can hold
 multiple encoders and dispatches, so these properties do not give individual
 kernel duration or hardware-counter attribution. The existing native Metal
 counter and replay workflow remains the source for GPU bottleneck counters.
-This test validates the clock conversion on M1; ingestion, origin linking, and
-rendering of a real Metal span still require a live Stax recording.
+The clock test alone does not validate ingestion or CPU origin linking.
+
+The [rootless Metal lane control](stax-m1-gpu-target-control.json) used a
+[source-only Swift/Rust example](../examples/stax_m1_metal_lane/README.md) and
+an unprivileged fake helper that streamed **zero** kperf records. The real M1
+GPU completed 300 checksum-verified command buffers; after Stax's capture gate
+opened, the app reported 299 spans. Stax ingested all 299 under one Metal lane,
+showed 21.489 ms of target time in `threads`, `top`, and `flame`, and reopened a
+v3 `.stax` archive with those views and diagnostics byte-for-byte unchanged.
+The origins were all unlinked for `no_thread`, as expected without CPU samples.
+This establishes M1 Metal span ingestion and archive behavior separately from
+privileged CPU/PMU sampling.
+
+The same control exposed a unit-label trap in pinned Stax: `stax compare
+--json` reported `pet_samples=299` for this archive while its run summary
+reported zero CPU PET samples. Its target spans create synthetic sample
+markers that the comparison currently includes under that field. The Redis
+pilot checks the archived run summary for positive CPU PET samples and records
+comparison counts only as sample markers. Target duration is parallel GPU
+work, not a CPU utilization denominator.
 
 ## Live Redis pilot
 
@@ -244,8 +262,11 @@ run order to reduce drift. It
 stops only the recorder it started. Each profiled round saves a `.stax`
 archive, reopens it, and records whether the all-thread view, self/total hotspot
 views, flame view, diagnostics, and any successful `processCommand`
-annotation are unchanged. The baseline/candidate
-comparison must return valid JSON with positive PET sample counts. An
+annotation are unchanged. The saved v3 archive must have a matching Redis PID
+and a positive CPU PET count in its run summary; the baseline/candidate
+comparison must return valid JSON. Stax's comparison field named
+`pet_samples` can include synthetic target-span markers, so it is recorded as
+sample markers and is not used to validate CPU sampling. An
 unavailable annotation is retained as a recorded error without losing the
 archive. It retains raw
 memtier JSON, Stax views, commands, hashes, and environment metadata:
@@ -280,6 +301,10 @@ stack depth, unresolved symbols, waits,
 dropped events, helper resource use, and the disassembly of one observed hot
 symbol before accepting the pilot. The default annotation target is
 `processCommand`; use `--annotate-symbol SYMBOL` when another function is hot.
+The host had about 2.4 GiB free during preparation. The runner records free
+space and uses a 1.5 GiB reserve before each round and archive save; set
+`--min-free-gib` explicitly only if the available disk budget changes. A
+reserve failure retains completed round artifacts.
 Do not infer Intel pipeline-slot shares from Stax
 samples or M1 fixed counters.
 
