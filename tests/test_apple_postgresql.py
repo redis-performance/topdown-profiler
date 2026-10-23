@@ -207,3 +207,9 @@ def test_jsonb_public_responses_reject_selected_legacy_surrogates(postgres_backe
     from tests.test_apple_json_strings import check_public_legacy_unicode_responses
 
     check_public_legacy_unicode_responses(postgres_backend)
+
+
+def test_jsonb_preserves_measured_replay_state_settings(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_states import check_measured_replay_state_storage
+
+    check_measured_replay_state_storage(postgres_backend, tmp_path)
