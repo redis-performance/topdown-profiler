@@ -2,6 +2,7 @@
 
 import json
 import os
+from pathlib import Path
 import select
 import signal
 import subprocess
@@ -159,7 +160,7 @@ async def test_stdio_reader_preserves_split_unicode_and_unterminated_lines(tmp_p
     text = "a" * 65535 + "🙂\nsecond\r\nlast"
     path.write_bytes(text.encode())
     with path.open("rb") as source:
-        assert [line async for line in _lines(source.fileno())] == ["a" * 65535 + "🙂", "second\r", "last"]
+        assert [line async for line in _lines(source.fileno())] == ["a" * 65535 + "🙂", "second", "last"]
     path.write_bytes(b"\xff\n\n")
     with path.open("rb") as source:
         assert [line async for line in _lines(source.fileno())] == ["�", ""]
@@ -282,3 +283,63 @@ async def test_zero_length_stdout_write_fails_instead_of_spinning(monkeypatch, t
         monkeypatch.setattr(os, "write", lambda fd, data: 0)
         with pytest.raises(BrokenPipeError, match="no progress"):
             await _Output(destination.fileno()).write("data")
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX null device readiness")
+@pytest.mark.asyncio
+async def test_null_devices_do_not_enter_the_readiness_selector(monkeypatch):
+    from topdown.mcp_runtime import _lines, _Output
+
+    async def unsupported(fd):
+        raise AssertionError("null devices cannot be registered with epoll/kqueue")
+
+    monkeypatch.setattr(anyio, "wait_readable", unsupported)
+    monkeypatch.setattr(anyio, "wait_writable", unsupported)
+    with open(os.devnull, "r+b") as device:
+        assert [line async for line in _lines(device.fileno())] == []
+        await _Output(device.fileno()).write("🙂\n")
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX null device startup")
+def test_stdio_server_with_devnull_input_exits_cleanly():
+    result = subprocess.run([sys.executable, "-m", "topdown.cli", "mcp-serve"],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                            text=True, timeout=6, cwd=Path(__file__).resolve().parents[1],
+                            env={**os.environ, "TOPDOWN_AUTH_MODE": "none"})
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.asyncio
+async def test_stdio_preserves_universal_newlines_across_read_boundaries(tmp_path):
+    from topdown.mcp_runtime import _lines
+
+    path = tmp_path / "input"
+    path.write_bytes(b"a" * 65535 + b"\r\n" + "🙂\rlast\n".encode())
+    with path.open("rb") as source:
+        assert [line async for line in _lines(source.fileno())] == ["a" * 65535, "🙂", "last"]
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX pipe readiness")
+@pytest.mark.parametrize("newline", ["\n", "\r", "\r\n"])
+def test_real_stdio_accepts_existing_line_endings(newline):
+    server = subprocess.Popen([sys.executable, "-m", "topdown.cli", "mcp-serve"], stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                              cwd=Path(__file__).resolve().parents[1], env={**os.environ, "TOPDOWN_AUTH_MODE": "none"})
+    try:
+        message = {"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {
+            "protocolVersion": "2025-06-18", "capabilities": {},
+            "clientInfo": {"name": "newline-test", "version": "1"}}}
+        server.stdin.write(json.dumps(message) + newline)
+        server.stdin.flush()
+        assert select.select([server.stdout], [], [], 6)[0], "server did not read the request"
+        assert json.loads(server.stdout.readline())["id"] == 0
+        server.stdin.close()
+        assert server.wait(timeout=6) == 0
+    finally:
+        if server.poll() is None:
+            server.kill()
+            server.wait(timeout=3)
+        if not server.stdin.closed:
+            server.stdin.close()
+        server.stdout.close()
+        server.stderr.close()
