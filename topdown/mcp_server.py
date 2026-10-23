@@ -827,6 +827,7 @@ def _register_tools_and_resources(target: FastMCP):
 def run_server(transport: str = "stdio", host: str = "localhost", port: int = 8000):
     """Start the MCP server."""
     from topdown.auth import AuthConfig
+    from topdown.mcp_runtime import run_stdio, serve_stdio
 
     auth_config = AuthConfig.from_env()
 
@@ -838,11 +839,11 @@ def run_server(transport: str = "stdio", host: str = "localhost", port: int = 80
                 "Auth is only enforced on HTTP transport.",
                 auth_config.mode,
             )
-        mcp.run(transport="stdio")
+        run_stdio(lambda: serve_stdio(mcp))
     elif transport == "http":
         # Create a new MCP instance with auth for HTTP transport
         server = _create_mcp(host=host, port=port)
         _register_tools_and_resources(server)
         server.run(transport="streamable-http")
     else:
-        mcp.run(transport="stdio")
+        run_stdio(lambda: serve_stdio(mcp))
