@@ -8,6 +8,20 @@
   "stax_order": {
     "force_before_add": false,
     "classes": 2,
+    "kpc_config_count": 8,
+    "class_mask_with_fixed": 3,
+    "config_count_for_class_mask": 8,
+    "total_counter_count_for_class_mask": 10,
+    "kpc_configs_hex": [
+      "0xa3",
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0"
+    ],
     "event_errors": {
       "L1D_CACHE_MISS_LD": {
         "return_code": 0,
@@ -28,6 +42,20 @@
   "forced_first": {
     "force_before_add": true,
     "classes": 2,
+    "kpc_config_count": 8,
+    "class_mask_with_fixed": 3,
+    "config_count_for_class_mask": 8,
+    "total_counter_count_for_class_mask": 10,
+    "kpc_configs_hex": [
+      "0xa3",
+      "0x0",
+      "0x0",
+      "0xcb",
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0"
+    ],
     "event_errors": {
       "L1D_CACHE_MISS_LD": {
         "return_code": 0,

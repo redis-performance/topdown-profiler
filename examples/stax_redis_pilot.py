@@ -73,6 +73,22 @@ def benchmark_latency_ms(stdout: str) -> dict[str, dict[str, float]]:
     }
 
 
+def comparison_metrics(stdout: str, archives: list[str]) -> dict[str, int]:
+    try:
+        report = json.loads(stdout)
+        if (report["baseline"]["path"] != archives[0]
+                or report["candidate"]["path"] != archives[1]):
+            raise ValueError("Stax compared different archives than requested")
+        counts = report["metrics"]["pet_samples"]
+        baseline, candidate = counts["baseline"], counts["candidate"]
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("Stax compare JSON lacks the pinned archive metrics") from exc
+    if any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
+           for value in (baseline, candidate)):
+        raise ValueError("Stax comparison has no positive PET sample counts")
+    return {"baseline_pet_samples": baseline, "candidate_pet_samples": candidate}
+
+
 def memtier_metrics(path: Path) -> dict:
     document = json.loads(path.read_text())
     stats = document["ALL STATS"]
@@ -286,6 +302,7 @@ def pilot(args: argparse.Namespace) -> None:
         "redis_revision": args.redis_revision,
         "stax_build_flags": args.stax_build_flags,
         "redis_build_flags": args.redis_build_flags,
+        "stax_experimental_apple_pmu": os.environ.get("STAX_EXPERIMENTAL_APPLE_PMU") == "1",
         "memtier_revision": args.memtier_revision if args.workload == "memtier" else None,
         "host": read_host(),
         "executables": {name: {"path": str(path), "sha256": sha256(path), "version": version(path)}
@@ -437,8 +454,9 @@ def pilot(args: argparse.Namespace) -> None:
 
             archives = [row["archive"] for row in metadata["rounds"] if row["mode"] == "stax"]
             if len(archives) >= 2:
-                run_command("compare", [str(paths["stax"]), "compare", "--json", *archives[:2]],
-                            output, env=env)
+                comparison = run_command("compare", [str(paths["stax"]), "compare", "--json", *archives[:2]],
+                                         output, env=env)
+                metadata["comparison"] = comparison_metrics(comparison.stdout, archives)
             metadata["summary"] = summarize(metadata["rounds"], args.workload, args.requests)
             if args.workload == "memtier":
                 metadata["summary"]["valid_get_miss_fraction"] = all(

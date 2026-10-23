@@ -1,0 +1,19 @@
+{
+  "host": "MacBookAir10,1 Apple M1",
+  "scenario": "rootless negative control for opt-in Stax PMU patch",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "environment": {
+    "STAX_EXPERIMENTAL_APPLE_PMU": "1"
+  },
+  "binaries_sha256": {
+    "stax_cli": "12c67c530ff00efd836a169e3789b887209536120513a80a33d2cc30b7de055e",
+    "experimental_server": "3163a2fdd2cd09aa9eb4026c789f16de28781fb44880152156c4b890ea225be3",
+    "teardown_helper": "2abaeafb83ae152dea57c83b1532b64edb6e3a5a481ec87d688a6dcc9c9031fe"
+  },
+  "target": "/bin/sleep 15",
+  "record_command_shape": "stax record --pid <target-pid> --time-limit 3 --daemon-socket <private-rootless-helper-socket>",
+  "record_exit_code": 1,
+  "record_stdout": "stopped:\n  run 1  [stopped]  pid 83593  0 kperf / 0 intervals  ((attached))",
+  "record_stderr": "stax: started run 1\nerror: recorder failed: staxd-client failed: staxd record() RPC failed: NotRoot",
+  "privileged_collection_verified": false
+}

@@ -1,0 +1,168 @@
+diff --git a/stax-mac-kperf-sys/src/pmu_events.rs b/stax-mac-kperf-sys/src/pmu_events.rs
+index f5c2d3f..33cb886 100644
+--- a/stax-mac-kperf-sys/src/pmu_events.rs
++++ b/stax-mac-kperf-sys/src/pmu_events.rs
+@@ -25,9 +25,8 @@ use std::ptr;
+ use crate::bindings::{Frameworks, KpcConfig, KpepConfig, KpepDb, KpepEvent, KPC_MAX_COUNTERS};
+ 
+ /// One configurable event we'd like to sample. The order in this
+-/// list is also the order in which the values appear in the
+-/// per-sample `pmc` slice after the FIXED counters (cycles,
+-/// instructions). Pinned + curated for the demo; later we can plumb
++/// list is the event-request order; KPEP may assign nonconsecutive
++/// counter slots. Pinned + curated for the demo; later we can plumb
+ /// CLI flags / live UI selection to make it configurable.
+ pub const REQUESTED_EVENTS: &[PmuEvent] = &[
+     PmuEvent {
+@@ -108,10 +107,17 @@ pub fn configure(fw: &Frameworks) -> Option<ConfiguredPmu> {
+     }
+     let _config_guard = scopeguard(|| unsafe { (fw.kpep_config_free)(config) });
+ 
++    // M1 can reject a second event if allocation is forced only after adding
++    // events. Reserve the available counter slots before the first add.
++    let rc = unsafe { (fw.kpep_config_force_counters)(config) };
++    if rc != 0 {
++        log::warn!("kpep_config_force_counters failed (rc={rc}); configurable events disabled");
++        return None;
++    }
++
+     let mut slot_indices: [Option<usize>; PMU_SLOTS] = [None; PMU_SLOTS];
+-    let mut resolved_any = false;
++    let mut accepted = Vec::new();
+     let fixed_count = unsafe { (fw.kpc_get_counter_count)(KPC_CLASS_FIXED_MASK) } as usize;
+-    let mut pmc_index_after_fixed = fixed_count;
+ 
+     for entry in REQUESTED_EVENTS {
+         let slot_idx = entry.slot as usize;
+@@ -143,27 +149,33 @@ pub fn configure(fw: &Frameworks) -> Option<ConfiguredPmu> {
+             log::info!("pmu: kpep_config_add_event failed for {name} (rc={rc}); skipping");
+             continue;
+         }
+-        slot_indices[slot_idx] = Some(pmc_index_after_fixed);
+-        pmc_index_after_fixed += 1;
+-        resolved_any = true;
+-        log::info!(
+-            "pmu: event slot {:?} = {name} (counter index {})",
+-            entry.slot,
+-            pmc_index_after_fixed - 1
+-        );
++        accepted.push((slot_idx, name));
+     }
+ 
+-    if !resolved_any {
++    if accepted.is_empty() {
+         log::warn!("pmu: no configurable events resolved; falling back to FIXED only");
+         return None;
+     }
+ 
+-    // Force the kpep config to actually allocate counters.
+-    let rc = unsafe { (fw.kpep_config_force_counters)(config) };
++    let mut map = [0usize; KPC_MAX_COUNTERS];
++    let rc =
++        unsafe { (fw.kpep_config_kpc_map)(config, map.as_mut_ptr(), std::mem::size_of_val(&map)) };
+     if rc != 0 {
+-        log::warn!("kpep_config_force_counters failed (rc={rc}); configurable events disabled");
++        log::warn!("kpep_config_kpc_map failed (rc={rc}); configurable events disabled");
+         return None;
+     }
++    let configurable_count =
++        unsafe { (fw.kpc_get_counter_count)(KPC_CLASS_CONFIGURABLE_MASK) } as usize;
++    for (ordinal, (slot_idx, name)) in accepted.into_iter().enumerate() {
++        let configurable_index = map[ordinal];
++        if configurable_index >= configurable_count {
++            log::warn!("pmu: {name} mapped outside configurable counters; disabling events");
++            return None;
++        }
++        let sample_index = fixed_count + configurable_index;
++        slot_indices[slot_idx] = Some(sample_index);
++        log::info!("pmu: {name} mapped to sample index {sample_index}");
++    }
+ 
+     // Translate the kpep config into the raw u64 configs that
+     // `kpc_set_config` consumes. `kpep_config_kpc_count` tells us
+@@ -175,6 +187,10 @@ pub fn configure(fw: &Frameworks) -> Option<ConfiguredPmu> {
+         log::warn!("kpep_config_kpc_count failed (rc={rc})");
+         return None;
+     }
++    if count > KPC_MAX_COUNTERS {
++        log::warn!("kpep config uses {count} counters, above the supported maximum");
++        return None;
++    }
+     let mut configs: Vec<KpcConfig> = vec![0u64; KPC_MAX_COUNTERS];
+     // kpep_config_kpc's third argument is the buffer size in BYTES,
+     // not the number of entries. Passing the entry count makes kpep
+@@ -185,7 +201,7 @@ pub fn configure(fw: &Frameworks) -> Option<ConfiguredPmu> {
+         log::warn!("kpep_config_kpc failed (rc={rc})");
+         return None;
+     }
+-    configs.truncate(count.min(KPC_MAX_COUNTERS));
++    configs.truncate(count);
+ 
+     let mut class_mask = KPC_CLASS_FIXED_MASK;
+     let mut config_classes: u32 = 0;
+diff --git a/staxd-client/src/lib.rs b/staxd-client/src/lib.rs
+index 84917cc..cf7e8da 100644
+--- a/staxd-client/src/lib.rs
++++ b/staxd-client/src/lib.rs
+@@ -25,6 +25,7 @@ use stax_mac_kperf_sys::kdebug::{
+     self, DBG_FUNC_END, DBG_FUNC_START, DBG_MACH, DBG_MACH_SCHED, DBG_PERF, KDBG_TIMESTAMP_MASK,
+     KdBuf, perf,
+ };
++use stax_mac_kperf_sys::{bindings, pmu_events};
+ use staxd_proto::{KdBufBatch, STAXD_RECORD_CHANNEL_CAPACITY, SessionConfig, StaxdClient};
+ use tracing::{info, warn};
+ 
+@@ -221,11 +222,33 @@ where
+     // anything async.
+     let shared_cache: Option<Arc<stax_mac_shared_cache::SharedCache>> =
+         stax_mac_shared_cache::SharedCache::for_host().map(Arc::new);
++    let pmu = if std::env::var("STAX_EXPERIMENTAL_APPLE_PMU").as_deref() == Ok("1") {
++        let frameworks = bindings::load()
++            .map_err(|error| Error::VoxCall(format!("load KPEP frameworks: {error}")))?;
++        Some(
++            pmu_events::configure(&frameworks)
++                .ok_or_else(|| Error::VoxCall("KPEP event configuration failed".to_owned()))?,
++        )
++    } else {
++        None
++    };
++    if let Some(config) = &pmu {
++        info!(
++            class_mask = config.class_mask,
++            l1d_index = ?config.slot_indices[pmu_events::PmuSlot::L1DCacheMissLoad as usize],
++            brmiss_index = ?config.slot_indices[pmu_events::PmuSlot::BranchMispredict as usize],
++            "staxd-client: experimental Apple PMU enabled"
++        );
++    }
+     let pipeline_config = PipelineConfig {
+         pid: opts.pid,
+         frequency_hz: opts.frequency_hz,
+-        pmc_idx_l1d: None,
+-        pmc_idx_brmiss: None,
++        pmc_idx_l1d: pmu
++            .as_ref()
++            .and_then(|config| config.slot_indices[pmu_events::PmuSlot::L1DCacheMissLoad as usize]),
++        pmc_idx_brmiss: pmu
++            .as_ref()
++            .and_then(|config| config.slot_indices[pmu_events::PmuSlot::BranchMispredict as usize]),
+     };
+ 
+     let parser_queue = ParserQueue::new(WORKER_QUEUE_CAPACITY);
+@@ -264,9 +287,14 @@ where
+         frequency_hz: opts.frequency_hz,
+         buf_records: opts.buf_records,
+         samplers: sampler::TH_INFO | sampler::USTACK | sampler::KSTACK | sampler::PMC_THREAD,
+-        // v0: no configurable PMU events. Daemon falls back to FIXED.
+-        pmu_event_configs: Vec::new(),
+-        class_mask: stax_mac_kperf_sys::bindings::KPC_CLASS_FIXED_MASK,
++        pmu_event_configs: pmu
++            .as_ref()
++            .map(|config| config.configs.clone())
++            .unwrap_or_default(),
++        class_mask: pmu
++            .as_ref()
++            .map(|config| config.class_mask)
++            .unwrap_or(bindings::KPC_CLASS_FIXED_MASK),
+         filter_range_value1: kdebug::kdbg_eventid(DBG_MACH, DBG_MACH_SCHED, 0),
+         filter_range_value2: kdebug::kdbg_eventid(DBG_PERF, 0xff, 0x3fff),
+         typefilter_cscs: Vec::new(),

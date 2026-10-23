@@ -94,9 +94,67 @@ difference; its [captured output](stax-m1-kpep.json) is from this host:
 | Force allocation first | 0 | 0 | L1D: 2, branch: 5 |
 
 The actual mapping comes from `kpep_config_kpc_map`; it is not the requested
-event order. This probe reads the local event database only. It does not enable
-counters or prove that either configurable event can be sampled by a live
+event order. With forced allocation, KPEP returns eight configurable config
+slots; only slots 0 and 3 are nonzero (`0xa3` and `0xcb`). The current helper's
+single accepted event yields only slot 0. For the fixed-plus-configurable class
+mask (`3`), `kpc_get_config_count` returns 8 while `kpc_get_counter_count`
+returns 10; the eight-element config vector matches the reported configuration
+count. This probe reads the local event
+database only. It does not enable counters or prove that either configurable
+event can be sampled by a live
 recording. Keep live acceptance separate from this configuration check.
+
+An [experimental patch](../examples/stax-m1-pmu-experimental.patch) for the
+pinned Stax source moves counter allocation before event additions, uses
+`kpep_config_kpc_map` for parser indices, and wires the two events into the
+macOS recorder only when its **server process** has
+`STAX_EXPERIMENTAL_APPLE_PMU=1`. Its SHA-256 is
+`3a1740d9f6f1ff34af228c5e50586a1eac88e008c9665b80e07b441473ad8aff`.
+The patch applies cleanly to the pinned index and compiled in release mode.
+Calling the patched Rust `configure` on this M1, without root, returned class
+mask 3, fixed count 2, sample indices `[2, 5]`, and config words
+`[163, 0, 0, 203, 0, 0, 0, 0]`. A separately staged, ad hoc signed
+`stax-server` using the patch answered `stax status` over a private socket.
+Its signed SHA-256 is
+`3163a2fdd2cd09aa9eb4026c789f16de28781fb44880152156c4b890ea225be3`.
+The normal server and all captures without the opt-in variable retain the
+fixed-counter path.
+In a [rootless end-to-end negative control](stax-m1-pmu-rootless-control.json),
+the opt-in server, CLI, and unprivileged helper reached the helper's `NotRoot`
+gate after creating a run;
+the run reported zero kperf samples. This exercises the client configuration
+path and RPC wiring without claiming hardware collection.
+
+To reproduce the experimental server from a clean pinned Stax checkout, apply
+the patch, build `stax-server` with full Xcode selected, and stage it separately
+from the baseline server:
+
+```sh
+cd /private/tmp/stax-m1-pilot
+git apply /private/tmp/topdown-m1-stax/examples/stax-m1-pmu-experimental.patch
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0 \
+  cargo build --release --locked -p stax-server
+install -d -m 700 /private/tmp/stax-m1-pmu-experimental
+install -m 755 target/release/stax-server \
+  /private/tmp/stax-m1-pmu-experimental/stax-server
+codesign --force --sign - /private/tmp/stax-m1-pmu-experimental/stax-server
+```
+
+For the separate experimental pilot, set
+`STAX_EXPERIMENTAL_APPLE_PMU=1`, add
+`--stax-server /private/tmp/stax-m1-pmu-experimental/stax-server` to the
+benchmark command below, and choose a new `--output` directory.
+
+The experimental patch has **not** been tested with kperf sampling. Run the
+unmodified Stax server first for the baseline pilot; then use the patched
+server in a separate capture with a new output directory and the opt-in
+variable. The pilot records the server digest and opt-in state. Live acceptance
+must confirm nonzero, plausible L1D and branch values, correct placement in
+the sampled counter vector, and comparison against separate native event
+captures. The pinned CLI does not expose these fields in its `top` table; they
+exist in Stax's sample/aggregator data and web UI. Do not label zero or missing
+fields as measured event counts.
 
 ## M1 Metal clock and Stax target lanes
 
@@ -184,10 +242,12 @@ threads, ten clients per thread, and pipeline depth four. The script starts a
 private Stax server and a private Redis instance on loopback, and balances
 run order to reduce drift. It
 stops only the recorder it started. Each profiled round saves a `.stax`
-archive, reopens it, and checks that the all-thread view, self/total hotspot
+archive, reopens it, and records whether the all-thread view, self/total hotspot
 views, flame view, diagnostics, and any successful `processCommand`
-annotation are unchanged. An unavailable annotation is retained as a recorded
-error without losing the archive. It retains raw
+annotation are unchanged. The baseline/candidate
+comparison must return valid JSON with positive PET sample counts. An
+unavailable annotation is retained as a recorded error without losing the
+archive. It retains raw
 memtier JSON, Stax views, commands, hashes, and environment metadata:
 
 ```sh

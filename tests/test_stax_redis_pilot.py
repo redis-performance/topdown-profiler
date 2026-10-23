@@ -34,6 +34,24 @@ def test_benchmark_rates_and_balanced_order():
         PILOT.schedule(0)
 
 
+def test_comparison_requires_requested_archives_and_samples():
+    archives = ["baseline.stax", "candidate.stax"]
+    report = {"baseline": {"path": archives[0]}, "candidate": {"path": archives[1]},
+              "metrics": {"pet_samples": {"baseline": 100, "candidate": 120}}}
+    assert PILOT.comparison_metrics(json.dumps(report), archives) == {
+        "baseline_pet_samples": 100, "candidate_pet_samples": 120,
+    }
+    report["candidate"]["path"] = "different.stax"
+    with pytest.raises(ValueError, match="different archives"):
+        PILOT.comparison_metrics(json.dumps(report), archives)
+    report["candidate"]["path"] = archives[1]
+    report["metrics"]["pet_samples"]["candidate"] = 0
+    with pytest.raises(ValueError, match="positive PET"):
+        PILOT.comparison_metrics(json.dumps(report), archives)
+    with pytest.raises(ValueError, match="lacks the pinned archive metrics"):
+        PILOT.comparison_metrics('{"ok":true}', archives)
+
+
 def test_memtier_summary_rejects_broken_duration_or_rate(tmp_path):
     path = tmp_path / "memtier.json"
     report = {"ALL STATS": {"Runtime": {"Total duration": 1000},
@@ -111,6 +129,8 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
     monkeypatch.setenv("FAKE_BENCH_MARKER", str(tmp_path / "bench-count"))
     if fail_second:
         monkeypatch.setenv("FAKE_BENCH_FAIL_SECOND", "1")
+    if workload == "memtier" and not fail_second:
+        monkeypatch.setenv("STAX_EXPERIMENTAL_APPLE_PMU", "1")
     server = fake_executable(tmp_path / "fake-stax-server", """
         import os, signal, socket, sys, time
         if '--version' in sys.argv: print('fake stax server'); exit(0)
@@ -121,14 +141,16 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
         while True: time.sleep(.05)
     """)
     stax = fake_executable(tmp_path / "fake-stax", """
-        import pathlib, signal, sys, time
+        import json, pathlib, signal, sys, time
         args = sys.argv[1:]
         if args[0] == 'record':
             print('stax: started run 1', file=sys.stderr, flush=True)
             signal.signal(signal.SIGINT, lambda *_: exit(0))
             while True: time.sleep(.05)
         elif args[0] == 'save': pathlib.Path(args[1]).write_text('archive')
-        elif args[0] == 'compare': print('{"ok":true}')
+        elif args[0] == 'compare':
+            print(json.dumps({'baseline': {'path': args[-2]}, 'candidate': {'path': args[-1]},
+                              'metrics': {'pet_samples': {'baseline': 100, 'candidate': 120}}}))
         elif args[0] == 'top': print('redis hot function')
         elif args[0] == 'stop': raise AssertionError('must not stop a shared run')
         else: print('no active run' if args[0] == 'status' else args[0])
@@ -195,6 +217,7 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
     PILOT.pilot(args)
 
     result = json.loads((output / "metadata.json").read_text())
+    assert result["stax_experimental_apple_pmu"] is (workload == "memtier")
     assert [row["mode"] for row in result["rounds"]] == ["baseline", "stax", "stax", "baseline"]
     assert all(all(row["round_trip_equal"].values()) for row in result["rounds"] if row["mode"] == "stax")
     assert all(Path(row["archive"]).read_text() == "archive" for row in result["rounds"]
@@ -206,7 +229,7 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
                    for index in range(1, 5))
     else:
         assert result["summary"]["requests_per_command"] == 1000
-    assert json.loads((output / "compare.stdout").read_text()) == {"ok": True}
+    assert result["comparison"] == {"baseline_pet_samples": 100, "candidate_pet_samples": 120}
     assert not list(output.rglob("stop.command.json"))
 
 
@@ -240,4 +263,10 @@ def test_m1_kpep_probe_detects_stax_order_and_nonsequential_mapping():
     assert data["forced_first"]["event_to_sample_index"] == {
         "L1D_CACHE_MISS_LD": 2, "BRANCH_MISPRED_NONSPEC": 5,
     }
+    assert data["forced_first"]["kpc_config_count"] == 8
+    assert data["forced_first"]["class_mask_with_fixed"] == 3
+    assert data["forced_first"]["config_count_for_class_mask"] == 8
+    assert data["forced_first"]["total_counter_count_for_class_mask"] == 10
+    assert [index for index, value in enumerate(data["forced_first"]["kpc_configs_hex"])
+            if int(value, 16)] == [0, 3]
     assert data["hardware_access_verified"] is False

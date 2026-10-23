@@ -43,9 +43,14 @@ def probe() -> dict:
                     [pointer, ctypes.POINTER(pointer), ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)])
     get_map = api(kpep, "kpep_config_kpc_map", integer,
                   [pointer, ctypes.POINTER(count_type), count_type])
+    get_count = api(kpep, "kpep_config_kpc_count", integer, [pointer, ctypes.POINTER(count_type)])
+    get_configs = api(kpep, "kpep_config_kpc", integer,
+                      [pointer, ctypes.POINTER(ctypes.c_uint64), count_type])
     get_classes = api(kpep, "kpep_config_kpc_classes", integer,
                       [pointer, ctypes.POINTER(ctypes.c_uint32)])
     fixed_count = api(kperf, "kpc_get_counter_count", ctypes.c_uint32, [ctypes.c_uint32])(1)
+    get_config_count = api(kperf, "kpc_get_config_count", ctypes.c_uint32, [ctypes.c_uint32])
+    get_counter_count = api(kperf, "kpc_get_counter_count", ctypes.c_uint32, [ctypes.c_uint32])
 
     def configuration(force_first: bool) -> dict:
         database, config = pointer(), pointer()
@@ -69,11 +74,22 @@ def probe() -> dict:
                 raise RuntimeError("KPEP could not force counter allocation")
             mapping = (count_type * 32)()
             classes = ctypes.c_uint32()
-            if get_map(config, mapping, ctypes.sizeof(mapping)) or get_classes(config, ctypes.byref(classes)):
-                raise RuntimeError("KPEP could not return the event map")
+            config_count = count_type()
+            configs = (ctypes.c_uint64 * 32)()
+            if (get_map(config, mapping, ctypes.sizeof(mapping))
+                    or get_classes(config, ctypes.byref(classes))
+                    or get_count(config, ctypes.byref(config_count))
+                    or config_count.value > len(configs)
+                    or get_configs(config, configs, ctypes.sizeof(configs))):
+                raise RuntimeError("KPEP could not return the event map or configurations")
             return {
                 "force_before_add": force_first,
                 "classes": classes.value,
+                "kpc_config_count": config_count.value,
+                "class_mask_with_fixed": classes.value | 1,
+                "config_count_for_class_mask": get_config_count(classes.value | 1),
+                "total_counter_count_for_class_mask": get_counter_count(classes.value | 1),
+                "kpc_configs_hex": [hex(value) for value in configs[:config_count.value]],
                 "event_errors": event_errors,
                 "event_to_configurable_counter": dict(zip(added, mapping[:len(added)])),
                 "event_to_sample_index": {name: fixed_count + mapping[index]
