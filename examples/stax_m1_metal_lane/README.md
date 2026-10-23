@@ -80,7 +80,7 @@ this GPU lane remain unverified without a real Stax capture.
 
 The separate [fake sample daemon](fake_sample_daemon.rs) verifies the software
 path through the experimental M1 PMU patch, Stax's parser and archive, and the
-optional collector in PR #47. It rejects any session configuration other than
+optional collector merged from PR #47. It rejects any session configuration other than
 class mask `3` with the M1 config words `[163, 0, 0, 203, 0, 0, 0, 0]`. It
 then emits an invented user-stack sample every 100 ms with cycles `100`,
 instructions `200`, L1D misses `13` in slot 2, and branch mispredicts `17` in

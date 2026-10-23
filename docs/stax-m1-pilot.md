@@ -257,7 +257,7 @@ reports 341 CPU samples, 299 spans, and 299 linked origins. An offline
 comparison with the 100 ms fixture reports 341 versus 77 CPU samples and
 299 versus 147 linked origins, keeping the 299 target spans in each capture.
 
-The concurrent optional collector draft, [PR #47](https://github.com/redis-performance/topdown-profiler/pull/47)
+The merged optional collector, [PR #47](https://github.com/redis-performance/topdown-profiler/pull/47),
 at `c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579`, also passed an M1
 rootless [integration control](stax-m1-pr47-rootless-integration-control.json).
 First, its v3 importer loaded the saved 299-span Metal archive and stored it
