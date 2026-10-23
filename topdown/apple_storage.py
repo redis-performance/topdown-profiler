@@ -8,6 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from topdown.apple_json import unicode_scalars
 from topdown.collector.apple import (APPLE_BOTTLENECKS, FIXED_EVENTS, M1_EVENTS, M1_FETCH_EVENTS,
                                      M1_MAP_EVENTS, MODES, TMA_ROOTS, AppleProfileError)
 from topdown.storage.models import Run
@@ -339,8 +340,6 @@ def _validate_profile(result, rows):
 
 
 def validate_result(result: dict) -> None:
-    from topdown.apple_json import unicode_scalars
-
     if not unicode_scalars(result):
         raise AppleProfileError("Native Apple JSON requires valid Unicode scalar values")
     if not isinstance(result, dict) or not isinstance(result.get("measurement_kind"), str):
@@ -434,6 +433,8 @@ def store_apple_result(backend, path: Path, process_name: str | None = None, lab
         if len(candidates) != 1:
             raise AppleProfileError("Choose one profile.json, stat.json or soc.json file explicitly")
         path = candidates[0]
+    if not unicode_scalars(path.name):
+        raise AppleProfileError("Apple artifact filename requires valid Unicode scalar values")
     result, source_sha256 = _read_json(path)
     validate_result(result)
     capture_path = path.parent / "capture.json"
@@ -477,6 +478,12 @@ def store_apple_result(backend, path: Path, process_name: str | None = None, lab
     return run
 
 
+def _unicode_response(response):
+    if not unicode_scalars(response):
+        raise AppleProfileError("Stored Apple result contains invalid Unicode scalar values")
+    return response
+
+
 def query_apple_result(backend, run_id: str, section: str = "summary", offset: int = 0, limit: int = 100) -> dict:
     if section not in {"summary", *BULK_FIELDS} or type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 1000:
         raise AppleProfileError("Choose summary/samples/intervals/gaps/channels/leaf_sample_counts/encoders, offset >= 0 and limit 1–1000")
@@ -493,7 +500,7 @@ def query_apple_result(backend, run_id: str, section: str = "summary", offset: i
         if not isinstance(rows, list):
             raise AppleProfileError(f"This Apple result has no {section} section")
         response.update(section=section, offset=offset, limit=limit, total=document["total"], rows=rows)
-    return response
+    return _unicode_response(response)
 
 
 def stored_apple_hotspots(backend, run_id: str, limit: int = 20) -> dict:
@@ -502,7 +509,7 @@ def stored_apple_hotspots(backend, run_id: str, limit: int = 20) -> dict:
     document = backend.get_apple_result(run_id)
     if document is None:
         raise AppleProfileError(f"No stored Apple result for run {run_id}")
-    return {"run_id": run_id, **summarize_hotspots(document["result"], limit)}
+    return _unicode_response({"run_id": run_id, **summarize_hotspots(document["result"], limit)})
 
 
 def stored_apple_gpu_report(backend, run_id: str, limit: int = 20, offset: int = 0) -> dict:
@@ -512,7 +519,7 @@ def stored_apple_gpu_report(backend, run_id: str, limit: int = 20, offset: int =
     if document is None:
         raise AppleProfileError(f"No stored Apple result for run {run_id}")
     try:
-        return {"run_id": run_id, **summarize(document["result"], limit, offset)}
+        return _unicode_response({"run_id": run_id, **summarize(document["result"], limit, offset)})
     except ValueError as exc:
         raise AppleProfileError(str(exc)) from exc
 

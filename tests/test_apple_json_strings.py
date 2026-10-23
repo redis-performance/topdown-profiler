@@ -1,6 +1,7 @@
 """Native payload strings remain exact while run metadata stays usable in SQL."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -162,3 +163,80 @@ def test_custom_numeric_decoders_cannot_introduce_invalid_unicode():
 
     with pytest.raises(ValueError, match="Unicode scalar"):
         json.loads('{"number":1}', cls=NativeJSONDecoder, parse_int=lambda value: "\ud800")
+
+
+@pytest.mark.parametrize("name", ["native-\ud800.json", "native-\udcff.json"])
+def test_invalid_filesystem_filename_metadata_is_rejected_before_reads(tmp_path, sqlite_backend, monkeypatch, name):
+    from topdown import apple_storage
+
+    class LegacyPath(type(tmp_path)):
+        @property
+        def name(self):
+            return name
+
+    path = tmp_path / "stat.json"
+    path.write_text("{}")
+
+    def read(path):
+        raise AssertionError("invalid filename reached artifact reads")
+
+    monkeypatch.setattr(apple_storage, "_read_json", read)
+    with pytest.raises(AppleProfileError, match="filename requires valid Unicode"):
+        store_apple_result(sqlite_backend, LegacyPath(path))
+    assert sqlite_backend.list_runs() == []
+
+
+def test_valid_unicode_artifact_filename_remains_exact(tmp_path, sqlite_backend):
+    result = {"measurement_kind": "process-accounted-fixed-counters", "tma_available": False,
+              "tma": dict.fromkeys(TMA_ROOTS), "scope": {"pid": 42},
+              "counters": {"instructions": 1, "cycles": 1}}
+    path = tmp_path / "native-Δ-😀.json"
+    path.write_text(json.dumps(result))
+    run = store_apple_result(sqlite_backend, path)
+    assert sqlite_backend.get_apple_result(run.run_id)["metadata"]["source_filename"] == path.name
+
+
+def check_public_legacy_unicode_responses(backend):
+    from topdown.apple_storage import query_apple_result, stored_apple_gpu_report, stored_apple_hotspots
+    from topdown.collector.apple import FIXED_EVENTS, parse_profile
+    from tests.test_apple_gpu_replay import native_profile
+
+    def insert(result, metadata=None):
+        document = {"schema_version": 1, "result": result, "metadata": metadata or {}}
+        run = Run(process_name="legacy")
+        backend.insert_apple_result(run, document)
+        return run, document
+
+    run, original = insert({"measurement_kind": "native-test", "samples": [
+        {"name": "\ud800"}, {"name": "clean\x00😀", "instructions": 2**64 - 1}]})
+    assert "samples" not in query_apple_result(backend, run.run_id)["result"]
+    assert query_apple_result(backend, run.run_id, "samples", 1, 1)["rows"] == original["result"]["samples"][1:]
+    with pytest.raises(AppleProfileError, match="Stored Apple result contains invalid Unicode") as error:
+        query_apple_result(backend, run.run_id, "samples", 0, 1)
+    str(error.value).encode("utf-8")
+    assert backend.get_apple_result(run.run_id) == original
+
+    run, original = insert({"measurement_kind": "native-test"}, {"source_filename": "native-\udcff.json"})
+    with pytest.raises(AppleProfileError, match="Stored Apple result contains invalid Unicode"):
+        query_apple_result(backend, run.run_id)
+    assert backend.get_apple_result(run.run_id) == original
+
+    gpu = native_profile()
+    gpu["encoders"][0]["listing"]["values"][0]["value"] = '"legacy-\ud800-label"'
+    run, original = insert(gpu)
+    with pytest.raises(AppleProfileError, match="Stored Apple result contains invalid Unicode"):
+        stored_apple_gpu_report(backend, run.run_id)
+    assert backend.get_apple_result(run.run_id) == original
+
+    cpu = parse_profile(Path(__file__).parent / "test_data/apple_fixed_profile_m6.xml", "counters-profile", 3362,
+                        fixed_events=FIXED_EVENTS)
+    cpu["measurement_kind"] = "native-fixed-counter-samples"
+    cpu["samples"][0]["frames"][0]["name"] = "legacy-\ud800-frame"
+    run, original = insert(cpu)
+    with pytest.raises(AppleProfileError, match="Stored Apple result contains invalid Unicode"):
+        stored_apple_hotspots(backend, run.run_id)
+    assert backend.get_apple_result(run.run_id) == original
+
+
+def test_sqlite_public_responses_reject_selected_legacy_surrogates(sqlite_backend):
+    check_public_legacy_unicode_responses(sqlite_backend)
