@@ -2,7 +2,7 @@
 
 Status: source, build, and unprivileged server checks completed on 23 October
 2026. A live Stax recording is pending a short-lived macOS root helper session.
-This is a platform pilot for [PR #38's Stax plan](https://github.com/redis-performance/topdown-profiler/pull/38),
+This is a platform pilot for the [Stax plan](stax-plan.md),
 not a new collector or a claim of Intel TMA support.
 
 ## Pinned inputs
@@ -98,6 +98,32 @@ event order. This probe reads the local event database only. It does not enable
 counters or prove that either configurable event can be sampled by a live
 recording. Keep live acceptance separate from this configuration check.
 
+## M1 Metal clock and Stax target lanes
+
+Stax's optional `stax-target` API accepts nanosecond timestamps based on
+`mach_absolute_time` on macOS. Apple's
+[command-buffer timing contract](https://developer.apple.com/documentation/metal/mtlcommandbuffer/gpustarttime)
+says `gpuStartTime` and `gpuEndTime` are host seconds relative to system mach
+time. The existing [Metal probe](../topdown/collector/apple_gpu_probe.swift)
+was compiled with Xcode 27.1 and run on this M1. For compute, ALU, memory,
+and stream workloads, all twelve completed command buffers had positive GPU
+durations and their start/end times, multiplied by `1e9`, fell between
+`mach_absolute_time` samples taken before and after the child process. The
+[raw check](stax-m1-gpu-clock.json) records the actual nanosecond windows,
+source/binary hashes, and the host's Mach timebase (`125/3`). This agrees with
+Apple's documented clock relationship; the process brackets alone would not
+establish exact correlation.
+
+An instrumented Metal app can therefore report one Stax target span per
+completed **command buffer** using these timestamps, capturing a CPU origin at
+submission and converting finite, positive host seconds to nanoseconds. The
+start/end properties must be read after completion. A command buffer can hold
+multiple encoders and dispatches, so these properties do not give individual
+kernel duration or hardware-counter attribution. The existing native Metal
+counter and replay workflow remains the source for GPU bottleneck counters.
+This test validates the clock conversion on M1; ingestion, origin linking, and
+rendering of a real Metal span still require a live Stax recording.
+
 ## Live Redis pilot
 
 The pinned `staxd` makes its Unix socket world writable (`0666`) and has no
@@ -124,7 +150,9 @@ install -d -m 700 /private/tmp/stax-m1-private
 
 The host owner starts the helper in a separate Terminal and leaves it running
 for the capture. Closing it ends the privileged session; no LaunchDaemon is
-installed:
+installed. The pilot verifies that the socket is root-owned and that its
+containing directory is owned by the profiling user with no group or other
+permissions:
 
 ```sh
 sudo /Users/fco/.cargo/bin/staxd \
@@ -163,6 +191,7 @@ error without losing the archive. It retains raw
 memtier JSON, Stax views, commands, hashes, and environment metadata:
 
 ```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 python3 examples/stax_redis_pilot.py \
   --output /private/tmp/stax-memtier-m1-001 \
   --stax-revision aedd85e08894fc3250ec975a486544d091e11281 \
@@ -182,10 +211,12 @@ For the earlier fixed-count Redis benchmark control, use
 that workload is separate from the Linux pilot. The memtier mode validates its
 reported rate against completed requests and duration, and flags runs where
 GET misses exceed 1%. Compare measured throughput and p50/p99 latency within
-the M1 host; the client version and CPU topology differ from Linux. The script
-samples Redis, Stax server, and recorder
-resident memory once per second in every round; it does not observe root
-`staxd` memory. Record actual stack depth, unresolved symbols, waits,
+the M1 host; the summary includes per-mode throughput ranges, median p50/p99
+latencies, and observed changes. The client version and CPU topology differ
+from Linux. The script samples Redis, Stax server, and recorder resident memory
+once per second in every round. Its summary gives median and peak observed RSS
+for each process and mode; it does not observe root `staxd` memory. Record actual
+stack depth, unresolved symbols, waits,
 dropped events, helper resource use, and the disassembly of one observed hot
 symbol before accepting the pilot. The default annotation target is
 `processCommand`; use `--annotate-symbol SYMBOL` when another function is hot.

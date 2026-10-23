@@ -169,6 +169,23 @@ def read_host() -> dict[str, str]:
     }
 
 
+def validate_helper_socket(path: Path) -> dict[str, int | str]:
+    if not path.is_absolute():
+        raise RuntimeError(f"macOS Stax helper socket path must be absolute: {path}")
+    try:
+        directory = path.parent.lstat()
+        endpoint = path.lstat()
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"macOS Stax helper socket is absent: {path}") from exc
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.getuid()
+            or directory.st_mode & 0o077):
+        raise RuntimeError(f"macOS Stax helper socket directory must be owned by this user and private: {path.parent}")
+    if not stat.S_ISSOCK(endpoint.st_mode) or endpoint.st_uid != 0:
+        raise RuntimeError(f"macOS Stax helper socket must be a root-owned Unix socket: {path}")
+    return {"path": str(path), "directory_mode": stat.S_IMODE(directory.st_mode),
+            "directory_owner_uid": directory.st_uid, "socket_owner_uid": endpoint.st_uid}
+
+
 def schedule(pairs: int) -> list[bool]:
     if pairs < 1:
         raise ValueError("pairs must be positive")
@@ -178,16 +195,42 @@ def schedule(pairs: int) -> list[bool]:
 
 
 def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
+    def distribution(values: list[float]) -> dict[str, float]:
+        return {"median": statistics.median(values), "min": min(values), "max": max(values)}
+
+    def rss() -> dict[str, dict[str, dict[str, float]]]:
+        return {
+            mode: {name: distribution(values) for name in ("redis", "stax_server", "stax_record")
+                   if (values := [row["observed_peak_rss_kb"][name] for row in rounds
+                                  if row["mode"] == mode and name in row["observed_peak_rss_kb"]])}
+            for mode in ("baseline", "stax")
+        }
+
     if workload == "memtier":
         rates = {mode: [row["memtier"]["operations_per_second"] for row in rounds if row["mode"] == mode]
                  for mode in ("baseline", "stax")}
         baseline = statistics.median(rates["baseline"])
         sampled = statistics.median(rates["stax"])
+        latency = {
+            percentile: {
+                "baseline_median": statistics.median(row["memtier"][f"{percentile}_latency_ms"]
+                                                     for row in rounds if row["mode"] == "baseline"),
+                "stax_median": statistics.median(row["memtier"][f"{percentile}_latency_ms"]
+                                                 for row in rounds if row["mode"] == "stax"),
+            }
+            for percentile in ("p50", "p99")
+        }
+        for values in latency.values():
+            values["change_percent"] = ((values["stax_median"] / values["baseline_median"] - 1) * 100
+                                        if values["baseline_median"] > 0 else None)
         return {
             "workload": "memtier",
             "baseline_median_operations_per_second": baseline,
             "stax_median_operations_per_second": sampled,
             "observed_throughput_change_percent": (sampled / baseline - 1) * 100,
+            "throughput_operations_per_second": {mode: distribution(values) for mode, values in rates.items()},
+            "latency_ms": latency,
+            "observed_peak_rss_kb": rss(),
             "scope": "fixed-duration mixed SET/GET on one Redis process; includes client effects",
         }
     elapsed = {"baseline": [], "stax": []}
@@ -201,6 +244,8 @@ def summarize(rounds: list[dict], workload: str, requests: int) -> dict:
         "baseline_median_seconds": baseline,
         "stax_median_seconds": sampled,
         "observed_wall_time_change_percent": (sampled / baseline - 1) * 100,
+        "elapsed_seconds": {mode: distribution(values) for mode, values in elapsed.items()},
+        "observed_peak_rss_kb": rss(),
         "scope": "same Redis process, fixed request count; includes benchmark-client effects",
     }
 
@@ -262,10 +307,9 @@ def pilot(args: argparse.Namespace) -> None:
     (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
     daemon_socket = Path(args.daemon_socket)
-    if platform.system() == "Darwin" and not (
-        daemon_socket.exists() and stat.S_ISSOCK(daemon_socket.stat().st_mode)
-    ):
-        raise RuntimeError(f"macOS Stax helper socket is absent: {daemon_socket}; logs: {output}")
+    if platform.system() == "Darwin":
+        metadata["helper_socket"] = validate_helper_socket(daemon_socket)
+        (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
     redis = server = recorder = None
     with tempfile.TemporaryDirectory(prefix="td-stax-m1-") as runtime:

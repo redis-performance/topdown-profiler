@@ -4,8 +4,10 @@ import argparse
 import json
 from pathlib import Path
 import platform
+import socket
 import subprocess
 import sys
+import tempfile
 import textwrap
 
 import pytest
@@ -49,6 +51,57 @@ def test_memtier_summary_rejects_broken_duration_or_rate(tmp_path):
     path.write_text(json.dumps(report))
     with pytest.raises(ValueError, match="disagrees"):
         PILOT.memtier_metrics(path)
+
+
+def test_memtier_summary_reports_latency_spread_and_rss():
+    rounds = [
+        {"mode": mode, "memtier": {"operations_per_second": rate, "p50_latency_ms": p50,
+                                     "p99_latency_ms": p99}, "observed_peak_rss_kb": rss}
+        for mode, rate, p50, p99, rss in (
+            ("baseline", 1000, 0.1, 0.3, {"redis": 100, "stax_server": 80}),
+            ("stax", 900, 0.12, 0.36, {"redis": 120, "stax_server": 90, "stax_record": 30}),
+            ("stax", 900, 0.12, 0.36, {"redis": 130, "stax_server": 95, "stax_record": 31}),
+            ("baseline", 1000, 0.1, 0.3, {"redis": 110, "stax_server": 82}),
+        )
+    ]
+    summary = PILOT.summarize(rounds, "memtier", 1000)
+    assert summary["observed_throughput_change_percent"] == pytest.approx(-10)
+    assert summary["latency_ms"]["p50"]["change_percent"] == pytest.approx(20)
+    assert summary["latency_ms"]["p99"]["change_percent"] == pytest.approx(20)
+    assert summary["observed_peak_rss_kb"]["stax"]["redis"]["max"] == 130
+    assert summary["observed_peak_rss_kb"]["baseline"]["redis"]["median"] == 105
+
+
+def test_private_helper_socket_requires_private_directory_and_root_owner(monkeypatch):
+    with tempfile.TemporaryDirectory(prefix="stax-", dir="/tmp") as temporary, socket.socket(
+        socket.AF_UNIX
+    ) as listener:
+        directory = Path(temporary)
+        path = directory / "staxd.sock"
+        listener.bind(str(path))
+        directory.chmod(0o755)
+        with pytest.raises(RuntimeError, match="directory must be owned by this user and private"):
+            PILOT.validate_helper_socket(path)
+        directory.chmod(0o700)
+        if path.lstat().st_uid != 0:
+            with pytest.raises(RuntimeError, match="root-owned Unix socket"):
+                PILOT.validate_helper_socket(path)
+
+        original_lstat = Path.lstat
+
+        def root_socket_lstat(self):
+            info = original_lstat(self)
+            if self == path:
+                values = list(info)
+                values[4] = 0
+                return type(info)(values)
+            return info
+
+        monkeypatch.setattr(Path, "lstat", root_socket_lstat)
+        assert PILOT.validate_helper_socket(path) == {
+            "path": str(path), "directory_mode": 0o700,
+            "directory_owner_uid": directory.lstat().st_uid, "socket_owner_uid": 0,
+        }
 
 
 @pytest.mark.parametrize("fail_second", [False, True])
