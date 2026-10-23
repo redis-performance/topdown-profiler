@@ -108,5 +108,15 @@
   },
   "interpretation": "Functional lifecycle and archive validation only. The helper sends invented samples at about 10 Hz; no real kperf or PMU data was collected. Throughput and p99 shifted in the final unprofiled round, so these pairs do not establish profiler overhead or meet live acceptance.",
   "privileged_cpu_sampling_verified": false,
-  "apple_pmu_hardware_verified": false
+  "apple_pmu_hardware_verified": false,
+  "no_helper_preflight": {
+    "raw_local_path": "/private/tmp/stax-m1-no-helper-preflight-real-002",
+    "metadata_sha256": "19e29d1678d335f5c4597c7780f9c3cf422280c8164bac71a775f26dcb39be72",
+    "output_directory_mode": "0700",
+    "preflight_status": "failed",
+    "reason": "macOS Stax helper socket is absent",
+    "rounds_started": 0,
+    "cli_error_without_traceback": true,
+    "root_helper_used": false
+  }
 }

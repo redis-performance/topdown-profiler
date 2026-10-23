@@ -51,6 +51,12 @@ profiles must not be presented as Intel TMA funnels.
   Measure throughput and latency changes, record variability, and inspect profiler
   resource use. Begin with a 30-second capture and adjust duration or frequency if
   sample quality or overhead requires it.
+- Include a separate latency-sensitive, low-pipeline control. In the
+  [Linux VM pilot](stax-vm-pilot.md), pipeline-16 median throughput and PING
+  p99 met the declared budget while pipeline-1 PING p99 exceeded it sharply;
+  that result motivates a host-specific tail check and does not predict M1/M6
+  behavior. Report the probe's latency unit and scope separately from the
+  main workload's end-to-end latency.
 - Inspect thread breakdowns, self/total hotspots, flamegraphs, and one hot function's
   disassembly. Record unresolved symbols, truncated stacks, dropped events, and
   whether expected threads and wait information are visible.

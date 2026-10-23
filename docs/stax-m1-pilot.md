@@ -402,6 +402,13 @@ python3 examples/stax_redis_pilot.py \
   --redis-build-flags 'OPT=-O2 -fno-omit-frame-pointer MALLOC=libc BUILD_TLS=no'
 ```
 
+This pipeline-four workload is one diagnostic shape. The merged
+[Linux VM pilot](stax-vm-pilot.md) found a large pipeline-one PING p99 increase
+under Stax even when throughput loss was small. That does not establish an M1
+effect. If live M1 sampling is later enabled, add a separate paired
+latency-sensitive, low-pipeline control before accepting overhead; keep its
+PING RTT distinct from memtier SET/GET latency.
+
 For the earlier fixed-count Redis benchmark control, use
 `--workload redis-benchmark` with the 8.2.2 Redis and benchmark binaries;
 that workload is separate from the Linux pilot. The memtier mode validates its
@@ -439,6 +446,10 @@ all five checked views unchanged, and compared offline after both servers
 stopped. All four Redis rounds had zero GET misses. The final unprofiled round
 shifted markedly, and the helper emitted invented records at about 10 Hz;
 those throughput and latency values are **not** a Stax overhead measurement.
+With the root helper absent, a separate real runner preflight exited before
+starting any Redis or Stax round. It left only `metadata.json` in a private
+`0700` output directory, recorded the missing-socket reason, and returned a
+concise CLI error. That result is recorded with the synthetic Redis control.
 
 The existing native Apple fixed-counter stack capture and M1 event-group
 experiments provide separate comparison evidence. Run native Apple capture

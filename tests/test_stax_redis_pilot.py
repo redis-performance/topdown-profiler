@@ -57,6 +57,24 @@ def test_host_version_probe_has_a_deadline(monkeypatch):
     assert PILOT.read_host()["xcode"] == "unavailable: timed out"
 
 
+def test_cli_reports_preflight_failure_without_traceback(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["stax_redis_pilot", "--output", str(tmp_path / "pilot"),
+                                     "--stax-revision", "a" * 40, "--redis-revision", "b" * 40,
+                                     "--daemon-socket", str(tmp_path / "missing.sock")])
+
+    def fail(_):
+        raise RuntimeError("helper socket is absent")
+
+    monkeypatch.setattr(PILOT, "pilot", fail)
+    with pytest.raises(SystemExit) as exit_info:
+        PILOT.main()
+    assert exit_info.value.code == 1
+    error = capsys.readouterr().err
+    assert "Stax pilot failed: helper socket is absent" in error
+    assert str(tmp_path / "pilot") in error
+    assert "Traceback" not in error
+
+
 def test_benchmark_rates_and_balanced_order():
     assert PILOT.benchmark_rates('"SET","1200.5"\n"GET","1000"\n') == {"SET": 1200.5, "GET": 1000}
     csv_output = ('"test","rps","p50_latency_ms","p95_latency_ms","p99_latency_ms"\n'

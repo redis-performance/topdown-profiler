@@ -625,7 +625,10 @@ def main() -> None:
         parser.error("--memtier-revision is required for the memtier workload")
     if not math.isfinite(args.min_free_gib) or args.min_free_gib <= 0:
         parser.error("--min-free-gib must be a positive finite number")
-    pilot(args)
+    try:
+        pilot(args)
+    except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
+        parser.exit(1, f"Stax pilot failed: {exc}\nArtifacts: {args.output.resolve()}\n")
 
 
 if __name__ == "__main__":
