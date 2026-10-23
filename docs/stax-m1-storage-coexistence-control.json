@@ -1,0 +1,35 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "topdown_branch": "feat/apple-m1-stax-pilot after merging PR #47 into main",
+  "method": "Import an existing real native M1 fixed-counter Redis profile and the separate rootless synthetic-CPU/real-GPU Stax archive into one new SQLite database through public CLI commands; query each collector and verify cross-collector queries fail.",
+  "raw_local_path": "/private/tmp/stax-m1-coexistence-001.sqlite",
+  "database_sha256": "b4226833f1c4f64f67010e36dde06fddb796aff37d4f6b24ace23d39ffac7650",
+  "apple": {
+    "run_id": "3c087e13-91ca-4b45-8c47-eb24ddf18a0b",
+    "source_profile": "/private/tmp/stax-m1-native-fixed-control/capture/profile.json",
+    "source_sha256": "2d598911eae3bc501be0e78059c450cfe2edde46648ab62bb9430294c1de25e1",
+    "collector_label": "apple",
+    "measurement_kind": "native-fixed-counter-samples",
+    "sample_count": 23844,
+    "tma_available": false,
+    "public_query_succeeded": true,
+    "public_hotspot_report_succeeded": true
+  },
+  "stax": {
+    "run_id": "4012c857-0110-4c37-9792-f5d50f06d29a",
+    "source_archive": "/private/tmp/stax-m1-origin-fixture/control-002/capture/archive",
+    "manifest_sha256": "4709cef5b5e1a57fea0fe20ae65455721c30afa90b6cac583b3368f200ea8ef8",
+    "collector_label": "stax",
+    "measurement_kind": "stax-sampled-stacks-and-scheduler-intervals",
+    "invented_cpu_samples": 341,
+    "real_m1_gpu_spans": 299,
+    "linked_origins": 299,
+    "public_query_succeeded": true,
+    "public_targets_query_succeeded": true
+  },
+  "isolation": {
+    "apple_query_on_stax_run_rejected": true,
+    "stax_query_on_apple_run_rejected": true
+  },
+  "limitations": "The native Redis and Stax Metal controls are separate workloads and capture times. The Stax CPU samples and PMU fields are invented; this control checks database coexistence and collector routing, not comparative performance, privileged capture, or Apple TMA."
+}

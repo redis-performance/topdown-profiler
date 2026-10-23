@@ -116,7 +116,10 @@ budget; otherwise document the limitation or narrow the supported configuration.
   do not assume their totals form a wall-time utilization denominator. Preserve
   requested sampling frequency separately from observed sample count and
   capture duration, because configured cadence does not prove delivered samples.
-  Preserve existing TMA queries and stored-run compatibility.
+  Preserve existing TMA queries and stored-run compatibility. The
+  [M1 shared SQLite control](stax-m1-storage-coexistence-control.json)
+  verifies Apple and Stax run routing with real native Apple data and a
+  separate rootless Stax archive.
   In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
   includes synthetic target-span markers: the
   [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there

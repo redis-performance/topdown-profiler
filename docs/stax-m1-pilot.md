@@ -305,6 +305,14 @@ At invented sample periods of 20, 50, and 100 ms, two runs linked respectively
 the requested frequency and the actual CPU sample count must both be checked
 before treating origin links as useful attribution.
 
+After PR #47 merged, a [shared SQLite control](stax-m1-storage-coexistence-control.json)
+imported the earlier real M1 native fixed-counter Redis profile and the
+separate rootless Stax Metal archive into one database. Apple query/report
+still returned 23,844 native stack samples; Stax query/targets returned 341
+invented CPU samples and 299 real GPU spans with linked origins. Each
+collector rejected the other's run ID. These are separate workloads, so their
+counts are a storage and routing check rather than a performance comparison.
+
 ## Live Redis pilot
 
 The pinned `staxd` makes its Unix socket world writable (`0666`) and has no
