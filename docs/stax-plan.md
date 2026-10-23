@@ -132,7 +132,8 @@ budget; otherwise document the limitation or narrow the supported configuration.
   capture metadata. Report incompatible comparisons explicitly.
 - Document macOS and Linux setup and a complete Redis example.
 - Treat cooperating GPU spans as explicit target instrumentation, not automatic
-  GPU hardware-counter collection. Keep native Metal replay available separately.
+  GPU hardware-counter collection. Keep native Metal replay on supported devices
+  and the M1 Instruments counter path available separately.
 
 ## Phase 4: CI evaluation
 

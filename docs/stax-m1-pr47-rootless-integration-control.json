@@ -38,5 +38,34 @@
   },
   "privileged_cpu_sampling_verified": false,
   "gpu_hardware_counters_verified": false,
-  "limitations": "Doctor policy was bypassed only for a fake rootless helper; this does not establish real helper permission, CPU stack collection, PMU counts, or production capture acceptance."
+  "limitations": "Doctor policy was bypassed only for a fake rootless helper; this does not establish real helper permission, CPU stack collection, PMU counts, or production capture acceptance.",
+  "latest_pr47_recheck": {
+    "revision": "275036cb30eae3b0fa5aae5155fbe81ca75a55d7",
+    "method": "M1 rootless recapture with fake zero-kperf helper and real GPU app; separate import of prior synthetic CPU/real GPU archive; helper ownership preflight bypassed only inside test process",
+    "capture_local_path": "/private/tmp/stax-m1-pr47-latest-capture-001",
+    "capture_sha256": {
+      "capture.json": "3154627390dbfc555b691b4228ed1256825e14fe993a7937f80d1ea672fa7c64",
+      "processes.json": "91411f7684051f7b4f0e24c34eb439d3ee7f5885d6e200dd8149cfbf15cc4b5e",
+      "target.log": "59ce0511ce0904fb9eee0d5355b4e3fd84165c36bed8f8c9f2907045200a9209",
+      "archive/manifest.json": "607ef0fc2531cad776e41c08c84ff8393c39ed59bc43acdc9e74122cc9d0546c"
+    },
+    "capture_status": "completed",
+    "target_exit_code": 0,
+    "real_gpu_command_buffers": 300,
+    "reported_target_spans": 299,
+    "run_summary_cpu_pet_samples": 0,
+    "processes_json_matches_capture_metadata": true,
+    "synthetic_archive_import": {
+      "cpu_samples": 78,
+      "target_spans": 299,
+      "target_lanes": 1,
+      "cpu_hotspot_denominator": 78,
+      "pmc_fixture_preserved": true
+    },
+    "focused_stax_tests": {
+      "passed": 112,
+      "failed": 0
+    },
+    "privileged_sampling_verified": false
+  }
 }

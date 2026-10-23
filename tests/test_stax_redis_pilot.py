@@ -187,13 +187,21 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
     monkeypatch.setattr(PILOT.platform, "system", lambda: "Linux")
     monkeypatch.setenv("FAKE_BENCH_MARKER", str(tmp_path / "bench-count"))
     monkeypatch.setenv("FAKE_STAX_PID_FILE", str(tmp_path / "stax-pid"))
+    version_probe = tmp_path / "stax-server-version-probed"
+    monkeypatch.setenv("FAKE_STAX_SERVER_VERSION_PROBE_MARKER", str(version_probe))
+    server_starts = tmp_path / "stax-server-starts"
+    monkeypatch.setenv("FAKE_STAX_SERVER_STARTS", str(server_starts))
     if fail_second:
         monkeypatch.setenv("FAKE_BENCH_FAIL_SECOND", "1")
     if workload == "memtier" and not fail_second:
         monkeypatch.setenv("STAX_EXPERIMENTAL_APPLE_PMU", "1")
     server = fake_executable(tmp_path / "fake-stax-server", """
-        import os, signal, socket, sys, time
-        if '--version' in sys.argv: print('fake stax server'); exit(0)
+        import os, pathlib, signal, socket, sys, time
+        if '--version' in sys.argv:
+            pathlib.Path(os.environ['FAKE_STAX_SERVER_VERSION_PROBE_MARKER']).touch()
+            exit(0)
+        with open(os.environ['FAKE_STAX_SERVER_STARTS'], 'a') as starts:
+            print(os.getpid(), file=starts)
         sock = socket.socket(socket.AF_UNIX)
         sock.bind(os.environ['STAX_SERVER_SOCKET'])
         sock.listen()
@@ -278,10 +286,20 @@ def test_private_server_pilot_saves_and_reopens_each_capture(tmp_path, monkeypat
             PILOT.pilot(args)
         assert "stax: started run " in (output / "round-02" / "record.stderr").read_text()
         assert len(json.loads((output / "metadata.json").read_text())["rounds"]) == 1
+        assert not version_probe.exists()
+        assert len(server_starts.read_text().splitlines()) == 1
         return
     PILOT.pilot(args)
 
     result = json.loads((output / "metadata.json").read_text())
+    assert not version_probe.exists()
+    assert len(server_starts.read_text().splitlines()) == 2
+    assert not (output / "stax-server.log").exists()
+    assert all((output / f"round-{index:02d}" / "stax-server.log").exists() for index in (2, 3))
+    assert all(not (output / f"round-{index:02d}" / "stax-server.log").exists() for index in (1, 4))
+    assert result["executables"]["stax_server"]["version"] == (
+        "unavailable: long-running service has no version command"
+    )
     assert result["stax_experimental_apple_pmu"] is (workload == "memtier")
     assert [row["mode"] for row in result["rounds"]] == ["baseline", "stax", "stax", "baseline"]
     assert all(all(row["round_trip_equal"].values()) for row in result["rounds"] if row["mode"] == "stax")

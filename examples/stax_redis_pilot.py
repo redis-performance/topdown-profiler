@@ -374,8 +374,13 @@ def pilot(args: argparse.Namespace) -> None:
     names.append("memtier" if args.workload == "memtier" else "redis_benchmark")
     paths = {name: executable(getattr(args, name)) for name in names}
 
-    def version(path: Path) -> str:
-        result = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=10, check=False)
+    def version(name: str, path: Path) -> str:
+        if name == "stax_server":
+            return "unavailable: long-running service has no version command"
+        try:
+            result = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=10, check=False)
+        except subprocess.TimeoutExpired:
+            return "unavailable: version probe timed out"
         if result.returncode:
             return f"unavailable: exit {result.returncode}"
         return (result.stdout or result.stderr).strip()
@@ -390,7 +395,7 @@ def pilot(args: argparse.Namespace) -> None:
         "disk_free_bytes_start": initial_free,
         "min_free_gib": args.min_free_gib,
         "host": read_host(),
-        "executables": {name: {"path": str(path), "sha256": sha256(path), "version": version(path)}
+        "executables": {name: {"path": str(path), "sha256": sha256(path), "version": version(name, path)}
                         for name, path in paths.items()},
         "settings": {"workload": args.workload,
                      "requests_per_command": args.requests if args.workload == "redis-benchmark" else None,
@@ -417,17 +422,11 @@ def pilot(args: argparse.Namespace) -> None:
     with tempfile.TemporaryDirectory(prefix="td-stax-m1-") as runtime:
         runtime_path = Path(runtime)
         redis_socket = runtime_path / "redis.sock"
-        stax_socket = runtime_path / "stax.sock"
         with socket.socket() as probe_socket:
             probe_socket.bind(("127.0.0.1", 0))
             redis_port = probe_socket.getsockname()[1]
-        env = dict(os.environ, STAX_SERVER_SOCKET=str(stax_socket), STAX_SERVER_WS_BIND="127.0.0.1:0")
+        env = dict(os.environ, STAX_SERVER_WS_BIND="127.0.0.1:0")
         try:
-            with (output / "stax-server.log").open("w") as log:
-                server = subprocess.Popen([str(paths["stax_server"])], stdout=log, stderr=subprocess.STDOUT, env=env)
-            wait_for(lambda: stax_socket.exists(), server, 20, "private stax-server")
-            run_command("stax-status-initial", [str(paths["stax"]), "status"], output, env=env)
-
             redis_cmd = [str(paths["redis_server"]), "--bind", "127.0.0.1", "--port", str(redis_port),
                          "--io-threads", "1", "--unixsocket", str(redis_socket),
                          "--unixsocketperm", "700", "--save", "", "--appendonly", "no",
@@ -470,6 +469,13 @@ def pilot(args: argparse.Namespace) -> None:
                 run_command("warmup", workload_command(False), round_output, timeout=120)
                 recorder = None
                 if profiled:
+                    stax_socket = runtime_path / f"stax-{index}.sock"
+                    env["STAX_SERVER_SOCKET"] = str(stax_socket)
+                    with (round_output / "stax-server.log").open("w") as log:
+                        server = subprocess.Popen([str(paths["stax_server"])],
+                                                  stdout=log, stderr=subprocess.STDOUT, env=env)
+                    wait_for(lambda: stax_socket.exists(), server, 20, "private stax-server")
+                    run_command("stax-status-initial", [str(paths["stax"]), "status"], round_output, env=env)
                     record_cmd = [str(paths["stax"]), "record", "--pid", str(redis.pid),
                                   "--frequency", str(args.frequency), "--time-limit",
                                   "45" if args.workload == "memtier" else "120",
@@ -537,6 +543,8 @@ def pilot(args: argparse.Namespace) -> None:
                                                round_output, env=env)
                         row["round_trip_equal"][name] = restored.stdout == (
                             round_output / f"{name}.stdout").read_text()
+                    stop_owned(server)
+                    server = None
                 row["disk_free_bytes_after"] = shutil.disk_usage(output).free
                 metadata["rounds"].append(row)
                 (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")

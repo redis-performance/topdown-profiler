@@ -1,0 +1,112 @@
+{
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "method": "Four 30-second Redis 8.6.0/memtier 2.5.2 rounds in baseline/Stax/Stax/baseline order; synthetic unprivileged helper emits invented PET/PMC at about 10 Hz and enforces opt-in M1 KPEP config; helper socket ownership check bypassed only inside test process",
+  "rootless_only": true,
+  "source_sha256": "2869587443585ce90eeb4cd6082d2c246f3a0cc0e0c17921df7c527c25371084",
+  "before_server_lifecycle_fix": {
+    "raw_local_path": "/private/tmp/stax-m1-pilot-synthetic-redis-002",
+    "metadata_sha256": "651baa3cd5816d7b0f98411116612cc3bdd7e8b60c3039d9b371e7be60dd0ae8",
+    "server_lifetime": "one Stax server through all baseline and profiled rounds",
+    "observed_baseline_server_peak_rss_kb": [
+      86080,
+      578016
+    ],
+    "finding": "Baseline rounds retained a Stax server and its prior archive state; unsuitable baseline design"
+  },
+  "after_server_lifecycle_fix": {
+    "raw_local_path": "/private/tmp/stax-m1-pilot-synthetic-redis-003",
+    "metadata_sha256": "51ddd3880ae8f77401ad2ad081430a2ae4407bfb5edf4a261b22ace809abe679",
+    "server_lifetime": "new private server and socket per profiled round; no Stax server in baseline rounds",
+    "rounds": [
+      {
+        "mode": "baseline",
+        "operations_per_second": 538818.0,
+        "p50_latency_ms": 0.143,
+        "p99_latency_ms": 0.327,
+        "get_miss_fraction": 0.0,
+        "cpu_pet_samples_synthetic": null,
+        "observed_peak_rss_kb": {
+          "redis": 6848
+        },
+        "round_trip_views_all_equal": null
+      },
+      {
+        "mode": "stax",
+        "operations_per_second": 500716.26666666666,
+        "p50_latency_ms": 0.151,
+        "p99_latency_ms": 0.447,
+        "get_miss_fraction": 0.0,
+        "cpu_pet_samples_synthetic": 301,
+        "observed_peak_rss_kb": {
+          "redis": 7072,
+          "stax_server": 267936,
+          "stax_record": 10272
+        },
+        "round_trip_views_all_equal": true
+      },
+      {
+        "mode": "stax",
+        "operations_per_second": 498230.0589980334,
+        "p50_latency_ms": 0.151,
+        "p99_latency_ms": 0.479,
+        "get_miss_fraction": 0.0,
+        "cpu_pet_samples_synthetic": 302,
+        "observed_peak_rss_kb": {
+          "redis": 7104,
+          "stax_server": 267856,
+          "stax_record": 10272
+        },
+        "round_trip_views_all_equal": true
+      },
+      {
+        "mode": "baseline",
+        "operations_per_second": 500677.6,
+        "p50_latency_ms": 0.135,
+        "p99_latency_ms": 0.543,
+        "get_miss_fraction": 0.0,
+        "cpu_pet_samples_synthetic": null,
+        "observed_peak_rss_kb": {
+          "redis": 5776
+        },
+        "round_trip_views_all_equal": null
+      }
+    ],
+    "comparison": {
+      "baseline_sample_markers": 301,
+      "candidate_sample_markers": 302
+    },
+    "paired_changes_percent": [
+      {
+        "pair": 1,
+        "order": "baseline/stax",
+        "throughput_change_percent": -7.071354953496978,
+        "p50_latency_change_percent": 5.594405594405605,
+        "p99_latency_change_percent": 36.69724770642202
+      },
+      {
+        "pair": 2,
+        "order": "stax/baseline",
+        "throughput_change_percent": -0.48884571667807686,
+        "p50_latency_change_percent": 11.851851851851848,
+        "p99_latency_change_percent": -11.786372007366497
+      }
+    ],
+    "baseline_rounds_have_no_stax_server": true,
+    "profiled_rounds_use_distinct_servers": true,
+    "all_saved_cpu_pmc_match_fixture": true,
+    "fixture_pmc_per_sample": {
+      "cycles": 100,
+      "instructions": 200,
+      "l1d_misses": 13,
+      "branch_mispreds": 17
+    },
+    "all_get_miss_fractions_zero": true,
+    "focused_pilot_tests": {
+      "passed": 14,
+      "failed": 0
+    }
+  },
+  "interpretation": "Functional lifecycle and archive validation only. The helper sends invented samples at about 10 Hz; no real kperf or PMU data was collected. Throughput and p99 shifted in the final unprofiled round, so these pairs do not establish profiler overhead or meet live acceptance.",
+  "privileged_cpu_sampling_verified": false,
+  "apple_pmu_hardware_verified": false
+}

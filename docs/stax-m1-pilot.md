@@ -1,7 +1,8 @@
 # Stax on Apple M1: pilot evidence and runbook
 
-Status: source, build, and unprivileged server checks completed on 23 October
-2026. A live Stax recording is pending a short-lived macOS root helper session.
+Status: source, build, and rootless functional checks completed on 23 October
+2026. Privileged Stax capture remains unverified because no root helper is in
+use on this M1.
 This is a platform pilot for the [Stax plan](stax-plan.md),
 not a new collector or a claim of Intel TMA support.
 
@@ -192,8 +193,10 @@ completed **command buffer** using these timestamps, capturing a CPU origin at
 submission and converting finite, positive host seconds to nanoseconds. The
 start/end properties must be read after completion. A command buffer can hold
 multiple encoders and dispatches, so these properties do not give individual
-kernel duration or hardware-counter attribution. The existing native Metal
-counter and replay workflow remains the source for GPU bottleneck counters.
+kernel duration or hardware-counter attribution. On this M1, the separate
+Instruments Metal System Trace counter workflow remains the native GPU
+counter path; Xcode's packaged GPU replay profiler requires newer hardware
+on this host.
 The clock test alone does not validate ingestion or CPU origin linking.
 
 The [rootless Metal lane control](stax-m1-gpu-target-control.json) used a
@@ -243,6 +246,11 @@ checksum and exited cleanly. The control substituted an unprivileged helper
 that emits no kperf records and bypassed only the adapter's helper-ownership
 preflight inside the test process; it does not validate privileged CPU stacks,
 PMU counters, or capture acceptance on macOS.
+The same control was rerun against PR #47 at
+`275036cb30eae3b0fa5aae5155fbe81ca75a55d7`: its new `processes.json`
+matched capture metadata, the M1 app again reported 299 spans and exited
+cleanly, the synthetic archive imported with 78 CPU samples and one target
+lane, and all 112 focused Stax integration tests passed on this host.
 
 ## Live Redis pilot
 
@@ -301,9 +309,9 @@ From this repository, run three baseline/profiled pairs. This follows the
 Linux pilot's Redis 8.6 workload: 10,000 prefilled keys, 64-byte values,
 5 seconds of warmup, then 30 seconds of mixed 1:1 SET/GET using two memtier
 threads, ten clients per thread, and pipeline depth four. The script starts a
-private Stax server and a private Redis instance on loopback, and balances
-run order to reduce drift. It
-stops only the recorder it started. Each profiled round saves a `.stax`
+private Redis instance on loopback, and a fresh private Stax server for each
+profiled round. Baseline rounds have no Stax server. It balances run order to
+reduce drift and stops its own recorder and server. Each profiled round saves a `.stax`
 archive, reopens it, and records whether the all-thread view, self/total hotspot
 views, flame view, diagnostics, and any successful `processCommand`
 annotation are unchanged. The saved v3 archive must have a matching Redis PID
@@ -340,9 +348,10 @@ the M1 host; the summary includes per-mode throughput ranges, median p50/p99
 latencies, observed changes, and each adjacent baseline/Stax pair's order and
 throughput/latency changes. Use the paired values to inspect order effects
 before interpreting the pooled medians. The client version and CPU topology differ
-from Linux. The script samples Redis, Stax server, and recorder resident memory
-once per second in every round. Its summary gives median and peak observed RSS
-for each process and mode; it does not observe root `staxd` memory. Record actual
+from Linux. The script samples Redis resident memory in every round and Stax
+server and recorder memory in profiled rounds, once per second. Its summary
+gives median and peak observed RSS for each process and mode; it does not
+observe root `staxd` memory. Record actual
 stack depth, unresolved symbols, waits,
 dropped events, helper resource use, and the disassembly of one observed hot
 symbol before accepting the pilot. The default annotation target is
@@ -353,6 +362,20 @@ space and uses a 1.5 GiB reserve before each round and archive save; set
 reserve failure retains completed round artifacts.
 Do not infer Intel pipeline-slot shares from Stax
 samples or M1 fixed counters.
+
+A [four-round rootless Redis control](stax-m1-synthetic-redis-pilot.json)
+exercised the full runner with the synthetic sample helper and the opt-in PMU
+server. It exposed two preflight/lifecycle problems: `stax-server --version`
+stays running instead of returning a version, and retaining one server across
+all rounds carried large archive state into baseline measurements. The runner
+now records the server binary digest without invoking its version flag, starts
+a fresh server and socket for each profiled round, and runs baseline rounds
+without a Stax server. In the corrected control, both profiled archives had
+positive invented PET counts, preserved the fixture PMU values, reopened with
+all five checked views unchanged, and compared offline after both servers
+stopped. All four Redis rounds had zero GET misses. The final unprofiled round
+shifted markedly, and the helper emitted invented records at about 10 Hz;
+those throughput and latency values are **not** a Stax overhead measurement.
 
 The existing native Apple fixed-counter stack capture and M1 event-group
 experiments provide separate comparison evidence. Run native Apple capture
