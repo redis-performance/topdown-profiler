@@ -312,6 +312,11 @@ still returned 23,844 native stack samples; Stax query/targets returned 341
 invented CPU samples and 299 real GPU spans with linked origins. Each
 collector rejected the other's run ID. These are separate workloads, so their
 counts are a storage and routing check rather than a performance comparison.
+The bare Stax archive identifies macOS and `aarch64`, not an M1 chip. This
+pilot's M1 host identity comes from its local capture evidence; a future native
+capture stores the host environment in capture metadata and run labels, as
+described in the [Stax usage guide](stax-usage.md). Do not infer M1 or M6 from
+archive architecture alone.
 
 ## Live Redis pilot
 
