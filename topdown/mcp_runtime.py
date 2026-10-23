@@ -11,11 +11,18 @@ import threading
 import anyio
 
 
+def _pollable(fd):
+    info = os.fstat(fd)
+    return not (stat.S_ISREG(info.st_mode)
+                or stat.S_ISCHR(info.st_mode) and info.st_rdev == os.stat(os.devnull).st_rdev)
+
+
 async def _lines(fd):
     pending = []
-    regular = stat.S_ISREG(os.fstat(fd).st_mode)
+    previous_cr = False
+    pollable = _pollable(fd)
     while True:
-        if not regular:
+        if pollable:
             await anyio.wait_readable(fd)
         else:
             await anyio.lowlevel.checkpoint()
@@ -27,6 +34,10 @@ async def _lines(fd):
             if pending:
                 yield b"".join(pending).decode("utf-8", errors="replace")
             return
+        if previous_cr and chunk.startswith(b"\n"):
+            chunk = chunk[1:]
+        previous_cr = chunk.endswith(b"\r")
+        chunk = chunk.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
         parts = chunk.split(b"\n")
         for part in parts[:-1]:
             pending.append(part)
@@ -39,12 +50,12 @@ async def _lines(fd):
 class _Output:
     def __init__(self, fd):
         self.fd = fd
-        self.regular = stat.S_ISREG(os.fstat(fd).st_mode)
+        self.pollable = _pollable(fd)
 
     async def write(self, text):
         remaining = memoryview(text.encode("utf-8"))
         while remaining:
-            if not self.regular:
+            if self.pollable:
                 await anyio.wait_writable(self.fd)
             else:
                 await anyio.lowlevel.checkpoint()
