@@ -161,6 +161,63 @@ topdown apple store /tmp/m6-dependent-reads-001/trial-02-bits-24-threads-262144/
   --process dependent-reads --label test_name=m6-dependent-reads
 ```
 
+### M6 compute control: independent FMA chains
+
+The [FMA probe](../examples/apple_gpu/fma_chains_probe.swift) executes
+268,435,456 logical fused multiply-add updates per trial, varying 64/4,096
+threads and 1/4/16 independent chains within each thread. The positive
+coefficients keep the tested states growing, and safe/precise Metal math avoids
+unsafe reassociation. After each original command, every output's Float bit
+pattern must match a fused CPU reference. The result records coefficient bits,
+checksums, work counts and original GPU timing.
+
+The [measured M6 evidence](apple-gpu-m6-fma-chains.json) contains 12 forward/reverse
+trials plus 12 public-runner replications, with source, binary and artifact hashes.
+These are the full ranges across all four observations of each condition:
+
+| Threads | Chains/thread | Original GPU ms | Replay GPU ms | Native active-core share |
+|---:|---:|---:|---:|---:|
+| 64 | 1 | 54.74–54.91 | 62.9507–62.9536 | 8% |
+| 64 | 4 | 20.27–20.42 | 15.7393–15.7408 | 8% |
+| 64 | 16 | 12.52–12.54 | 6.2144–6.2263 | 8–9% |
+| 4,096 | 1 | 2.49–3.73 | 1.2858–1.4776 | 74–82% |
+| 4,096 | 4 | 1.2472–1.2478 | 0.4940–0.4959 | 63–67% |
+| 4,096 | 16 | 0.6823–0.6866 | 0.2703–0.3336 | 66–67% |
+
+More independent chains made the same logical work faster in this control.
+With 4,096 threads, the per-encoder F32 Limiter rose from 9.34–10.48% for one
+chain to 54.86–55.00% for 16 chains while replay duration fell. Read this native
+counter alongside verified work and duration: a larger limiter value alone
+cannot rank performance. The 64-thread one-chain captures have no per-encoder
+F32 Limiter field, even though their timeline F32 observations are present.
+Missing fields stay unavailable.
+
+Changing chains also changes register demand, loop iterations, coefficient reuse
+and input/output size. Changing threads changes scheduling and per-thread work.
+The logical FMA count does not establish issued instructions, pipeline latency
+or peak FLOP/s. Original command and replay timings describe different
+executions; frequency and background GPU activity are uncontrolled. Timeline
+counter scope remains wider than the captured workload.
+
+Run the balanced experiment on a supported replay host:
+
+```bash
+python examples/apple_gpu/fma_chains.py --output apple-fma
+
+topdown apple gpu report \
+  apple-fma/trial-00-threads-64-chains-1/replay/profile.json
+
+topdown apple store apple-fma/trial-00-threads-64-chains-1/replay/profile.json \
+  --label test_name=m6-fma --label threads=64 --label chains_per_thread=1
+```
+
+The runner freezes the compiled Swift source and its own Python source in the
+new output directory. Keep `results.json` with the captures for the verified
+work counts and provenance. Stored replays use the existing
+`query_apple_result(section="encoders")` and `get_apple_gpu_report` MCP tools;
+SQLite/PostgreSQL round-trip all 24 measured profiles without changing native
+strings, missing counters, costs or scope.
+
 ### Timeline counters include concurrent GPU activity
 
 A separate [offscreen renderer](../examples/apple_gpu/background_render_probe.swift)
