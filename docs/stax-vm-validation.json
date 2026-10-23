@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-23",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "redis_revision": "ceb01e1584d6fd847cccf4e3aca2100d2097c321",
+  "redis_version": "8.2.3",
+  "redis_build_command": "make -j4 BUILD_TLS=no MALLOC=libc REDIS_CFLAGS=-fno-omit-frame-pointer",
+  "host": {
+    "os": "Ubuntu 24.04.4",
+    "kernel": "6.8.0-117-generic",
+    "arch": "aarch64",
+    "virtual_cpus": 4,
+    "memory_gib": 6,
+    "hypervisor": "isolated Colima/VZ guest on Apple M6",
+    "perf_event_sources": [
+      "breakpoint",
+      "kprobe",
+      "software",
+      "tracepoint",
+      "uprobe"
+    ],
+    "capture_privilege": "root inside guest only"
+  },
+  "budget_declared_before_measurement": {
+    "median_throughput_loss_pct": 10,
+    "median_ping_p99_increase_pct": 20,
+    "max_baseline_rate_range_pct": 10
+  },
+  "experiments": [
+    {
+      "configuration": "pinned-99hz-pipeline16",
+      "source_file": "final-p16.json",
+      "source_sha256": "9e17759a6dc8d089b39bf142feaa861383dbfa829d64e0b64a95b588c6abd259",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 16,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "summary": {
+        "status": "within_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.7192916006172445,
+          0.8999119639660713,
+          0.7436731691016996,
+          0.7128560789957827,
+          1.1219290100612733
+        ],
+        "median_throughput_loss_pct": 0.7436731691016996,
+        "paired_ping_p99_increase_pct": [
+          21.024601836780967,
+          -6.768648087093332,
+          9.172557347288791,
+          18.2638185115215,
+          -1.3905616215442729
+        ],
+        "baseline_rate_range_pct": 1.2846570038052674,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "549da19837ea3f6ffbdaab5c2ff69ade89e531d90f7090a62ee80a08396c266d",
+      "baseline_ping_p99_ms": [
+        0.189458999557246,
+        0.19637600053101778,
+        0.18716699923970737,
+        0.181374999556283,
+        0.20675100040534744
+      ],
+      "profile_ping_p99_ms": [
+        0.22929199985810556,
+        0.18308400012756465,
+        0.2043349995801691,
+        0.21450100030051544,
+        0.20387600034155184
+      ],
+      "measurement_windows_verified": true,
+      "observed_clock_windows_verified": true,
+      "cpu_samples": [
+        580,
+        587,
+        586,
+        581,
+        580
+      ],
+      "cpu_sample_counts_match": true,
+      "profiler_resources": [
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 18923,
+            "cpu_percent_of_one_logical_cpu": 0.9996423552888354,
+            "rss_before_bytes": 57806848,
+            "rss_after_bytes": 59772928
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 18934,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 18950,
+            "cpu_percent_of_one_logical_cpu": 0.6663752796375141,
+            "rss_before_bytes": 55267328,
+            "rss_after_bytes": 59985920
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 18961,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 18980,
+            "cpu_percent_of_one_logical_cpu": 0.9996828213009128,
+            "rss_before_bytes": 55119872,
+            "rss_after_bytes": 56561664
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 18991,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10747904,
+            "rss_after_bytes": 10747904
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19008,
+            "cpu_percent_of_one_logical_cpu": 0.9996031159128528,
+            "rss_before_bytes": 55005184,
+            "rss_after_bytes": 59854848
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19019,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19037,
+            "cpu_percent_of_one_logical_cpu": 0.999707815396794,
+            "rss_before_bytes": 57745408,
+            "rss_after_bytes": 62857216
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19048,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        }
+      ],
+      "binary_sha256": {
+        "stax": "a3a345bf334bb5eac3979c2d4640d7380241fc64a5f256f94c5f27b7dfc4d479",
+        "stax-server": "62971492e86a1a22343ea28120467ee57fca6e2e768a629f3ac50d4181aa1b74"
+      }
+    },
+    {
+      "configuration": "pinned-99hz-pipeline1-serialized",
+      "source_file": "final-p1-locked.json",
+      "source_sha256": "77fa4f57e5c9b19bdc810b84bfc1a838c076b26b4eaaeddd7a3485be1f30ca7a",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.6187684439594388,
+          0.473450534546227,
+          0.1781934012258568,
+          0.23327791970443323,
+          0.5748127823831273
+        ],
+        "median_throughput_loss_pct": 0.473450534546227,
+        "paired_ping_p99_increase_pct": [
+          3371.7063015399704,
+          355.0230736856382,
+          1539.3959235660354,
+          53.70518506970805,
+          1718.8405636902373
+        ],
+        "baseline_rate_range_pct": 0.24582753670270296,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "runner_sha256": "53c0311c00e0656fe0f66b2b4fbe89cae7764730300f6d7757347ae9de85d9c4",
+      "adapter_sha256": "d5bf5ea1960be1655fcb9d18578e3c275fd9b6f18596852121b04770fcfaf935",
+      "baseline_ping_p99_ms": [
+        0.05729200074711116,
+        0.06587600000784732,
+        0.061249999816936906,
+        0.06750000011379598,
+        0.06508299975394038
+      ],
+      "profile_ping_p99_ms": [
+        1.9890100002157851,
+        0.2997510000568582,
+        1.0041300001830678,
+        0.10375100009696325,
+        1.1837559995910851
+      ],
+      "measurement_windows_verified": true,
+      "observed_clock_windows_verified": true,
+      "cpu_samples": [
+        577,
+        572,
+        572,
+        575,
+        583
+      ],
+      "cpu_sample_counts_match": true,
+      "profiler_resources": [
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19341,
+            "cpu_percent_of_one_logical_cpu": 0.33325619774271836,
+            "rss_before_bytes": 49934336,
+            "rss_after_bytes": 56356864
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19352,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19368,
+            "cpu_percent_of_one_logical_cpu": 0.33321798692819626,
+            "rss_before_bytes": 49831936,
+            "rss_after_bytes": 56123392
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19379,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19398,
+            "cpu_percent_of_one_logical_cpu": 0.33326634168857,
+            "rss_before_bytes": 50012160,
+            "rss_after_bytes": 56172544
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19409,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10485760,
+            "rss_after_bytes": 10485760
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19425,
+            "cpu_percent_of_one_logical_cpu": 0.6663902495460655,
+            "rss_before_bytes": 49786880,
+            "rss_after_bytes": 56209408
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19436,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10616832,
+            "rss_after_bytes": 10616832
+          }
+        },
+        {
+          "stax_server": {
+            "available": true,
+            "pid": 19455,
+            "cpu_percent_of_one_logical_cpu": 0.3332260573133257,
+            "rss_before_bytes": 49917952,
+            "rss_after_bytes": 56340480
+          },
+          "stax_recorder": {
+            "available": true,
+            "pid": 19466,
+            "cpu_percent_of_one_logical_cpu": 0.0,
+            "rss_before_bytes": 10485760,
+            "rss_after_bytes": 10485760
+          }
+        }
+      ],
+      "binary_sha256": {
+        "stax": "a3a345bf334bb5eac3979c2d4640d7380241fc64a5f256f94c5f27b7dfc4d479",
+        "stax-server": "62971492e86a1a22343ea28120467ee57fca6e2e768a629f3ac50d4181aa1b74"
+      }
+    },
+    {
+      "configuration": "idle-adapter-control-no-perf",
+      "source_file": "idle-control-p1.json",
+      "source_sha256": "3a47b68d2bf6ba10278bf30ab8c71cd640e611b284869bde2e86591346983be9",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "summary": {
+        "status": "within_pilot_budget",
+        "paired_throughput_loss_pct": [
+          -0.22721376781309477,
+          -0.12218756468571623,
+          0.052456155607516486,
+          -0.6122975390051133,
+          -0.09878846714934664
+        ],
+        "median_throughput_loss_pct": -0.12218756468571623,
+        "paired_ping_p99_increase_pct": [
+          6.362319615850254,
+          -1.392077022952809,
+          -17.500865906815832,
+          11.141177588579643,
+          -1.2705719446505448
+        ],
+        "baseline_rate_range_pct": 0.5234709005053295,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "runner_sha256": "e1eabc983cd77c5949f27af10321d131f211cb7ba55fec88c6f82389efc78e35",
+      "adapter_sha256": "fb0495e02950e643a25ee212926db686076cdf6e78f827daadf3bb5cd4a7dd42",
+      "baseline_ping_p99_ms": [
+        0.06221000057848869,
+        0.07183499928942183,
+        0.07500199990317924,
+        0.06208499962667702,
+        0.0786259997767047
+      ],
+      "profile_ping_p99_ms": [
+        0.06616799964831444,
+        0.07083500076987548,
+        0.061876000472693704,
+        0.06900199969095411,
+        0.0776269998823409
+      ],
+      "measurement_windows_verified": true,
+      "observed_clock_windows_verified": null
+    },
+    {
+      "configuration": "pinned-9hz-pipeline1",
+      "source_file": "pilot-9hz-p1.json",
+      "source_sha256": "bf733fbf795cbe16943706f2170c52737bc85df7bb13801a57363eb843e9cdd1",
+      "settings": {
+        "frequency_hz": 9,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.9090604621806997,
+          0.19508350958817866,
+          -0.16882436260108324,
+          4.838441623974821,
+          0.8101795505713438
+        ],
+        "median_throughput_loss_pct": 0.8101795505713438,
+        "paired_ping_p99_increase_pct": [
+          2184.2785505261795,
+          2665.0388247878586,
+          2321.750062458629,
+          99.2409979822571,
+          892.894662754216
+        ],
+        "baseline_rate_range_pct": 0.5501729913486963,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "runner_sha256": "b1610472ff9e3b105eb0c294dda650b4cdc7043a56da2da37776f07b031eed7e",
+      "adapter_sha256": "66474f416422a2a0335f43feeaf139d3c1cefdf86e6bc6bdea755700b00e96e1",
+      "baseline_ping_p99_ms": [
+        0.06287600081122946,
+        0.05266700009087799,
+        0.07720899975538487,
+        0.06587600000784732,
+        0.05387500004871981
+      ],
+      "profile_ping_p99_ms": [
+        1.436262999959581,
+        1.4562630003638333,
+        1.8698089997997158,
+        0.13125199984642677,
+        0.5349220000425703
+      ],
+      "measurement_windows_verified": true,
+      "observed_clock_windows_verified": null
+    },
+    {
+      "configuration": "experimental-5ms-drain-pipeline1",
+      "source_file": "fast-poll-experimental-p1.json",
+      "source_sha256": "24f3e486d1e8ad855eca1677613af27e2d078337ffc92a75ac5b89f1d7362dff",
+      "settings": {
+        "frequency_hz": 99,
+        "profile_seconds": 6,
+        "measurement_seconds": 3,
+        "repeats": 5,
+        "clients_per_command": 16,
+        "pipeline": 1,
+        "payload_bytes": 128,
+        "keyspace": 10000,
+        "commands": [
+          "SET",
+          "GET"
+        ],
+        "transport": "private Unix socket"
+      },
+      "summary": {
+        "status": "exceeds_pilot_budget",
+        "paired_throughput_loss_pct": [
+          0.407639956460748,
+          0.37843998715296756,
+          0.45916630009201764,
+          0.29220913647971525,
+          0.29350326759975953
+        ],
+        "median_throughput_loss_pct": 0.37843998715296756,
+        "paired_ping_p99_increase_pct": [
+          2478.8105843898597,
+          1634.8741552128974,
+          2722.0960656779416,
+          1587.7703526138412,
+          1213.827048715181
+        ],
+        "baseline_rate_range_pct": 0.6262063272292062,
+        "scope": "one virtualized host and this workload; PING RTT is not GET/SET end-to-end latency"
+      },
+      "runner_sha256": "cb04434372ce541b5de08ede4015e377f95630393f9549351bbab4850b487737",
+      "adapter_sha256": "ece835dba5e03b745f63ed86debabe47f5f98091a57e96ff1e297c7af0db399d",
+      "baseline_ping_p99_ms": [
+        0.06433399994421052,
+        0.06425100036722142,
+        0.07054199977574171,
+        0.06787599977542413,
+        0.0680839993947302
+      ],
+      "profile_ping_p99_ms": [
+        1.6590519999226672,
+        1.1146739998366684,
+        1.9907630003217491,
+        1.145591000749846,
+        0.8945059998950455
+      ],
+      "measurement_windows_verified": true,
+      "observed_clock_windows_verified": true
+    }
+  ],
+  "excluded_experiments": [
+    {
+      "source_file": "confounded-p1-discarded.json",
+      "reason": "A separate codec validation capture overlapped this repeat; excluded in full. A per-user capture lock was added and the series rerun."
+    }
+  ],
+  "functional": {
+    "real_cpu_wait_capture": {
+      "cpu_samples": 101,
+      "resolved_hot_function": "busy"
+    },
+    "executor": {
+      "cpu_samples": 150,
+      "target_stack_records": 318
+    },
+    "simulated_metal": {
+      "cpu_samples": 11,
+      "target_stack_records": 319,
+      "hardware_gpu_measurement": false
+    },
+    "codec": {
+      "cpu_samples": 159,
+      "target_stack_records": 471,
+      "lanes": 2
+    },
+    "saved_views_reopened": [
+      "threads",
+      "top",
+      "flame",
+      "annotate aeApiPoll"
+    ],
+    "comparison": "native compare --json smoke test only; no regression gate"
+  },
+  "limitations": [
+    "Independent VM workload; does not complete the matched Redis 8.6/memtier M1/Intel pilot.",
+    "PING RTT on a private Unix socket is not GET/SET end-to-end latency.",
+    "RSS values are snapshots during measurement, not save/import peak memory.",
+    "No hardware PMU devices were exposed by this guest; raw PMU availability remains unverified.",
+    "Stax v3 archives do not establish native sample-loss accounting or unwind completeness.",
+    "M1/M6 privileged Stax CPU captures remain pending helper setup and validation."
+  ],
+  "artifact_directory": ".local-runs/stax-integration-20261023"
+}

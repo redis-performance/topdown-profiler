@@ -397,6 +397,25 @@ python3 examples/apple_gpu/report_instruments.py \
 This experimental path reports device-wide samples with pass coverage and
 observed other GPU activity; it does not produce M6 replay encoder costs.
 
+## Optional Stax sampling (macOS/Linux)
+
+Use Stax for sampled CPU hotspots, thread waits and cooperating executor/Metal
+spans, with the same run labels, SQLite/PostgreSQL storage and MCP access:
+
+```bash
+topdown stax doctor
+topdown stax record --pid 12345 --duration 5 --output /tmp/redis-stax \
+  --store --process-name redis-server --label test_name=set-get
+topdown stax hotspots RUN_ID
+topdown stax waits RUN_ID
+topdown stax targets RUN_ID
+```
+
+Install Stax separately. CPU sample counts, scheduler durations and target spans
+retain distinct units; they do not form a TMA funnel. See the
+[Stax setup and Redis guide](docs/stax-usage.md) for permissions, command launches,
+MCP tools, artifact retention and M1/M6 validation limits.
+
 ## Microarchitecture Analysis Example (Linux)
 
 Here is a real-world example analyzing redis-server under a memtier benchmark:
