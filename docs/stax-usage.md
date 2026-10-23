@@ -5,8 +5,9 @@ shared run/label workflow. These results use separate SQL documents and never
 create Linux slot-TMA rows. Existing Apple Instruments and Metal replay commands
 remain available.
 
-Capture is experimental. Functional checks have run on a Linux aarch64 VM;
-M1/M6 capture acceptance remains pending. Measure overhead on the workload being
+Capture is experimental. Functional checks have run on a Linux aarch64 VM and
+the [M6 Metal target-span control](stax-m6-metal-control.md). Privileged M1/M6
+CPU capture acceptance remains pending. Measure overhead on the workload being
 investigated, especially when interpreting tail latency.
 
 ## Install and inspect

@@ -113,6 +113,22 @@ def test_native_addresses_counters_and_interval_units(stax_archive):
     assert doc["metadata"]["artifacts"][0]["size_bytes"] == stax_archive.stat().st_size
 
 
+def test_real_m6_metal_excerpt_keeps_target_markers_out_of_cpu_samples():
+    path = Path(__file__).parent / "test_data" / "stax_v3_m6_metal_excerpt.json"
+    document = load_archive(path)
+    result = document["result"]
+    assert document["metadata"]["provenance"]["os"] == "macos"
+    assert result["clock"]["domain"] == "mach_absolute_time nanoseconds"
+    assert result["quality"]["sampling_observed"] is False
+    assert result["quality"]["cpu_sample_counts_match"] is True
+    assert result["counts"]["cpu_samples"] == 0
+    assert result["counts"]["target_stack_samples"] == 2
+    assert [row["duration_ns"] for row in result["intervals"]] == [5250, 8333]
+    assert all(row["kind"] == "target-span-stack" for row in result["samples"])
+    assert result["target_ingest"]["spans_linked_origin"] == 0
+    assert result["target_ingest"]["spans_unlinked_origin"] == 299
+
+
 def test_events_override_stale_aggregates(stax_archive):
     doc = archive_document()
     doc["events"] = archive_events(doc)

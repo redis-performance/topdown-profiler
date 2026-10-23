@@ -2,6 +2,7 @@
 
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +11,7 @@ from tests.test_stax_archive import archive_document
 from topdown.stax_storage import (
     BULK_FIELDS,
     get_stax_hotspots,
+    get_stax_target_spans,
     get_stax_thread_waits,
     query_stax_result,
     store_stax_result,
@@ -50,6 +52,23 @@ def test_sql_reports_use_projected_documents(stored_sampling, monkeypatch):
     monkeypatch.setattr(backend, "get_stax_result", lambda *a: pytest.fail("loaded full Stax document"))
     assert get_stax_hotspots(backend, run.run_id)["rows"][0]["name"] == "hot"
     assert get_stax_thread_waits(backend, run.run_id)["rows"][0]["duration_ns"] == 30
+
+
+def test_real_m6_metal_excerpt_round_trip(sampling_backend):
+    path = Path(__file__).parent / "test_data" / "stax_v3_m6_metal_excerpt.json"
+    run = store_stax_result(sampling_backend, path, labels={"host_chip": "apple-m6"})
+    hotspots = get_stax_hotspots(sampling_backend, run.run_id)
+    assert hotspots["denominator_samples"] == 0
+    assert hotspots["rows"] == []
+    targets = get_stax_target_spans(sampling_backend, run.run_id)
+    assert targets["rows"][0]["span_count"] == 2
+    assert targets["rows"][0]["sum_target_span_ns"] == 13583
+    assert targets["rows"][0]["leaf"]["name"] == "M6 Metal add_one"
+    page = query_stax_result(sampling_backend, run.run_id, "intervals", 1, 1)
+    assert page["rows"][0]["start_ns"] == 192443916527292
+    assert page["rows"][0]["duration_ns"] == 8333
+    assert page["rows"][0]["origin_tid"] == 1526448
+    assert page["rows"][0]["lane_kind"] == "Metal"
 
 
 @pytest.mark.parametrize("native_text", ["zero\x00byte", "quotes'\"\\ and Ω", "\ud800legacy"])
