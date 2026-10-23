@@ -141,6 +141,16 @@ the archive and SQLite path; **it does not measure Apple PMU hardware**. The
 test process bypassed the collector's root-owned helper-socket preflight only
 for the fake daemon.
 
+A [rootless core-attribution audit](stax-m1-core-attribution-audit.json)
+alternated synthetic kdebug CPU IDs `0` and `4` on successive invented PET/PMC
+records. Stax saved 347 CPU samples and linked 299 Metal spans, but neither
+its parser sample, live aggregator sample, nor v3 saved sample retains the raw
+`KdBuf.cpuid`. The imported CPU rows consequently have no CPU ID or P/E core
+type. This does not prove that M1 programmable events differ by core. It does
+mean an archive cannot support per-core validation or P/E-specific counter
+interpretation without an upstream identity field or independently verified
+core-scoped capture. The opt-in PMU patch remains an experiment.
+
 To reproduce the experimental server from a clean pinned Stax checkout, apply
 the patch, build `stax-server` with full Xcode selected, and stage it separately
 from the baseline server:

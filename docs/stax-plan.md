@@ -52,6 +52,13 @@ profiles must not be presented as Intel TMA funnels.
 - Inspect thread breakdowns, self/total hotspots, flamegraphs, and one hot function's
   disassembly. Record unresolved symbols, truncated stacks, dropped events, and
   whether expected threads and wait information are visible.
+- For Apple Silicon PMU fields, record the sampled CPU/core identity and test
+  counter meaning on performance and efficiency cores separately. The pinned
+  Stax v3 path discards `KdBuf.cpuid` before saving PET samples, as shown in
+  the [M1 core-attribution audit](stax-m1-core-attribution-audit.json). An
+  importer cannot reconstruct that identity from the archive. Keep per-core
+  claims unavailable until upstream preserves it or captures are independently
+  verified to be core-scoped.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
