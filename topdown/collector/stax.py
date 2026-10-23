@@ -8,6 +8,7 @@ from pathlib import Path
 import platform
 import shutil
 import signal
+import stat
 import subprocess
 import tempfile
 import time
@@ -42,11 +43,26 @@ def doctor():
     }
     daemon = os.environ.get("TOPDOWN_STAX_DAEMON_SOCKET", "/var/run/staxd.sock")
     helper_present = False
+    helper_private = False
+    helper_details = {}
     if system == "Darwin":
-        import stat
-
         try:
-            helper_present = stat.S_ISSOCK(Path(daemon).stat().st_mode)
+            endpoint = Path(daemon).lstat()
+            directory = Path(daemon).parent.lstat()
+            helper_present = stat.S_ISSOCK(endpoint.st_mode)
+            helper_private = (
+                Path(daemon).is_absolute()
+                and helper_present
+                and endpoint.st_uid == 0
+                and stat.S_ISDIR(directory.st_mode)
+                and directory.st_uid == os.getuid()
+                and not directory.st_mode & 0o077
+            )
+            helper_details = {
+                "socket_owner_uid": endpoint.st_uid,
+                "directory_owner_uid": directory.st_uid,
+                "directory_mode": stat.S_IMODE(directory.st_mode),
+            }
         except OSError:
             pass
     paranoid = None
@@ -61,6 +77,8 @@ def doctor():
     reasons.extend(f"Missing optional executable: {name}" for name, path in tools.items() if path is None)
     if system == "Darwin" and not helper_present:
         reasons.append("macOS capture requires the separately installed, signed Stax privileged helper")
+    elif system == "Darwin" and not helper_private:
+        reasons.append("Stax requires a root-owned helper socket in a private 0700 directory owned by this user")
     return {
         "collector": "stax",
         "os": system,
@@ -70,14 +88,23 @@ def doctor():
         "reasons": reasons,
         "daemon_socket": daemon,
         "helper_socket_present": helper_present,
+        "helper_socket_private": helper_private,
+        "helper_socket_details": helper_details,
         "perf_event_paranoid": paranoid,
         "permissions_verified": False,
         "pmu_availability": "unverified",
         "limitations": [
             "Prerequisite presence does not establish permission or counter availability.",
-            "M1 and M6 require independent capture checks on the installed kernel.",
             "Archive import and database queries do not require Stax executables.",
-        ],
+        ]
+        + (
+            [
+                "M1 and M6 require independent capture checks on the installed kernel.",
+                "The pinned macOS helper requires its session teardown guard patch before use; patch status is not detected.",
+            ]
+            if system == "Darwin"
+            else []
+        ),
     }
 
 

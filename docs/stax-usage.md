@@ -35,6 +35,14 @@ privileged helper; `TOPDOWN_STAX_DAEMON_SOCKET` overrides `/var/run/staxd.sock`.
 Linux capture requires permission to use `perf_event_open`. The doctor reports
 prerequisites and policy hints; it does not establish counter availability.
 
+For the pinned macOS revision, use a root-owned helper socket inside a directory
+owned by the profiling user with mode `0700`. The adapter rejects a shared socket
+layout: that helper has no peer-UID check. Apply its session teardown guard patch
+before use; the unpatched setup-error path can leave kperf/kdebug configured.
+These are required operator setup steps. The [M1 pilot runbook and patch](https://github.com/redis-performance/topdown-profiler/blob/9e22cea348df35404eb7dcfade17eee15d2ec416/docs/stax-m1-pilot.md)
+document the pinned workaround. Doctor checks filesystem ownership and permissions;
+it cannot attest which helper binary is serving the socket.
+
 M1 and M6 need independent capture validation on their installed kernels. A
 helper socket does not prove that programmable counters work. Archive import and
 SQL queries work without Stax executables or capture privileges, on either OS.
@@ -56,7 +64,7 @@ topdown stax hotspots RUN_ID --sort self --limit 20
 topdown stax hotspots RUN_ID --sort total --limit 20
 topdown stax waits RUN_ID --limit 20
 topdown stax query RUN_ID --section samples --offset 0 --limit 10
-topdown runs --label collector=stax
+topdown list --label collector=stax
 ```
 
 Output is JSON. `--db PATH` selects SQLite; `TOPDOWN_BACKEND=postgresql` and

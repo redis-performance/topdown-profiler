@@ -465,6 +465,11 @@ def _normalize(archive):
     return {
         "measurement_kind": "stax-sampled-stacks-and-scheduler-intervals",
         "tma_available": False,
+        "clock": {
+            "session_start_ns": aggregator.get("session_start_ns"),
+            "last_event_ns": clock_end,
+            "units": "upstream monotonic nanoseconds; target timestamps require producer calibration",
+        },
         "quality": {
             "reported_cpu_samples": run["pet_samples"],
             "observed_cpu_samples": cpu_samples,

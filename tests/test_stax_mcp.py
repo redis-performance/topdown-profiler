@@ -8,6 +8,7 @@ import pytest
 
 from topdown import mcp_server as server
 from topdown.collector.apple_runtime import sleep
+from tests.test_stax_capture import fake_stax  # noqa: F401
 
 
 @pytest.mark.asyncio
@@ -109,3 +110,34 @@ def test_explicit_stax_collector_guides_tma_callers(monkeypatch):
     assert "collect_stax_profile" in server.collect_topdown("redis-server")
     with pytest.raises(RuntimeError, match="sampling collector"):
         make_runner(TopdownConfig(collector="stax"), [42], False, 1)
+
+
+@pytest.mark.asyncio
+async def test_cancelled_registered_capture_reaps_children_and_never_stores(request, monkeypatch, tmp_path):
+    root = request.getfixturevalue("fake_stax")
+    monkeypatch.setenv("STAX_TEST_MODE", "hang")
+    monkeypatch.setenv("TOPDOWN_DB_PATH", str(tmp_path / "data.db"))
+    monkeypatch.setattr(server, "_get_backend", lambda: pytest.fail("stored a cancelled capture"))
+    task = asyncio.create_task(server.mcp.call_tool("collect_stax_profile", {"pid": 42}))
+    try:
+        for _ in range(200):
+            rows = [json.loads(line) for line in (root / "events.jsonl").read_text().splitlines()]
+            if any(row["args"] and row["args"][0] == "record" for row in rows):
+                break
+            await asyncio.sleep(0.01)
+        else:
+            pytest.fail("recorder did not start")
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, 5)
+        from tests.test_stax_capture import assert_reaped
+
+        assert_reaped(root)
+        outputs = list((tmp_path / "stax-captures").iterdir())
+        assert len(outputs) == 1
+        assert (outputs[0] / "partial-archive/manifest.json").is_file()
+        assert json.loads((outputs[0] / "capture.json").read_text())["status"] == "interrupted"
+    finally:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)

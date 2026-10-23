@@ -5,8 +5,10 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import stat
 import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 
@@ -264,3 +266,24 @@ def test_metadata_write_failure_does_not_mask_primary_error(
     with pytest.raises(StaxError, match=expected):
         stax.record_profile(pid=42, output=tmp_path / "capture", duration_seconds=1)
     assert_reaped(fake_stax)
+
+
+@pytest.mark.parametrize("private,root_owned", [(True, True), (False, True), (True, False)])
+def test_macos_helper_requires_private_directory_and_root_socket(fake_stax, monkeypatch, private, root_owned):
+    endpoint = fake_stax / "helper" / "staxd.sock"
+    monkeypatch.setenv("TOPDOWN_STAX_DAEMON_SOCKET", str(endpoint))
+    monkeypatch.setattr(stax.platform, "system", lambda: "Darwin")
+    original = Path.lstat
+
+    def inspect(path, *args, **kwargs):
+        if path == endpoint:
+            return SimpleNamespace(st_mode=stat.S_IFSOCK | 0o666, st_uid=0 if root_owned else 123456)
+        if path == endpoint.parent:
+            return SimpleNamespace(st_mode=stat.S_IFDIR | (0o700 if private else 0o755), st_uid=os.getuid())
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "lstat", inspect)
+    result = stax.doctor()
+    assert result["helper_socket_present"] is True
+    assert result["helper_socket_private"] is (private and root_owned)
+    assert result["capture_prerequisites_present"] is (private and root_owned)

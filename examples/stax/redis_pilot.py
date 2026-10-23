@@ -95,6 +95,7 @@ def observe(path, seconds):
     try:
         client.call("CONFIG", "RESETSTAT")
         started_at_ns = time.time_ns()
+        started_monotonic_ns = time.monotonic_ns()
         started = time.perf_counter()
         thread.start()
         time.sleep(seconds)
@@ -104,11 +105,14 @@ def observe(path, seconds):
         stats, commands, latency = map(info, client.call("EXEC"))
         elapsed = time.perf_counter() - started
         ended_at_ns = time.time_ns()
+        ended_monotonic_ns = time.monotonic_ns()
         stop.set()
         thread.join(4)
         return {
             "started_at_unix_ns": started_at_ns,
             "ended_at_unix_ns": ended_at_ns,
+            "started_at_monotonic_ns": started_monotonic_ns,
+            "ended_at_monotonic_ns": ended_monotonic_ns,
             "duration_seconds": elapsed,
             "commands_per_second": int(stats["total_commands_processed"]) / elapsed,
             "commandstats": commands,
@@ -144,7 +148,12 @@ def summarize(trials, budget):
         return {"status": "insufficient_pairs"}
     variation = 100 * (max(rates) / min(rates) - 1)
     stable = variation <= budget["max_baseline_rate_range_pct"]
-    valid = all(trial.get("measurement_inside_capture", True) and not trial["probe_errors"] for trial in trials)
+    valid = all(
+        trial.get("measurement_inside_capture", True)
+        and trial.get("measurement_inside_observed_clock", True)
+        and not trial["probe_errors"]
+        for trial in trials
+    )
     accepted = (
         stable
         and valid
@@ -293,6 +302,13 @@ def run(args):
                             run_id=run.run_id,
                             profile=query_stax_result(backend, run.run_id),
                             hotspots=get_stax_hotspots(backend, run.run_id, limit=10),
+                        )
+                        observed = trial["profile"]["result"]["clock"]
+                        trial["measurement_inside_observed_clock"] = (
+                            observed["session_start_ns"] is not None
+                            and observed["last_event_ns"] is not None
+                            and observed["session_start_ns"] <= trial["started_at_monotonic_ns"]
+                            and trial["ended_at_monotonic_ns"] <= observed["last_event_ns"]
                         )
                     else:
                         time.sleep(1)
