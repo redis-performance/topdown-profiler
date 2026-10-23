@@ -30,6 +30,9 @@ _MCP_INSTRUCTIONS = (
     "Apple bottleneck shares and sample-frequency hotspots are separate from Linux slot TMA."
     " For Apple GPU replay use collect_apple_gpu_profile (packaged Metal controls), profile_apple_gpu_trace "
     "(existing server-local .gputrace), query_apple_result(section='encoders'), and get_apple_gpu_report. "
+    "For optional Stax sampling on macOS/Linux use stax_doctor, collect_stax_profile, import_stax_result, "
+    "query_stax_result, get_stax_hotspots, get_stax_thread_waits and get_stax_target_spans. Stax sample counts, scheduler intervals "
+    "and synthetic target spans retain distinct units and do not form TMA percentages. "
     "Replay requires Apple silicon M3/A17 Pro+ and Xcode. GPU limiters overlap and may exceed 100%; "
     "retain native sampling coverage and compare matched replay settings."
 )
@@ -70,6 +73,9 @@ def _get_backend():
 
 
 def _apple_run_guidance(*runs):
+    if any(run.labels.get("collector") == "stax" for run in runs):
+        return ("This run contains Stax samples and scheduler intervals. Use query_stax_result, "
+                "get_stax_hotspots or get_stax_thread_waits; slot-TMA analysis and comparisons are unavailable.")
     if any(run.labels.get("collector") == "apple" for run in runs):
         report = "get_apple_gpu_report" if any(run.labels.get("processor") == "gpu" for run in runs) else "get_apple_hotspots"
         return (f"This run contains native Apple measurements. Use query_apple_result or {report}; "
@@ -87,6 +93,114 @@ def _apple_tool(*, capture=False):
 
 
 # ──────────────────────────── Tools ────────────────────────────
+
+
+@_apple_tool()
+def stax_doctor() -> dict:
+    """Inspect optional Stax executables and platform permission hints without installation."""
+    from topdown.collector.stax import doctor
+
+    return doctor()
+
+
+def _stax_query(function, *args, **kwargs):
+    from topdown.collector.apple import AppleProfileError
+    from topdown.stax_archive import StaxError
+
+    backend = _get_backend()
+    try:
+        return function(backend, *args, **kwargs)
+    except (AppleProfileError, StaxError, OSError, ValueError) as exc:
+        return {"error": str(exc), "collector": "stax"}
+    finally:
+        backend.close()
+
+
+@_apple_tool()
+def import_stax_result(path: str, process_name: str | None = None, labels: dict[str, str] | None = None) -> dict:
+    """Import a server-local v3 Stax bundle or directory as a labeled sampling run.
+
+    Does not require Stax executables and does not create slot-TMA measurements.
+    """
+    from topdown.stax_storage import query_stax_result, store_stax_result
+
+    def store(backend):
+        run = store_stax_result(backend, path, process_name, labels)
+        return query_stax_result(backend, run.run_id)
+    return _stax_query(store)
+
+
+@_apple_tool(capture=True)
+def collect_stax_profile(
+    pid: StrictInt | None = None, command: list[str] | None = None,
+    duration_seconds: StrictInt = 5, frequency_hz: StrictInt = 99,
+    process_name: str | None = None, labels: dict[str, str] | None = None,
+) -> dict:
+    """Attach to an existing server-host PID or launch an argv list with an owned Stax server.
+
+    Stax must be installed separately; macOS requires its signed privileged helper.
+    Retains artifacts in stax-captures beside the configured SQLite path; cancellation stops only the owned capture.
+    CPU samples, scheduler waits and cooperating target spans retain distinct units.
+    Exactly one PID or command is required. Launched targets inherit the private socket and stop
+    after capture; initialization before the attachment can be missed. Attached targets remain alive.
+    """
+    from pathlib import Path
+    from uuid import uuid4
+    from topdown.apple_storage import validate_run_options
+    from topdown.collector.stax import record_profile
+    from topdown.stax_storage import query_stax_result, store_stax_result
+
+    output = Path(get_config().db_path).parent / "stax-captures" / uuid4().hex
+    try:
+        validate_run_options(process_name, labels)
+        path, metadata = record_profile(pid=pid, command=command, output=output,
+                                        duration_seconds=duration_seconds, frequency_hz=frequency_hz)
+
+        def store(backend):
+            run = store_stax_result(backend, path, process_name, labels, metadata)
+            return query_stax_result(backend, run.run_id)
+        return {**_stax_query(store), "artifacts": str(output)}
+    except Exception as exc:
+        return {"error": str(exc), "collector": "stax", "artifacts": str(output)}
+
+
+@_apple_tool()
+def query_stax_result(run_id: str, section: str = "summary", offset: StrictInt = 0, limit: StrictInt = 100) -> dict:
+    """Read a Stax summary or page of threads, samples, intervals, wakeups, target_lanes or application_records."""
+    from topdown.stax_storage import query_stax_result as query
+
+    return _stax_query(query, run_id, section, offset, limit)
+
+
+@_apple_tool()
+def get_stax_hotspots(
+    run_id: str, tid: StrictInt | None = None, stack: Literal["user", "kernel"] = "user",
+    sort: Literal["self", "total"] = "self", limit: StrictInt = 20,
+) -> dict:
+    """Rank archived functions by self/inclusive samples; shares use observed sample counts, not CPU time."""
+    from topdown.stax_storage import get_stax_hotspots as query
+
+    return _stax_query(query, run_id, tid, stack, sort, limit)
+
+
+@_apple_tool()
+def get_stax_thread_waits(run_id: str, tid: StrictInt | None = None, limit: StrictInt = 20) -> dict:
+    """Group off-CPU durations in nanoseconds by thread, stack and waking thread; retain target spans separately."""
+    from topdown.stax_storage import get_stax_thread_waits as query
+
+    return _stax_query(query, run_id, tid, limit)
+
+
+@_apple_tool()
+def get_stax_target_spans(run_id: str, tid: StrictInt | None = None, limit: StrictInt = 20) -> dict:
+    """Rank cooperating executor/Metal span durations in ns, separately from CPU samples and GPU utilization.
+
+    Target timestamps come from the instrumented producer; a Metal lane name does not establish
+    hardware measurement provenance. Includes origin-link and ingest diagnostics.
+    """
+    from topdown.stax_storage import get_stax_target_spans as query
+
+    return _stax_query(query, run_id, tid, limit)
 
 
 @_apple_tool()
@@ -302,6 +416,8 @@ def collect_topdown(
     config = get_config()
     collector = resolve_collector(config)
 
+    if collector == "stax":
+        return "Stax collects sampling and scheduler data. Use collect_stax_profile with a PID; slot TMA is unavailable."
     if collector == "apple":
         from topdown.collector.apple import APPLE_COLLECTION_MESSAGE
 
@@ -740,7 +856,7 @@ def list_profiling_runs(
             interesting = {k: v for k, v in r.labels.items()
                           if k in ("git_branch", "test_name", "topology", "build_variant")}
             label_str = ", ".join(f"{k}={v}" for k, v in interesting.items()) if interesting else ""
-            kind = f"Apple {r.labels.get('measurement_kind', 'native')}" if r.labels.get("collector") == "apple" else f"L{r.level}"
+            kind = "Stax samples/waits" if r.labels.get("collector") == "stax" else f"Apple {r.labels.get('measurement_kind', 'native')}" if r.labels.get("collector") == "apple" else f"L{r.level}"
             lines.append(
                 f"  {r.run_id} | {r.started_at.strftime('%Y-%m-%d %H:%M')} | "
                 f"{r.process_name} | {kind} | {r.duration_seconds:.1f}s"
@@ -761,6 +877,9 @@ def run_tree(run_id: str) -> str:
 
     backend = _get_backend()
     try:
+        run = backend.get_run(run_id)
+        if run is not None and (guidance := _apple_run_guidance(run)):
+            return guidance
         metrics = backend.get_aggregated_metrics(run_id)
         if not metrics:
             return f"No metrics for run {run_id}"
@@ -811,6 +930,13 @@ def _register_tools_and_resources(target: FastMCP):
 
     # Tools
     target.tool()(collect_topdown)
+    target.tool()(worker(stax_doctor))
+    target.tool()(worker(import_stax_result))
+    target.tool()(worker(collect_stax_profile, capture=True))
+    target.tool()(worker(query_stax_result))
+    target.tool()(worker(get_stax_hotspots))
+    target.tool()(worker(get_stax_thread_waits))
+    target.tool()(worker(get_stax_target_spans))
     target.tool()(worker(apple_doctor))
     target.tool()(worker(import_apple_result))
     target.tool()(worker(collect_apple_profile, capture=True))

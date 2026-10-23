@@ -13,6 +13,7 @@ from typing_extensions import Annotated
 
 from topdown import __version__
 from topdown.apple_cli import app as apple_app
+from topdown.stax_cli import app as stax_app
 from topdown.config import get_config
 from topdown.storage import get_backend
 from topdown.storage.models import Run, Sample
@@ -20,12 +21,13 @@ from topdown.collector.labels import collect_auto_labels, merge_labels, parse_la
 
 app = typer.Typer(
     name="topdown",
-    help="Top-Down Microarchitecture Analysis and native Apple Instruments profiles.",
+    help="Top-Down Microarchitecture Analysis, native Apple profiles and optional Stax sampling.",
     no_args_is_help=True,
 )
 console = Console()
 
 app.add_typer(apple_app, name="apple")
+app.add_typer(stax_app, name="stax")
 
 
 # Below this width a table with a full run ID column has no room for the rest.
@@ -83,6 +85,9 @@ def collect(
     # Determine collector (auto-detect from arch or use config override)
     collector = resolve_collector(config)
 
+    if collector == "stax":
+        console.print("Stax collects samples and scheduler waits. Use 'topdown stax record --pid PID --output DIR'; slot TMA is unavailable.", markup=False)
+        raise typer.Exit(1)
     if collector == "apple":
         from topdown.collector.apple import APPLE_COLLECTION_MESSAGE
 
@@ -266,7 +271,7 @@ def list_runs(
             # A full run ID leaves no room for the other columns: one record per run.
             console.print(f"Recent Runs (last {last})", style="bold")
             for r in runs:
-                kind = "Apple" if r.labels.get("collector") == "apple" else f"L{r.level}"
+                kind = "Stax" if r.labels.get("collector") == "stax" else "Apple" if r.labels.get("collector") == "apple" else f"L{r.level}"
                 console.print(Text.assemble((r.run_id, "cyan"), "  ", r.started_at.strftime("%Y-%m-%d %H:%M")))
                 console.print(
                     f"    {r.process_name} {kind} {r.duration_seconds:.1f}s; {label_str(r)}",
@@ -288,7 +293,7 @@ def list_runs(
                 r.run_id,
                 r.started_at.strftime("%Y-%m-%d %H:%M"),
                 Text(r.process_name),
-                "Apple" if r.labels.get("collector") == "apple" else str(r.level),
+                "Stax" if r.labels.get("collector") == "stax" else "Apple" if r.labels.get("collector") == "apple" else str(r.level),
                 f"{r.duration_seconds:.1f}s",
                 Text(label_str(r)),
             )
@@ -396,6 +401,13 @@ def query(
                 return
             run = runs[0]
 
+        if run.labels.get("collector") == "stax":
+            message = f"Stax samples require 'topdown stax query {run.run_id}', 'topdown stax hotspots' or 'topdown stax waits'; slot TMA is unavailable."
+            if json_output or csv_output:
+                emit_note(message)
+                raise typer.Exit(1)
+            console.print(message, markup=False)
+            return
         if run.labels.get("collector") == "apple":
             if json_output or csv_output:
                 emit_note(f"Native Apple results require 'topdown apple query {run.run_id}'; Linux TMA output is unavailable.")
@@ -521,6 +533,13 @@ def compare(
             console.print("[red]Error:[/red] Provide run IDs or --label-a / --label-b")
             raise typer.Exit(1)
 
+        if any(run.labels.get("collector") == "stax" for run in (found_a, found_b)):
+            message = "Stax samples require 'topdown stax hotspots' or 'topdown stax waits'; slot-TMA comparisons are unavailable."
+            if json_output:
+                emit_note(message)
+                raise typer.Exit(1)
+            console.print(message, markup=False)
+            return
         if any(run.labels.get("collector") == "apple" for run in (found_a, found_b)):
             if json_output:
                 emit_note("Native Apple results require 'topdown apple query'; Linux TMA comparisons are unavailable.")

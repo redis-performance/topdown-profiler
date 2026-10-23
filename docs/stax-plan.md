@@ -3,10 +3,12 @@
 Status: pilot in progress. The optional integration is being tested; the acceptance
 criteria below remain required before claiming platform support.
 
-Linux builds and preflight are tested; live capture needs host permissions.
-See the [Linux pilot report](stax-linux-pilot.md) for pinned revisions, results,
-and remaining checks. The [M1 pilot](stax-m1-pilot.md) is tracked separately;
-M6 acceptance requires its own capture on that host.
+An optional v3 CLI/SQL/MCP integration is available for experimental testing.
+The [Linux VM validation](stax-vm-pilot.md) includes real captures and measured
+overhead; its low-pipeline latency result does not meet the declared budget.
+The [Intel Linux pilot](stax-linux-pilot.md) remains blocked on that host’s
+permissions. The [M1 pilot](stax-m1-pilot.md) has rootless controls but no
+privileged CPU capture. M6 requires its own host-specific acceptance check.
 
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes

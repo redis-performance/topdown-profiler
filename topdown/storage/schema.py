@@ -29,6 +29,12 @@ CREATE INDEX IF NOT EXISTS idx_samples_run_id ON samples(run_id);
 CREATE INDEX IF NOT EXISTS idx_samples_metric_name ON samples(metric_name);
 CREATE INDEX IF NOT EXISTS idx_samples_timestamp ON samples(timestamp);
 
+CREATE TABLE IF NOT EXISTS stax_results (
+    run_id TEXT PRIMARY KEY REFERENCES runs(run_id) ON DELETE CASCADE,
+    measurement_kind TEXT NOT NULL,
+    document TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS apple_results (
     run_id TEXT PRIMARY KEY REFERENCES runs(run_id) ON DELETE CASCADE,
     measurement_kind TEXT NOT NULL,
@@ -65,6 +71,12 @@ CREATE INDEX IF NOT EXISTS idx_runs_labels ON runs USING GIN(labels);
 CREATE INDEX IF NOT EXISTS idx_samples_run_id ON samples(run_id);
 CREATE INDEX IF NOT EXISTS idx_samples_metric_name ON samples(metric_name);
 CREATE INDEX IF NOT EXISTS idx_samples_timestamp ON samples(timestamp);
+
+CREATE TABLE IF NOT EXISTS stax_results (
+    run_id UUID PRIMARY KEY REFERENCES runs(run_id) ON DELETE CASCADE,
+    measurement_kind TEXT NOT NULL,
+    document JSONB NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS apple_results (
     run_id UUID PRIMARY KEY REFERENCES runs(run_id) ON DELETE CASCADE,

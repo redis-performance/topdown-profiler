@@ -114,7 +114,13 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
             return None
         return self._row_to_run(row)
 
+    def insert_stax_result(self, run: Run, document: dict) -> str:
+        return self._insert_profile_document(run, document, "stax_results")
+
     def insert_apple_result(self, run: Run, document: dict) -> str:
+        return self._insert_profile_document(run, document, "apple_results")
+
+    def _insert_profile_document(self, run: Run, document: dict, table: str) -> str:
         from topdown.collector.apple_runtime import check_cancelled
 
         check_cancelled()
@@ -129,7 +135,7 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
                 (run.run_id, run.started_at, run.ended_at, run.duration_seconds,
                  run.process_name, run.level, run.system_wide, json.dumps(run.labels)),
             )
-            conn.execute("INSERT INTO apple_results (run_id, measurement_kind, document) VALUES (%s, %s, %s)",
+            conn.execute(f"INSERT INTO {table} (run_id, measurement_kind, document) VALUES (%s, %s, %s)",
                          (run.run_id, kind, payload))
             check_cancelled()
             conn.commit()
@@ -138,17 +144,31 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
             raise
         return run.run_id
 
+    def get_stax_result(self, run_id: str) -> dict | None:
+        if not _is_valid_uuid(run_id):
+            return None
+        row = self._get_conn().execute("SELECT document FROM stax_results WHERE run_id = %s", (run_id,)).fetchone()
+        return decode_document(row["document"]) if row else None
+
     def get_apple_result(self, run_id: str) -> dict | None:
         if not _is_valid_uuid(run_id):
             return None
         row = self._get_conn().execute("SELECT document FROM apple_results WHERE run_id = %s", (run_id,)).fetchone()
         return decode_document(row["document"]) if row else None
 
+    def get_stax_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
+                             offset: int = 0, limit: int = 100) -> dict | None:
+        return self._get_profile_result_page("stax_results", run_id, omit_fields, section, offset, limit)
+
     def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
                               offset: int = 0, limit: int = 100) -> dict | None:
+        return self._get_profile_result_page("apple_results", run_id, omit_fields, section, offset, limit)
+
+    def _get_profile_result_page(self, table: str, run_id: str, omit_fields: tuple[str, ...], section: str | None,
+                                 offset: int, limit: int) -> dict | None:
         if not _is_valid_uuid(run_id):
             return None
-        row = self._get_conn().execute("""
+        row = self._get_conn().execute(f"""
             SELECT CASE WHEN a.encoded THEN NULL ELSE (a.document - 'result') || jsonb_build_object(
                        'result', (a.document->'result') - %(omit)s::text[]) END AS document,
                    CASE WHEN a.encoded THEN a.document->>%(text_key)s END AS encoded_document,
@@ -164,8 +184,8 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
                    ) END AS rows
             FROM (
                 SELECT document, jsonb_typeof(document->%(text_key)s) = 'string'
-                       AND document - %(text_key)s = '{}'::jsonb AS encoded
-                FROM apple_results WHERE run_id = %(run_id)s
+                       AND document - %(text_key)s = '{{}}'::jsonb AS encoded
+                FROM {table} WHERE run_id = %(run_id)s
             ) a
         """, {"run_id": run_id, "omit": list(omit_fields), "section": section,
               "text_key": TEXT_KEY,
