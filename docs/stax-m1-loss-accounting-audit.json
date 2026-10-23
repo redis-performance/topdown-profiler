@@ -1,0 +1,23 @@
+{
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "topdown_pr": 47,
+  "topdown_revision": "b6d2897440d62840f7bf3e7bf18fb275fab495e7",
+  "method": "Source and saved-rootless-archive audit of native macOS sampling loss accounting. No privileged helper or forced hardware loss was used.",
+  "source_observation": {
+    "daemon": "staxd/src/session.rs counts dropped_batches and dropped_records and logs them when its drain loop ends",
+    "daemon_record_summary": "staxd-proto/src/macos.rs RecordSummary returns only records_drained and session_ns",
+    "client": "staxd-client/src/lib.rs logs parser dropped chunks, records, and kperf samples plus scanner drop counts",
+    "run_summary": "stax-live-proto/src/lib.rs RunSummary stores PET sample and off-CPU interval counts, without daemon/parser loss counters",
+    "archive": "Saved v3 archive has no native loss counters; PR47 result quality labels native_loss_accounting as not represented by the v3 archive"
+  },
+  "control_archive": {
+    "path": "/private/tmp/stax-m1-origin-fixture/control-002/capture/archive",
+    "manifest_sha256": "4709cef5b5e1a57fea0fe20ae65455721c30afa90b6cac583b3368f200ea8ef8",
+    "events_sha256": "8db32c18bbb51bb919fa77ae2f556132e8f38fdca417b4e4d642e6ca1634751d",
+    "reported_cpu_pet_samples": 341,
+    "native_loss_accounting": "not represented by the v3 archive",
+    "record_log_sha256": "4f05f992f04fbd5fbdf9a8c9a38f61ecc38be337dcc520b5c91080946262434c",
+    "server_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "acceptance_implication": "A positive PET sample count cannot establish that the daemon and client delivered all native records. Before claiming capture completeness or robust overhead, retain explicit daemon and parser loss counters in structured capture/archive metadata, or state that native loss remains unknown. The fake helper control does not measure actual kperf loss."
+}

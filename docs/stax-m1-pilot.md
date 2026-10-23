@@ -151,6 +151,14 @@ mean an archive cannot support per-core validation or P/E-specific counter
 interpretation without an upstream identity field or independently verified
 core-scoped capture. The opt-in PMU patch remains an experiment.
 
+The [loss-accounting audit](stax-m1-loss-accounting-audit.json) found a second
+archive limit. The macOS helper and client count dropped records internally,
+but the helper's RPC summary returns only drained records and elapsed time,
+and the v3 run summary contains no native drop counters. PR #47 correctly
+marks native loss accounting as unavailable in imported quality metadata.
+The positive sample counts in these rootless controls therefore verify the
+software path; they cannot establish complete delivery in a future kperf run.
+
 To reproduce the experimental server from a clean pinned Stax checkout, apply
 the patch, build `stax-server` with full Xcode selected, and stage it separately
 from the baseline server:

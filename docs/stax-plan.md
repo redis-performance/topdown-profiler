@@ -136,6 +136,11 @@ budget; otherwise document the limitation or narrow the supported configuration.
   fraction can fall sharply as delivered samples become sparser even when the
   requested frequency stays fixed. Check observed sample rate and origin-link
   fraction in real captures before accepting CPU-to-target attribution.
+- Treat native sampling loss as unknown while the v3 archive lacks daemon and
+  parser drop counters. The [M1 source audit](stax-m1-loss-accounting-audit.json)
+  locates counters that are currently logged but not retained in a structured
+  result. Preserve them across the RPC and archive boundary before claiming
+  complete capture; a positive PET sample count alone is insufficient.
 
 ## Phase 3: CLI and MCP access
 
