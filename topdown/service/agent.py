@@ -90,6 +90,9 @@ class CollectionAgent:
 
         start = time.time()
         toplev_samples = runner.run_and_parse(self.duration_seconds)
+        from topdown.collector.csv_parser import sample_scope_labels
+
+        run.labels.update(sample_scope_labels(toplev_samples, self.config.toplev_cpu_type if collector == "toplev" else None))
         elapsed = time.time() - start
 
         run.ended_at = datetime.now(timezone.utc)

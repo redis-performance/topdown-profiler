@@ -15,6 +15,7 @@ class TopdownConfig:
     pmu_tools_dir: str | None = None
     uprof_pcm_path: str | None = None  # explicit path to AMDuProfPcm (optional)
     collector: str | None = None  # "toplev", "perf_stat", "uprof_pcm", or None (auto-detect)
+    toplev_cpu_type: str | None = None
 
     @classmethod
     def from_env(cls) -> "TopdownConfig":
@@ -23,6 +24,7 @@ class TopdownConfig:
             dsn=os.environ.get("TOPDOWN_DSN"),
             db_path=Path(os.environ.get("TOPDOWN_DB_PATH", str(DEFAULT_DB_PATH))),
             toplev_path=os.environ.get("TOPDOWN_TOPLEV_PATH", "toplev.py"),
+            toplev_cpu_type=os.environ.get("TOPDOWN_TOPLEV_CPU_TYPE"),
             pmu_tools_dir=os.environ.get("TOPDOWN_PMU_TOOLS_DIR"),
             uprof_pcm_path=os.environ.get("TOPDOWN_UPROF_PCM_PATH"),
             collector=os.environ.get("TOPDOWN_COLLECTOR"),
