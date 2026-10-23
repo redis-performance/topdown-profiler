@@ -249,3 +249,28 @@ def test_real_v3_excerpt_separates_native_and_synthetic_samples():
     span = next(row for row in result["intervals"] if row["kind"] == "SyntheticSpan")
     assert span["lane_kind"] == "Metal"
     assert span["duration_ns"] == 1722000
+
+
+def test_aggregate_application_signals_become_paged_records(stax_archive):
+    document = archive_document()
+    document["observability"] = {
+        "events": [{"timestamp_ns": 123, "value": 2**64 - 1}],
+        "counter_samples": [{"values": [1, 2.5]}],
+        "diagnostics": {"events_recorded": 1},
+    }
+    stax_archive.write_text(json.dumps(document))
+    result = load_archive(stax_archive)["result"]
+    assert result["counts"]["application_records"] == 2
+    assert result["observability"] == {"diagnostics": {"events_recorded": 1}}
+    assert result["application_records"][0]["TargetEvent"]["event"]["value"] == 2**64 - 1
+    assert result["application_records"][1]["TargetCounterSample"]["sample"]["values"] == [1, 2.5]
+
+
+def test_target_lane_diagnostics_are_a_separate_bulk_section(stax_archive):
+    document = archive_document()
+    document["target_ingest"]["lanes"] = [{"tid": 4293918720, "name": "target"}]
+    stax_archive.write_text(json.dumps(document))
+    result = load_archive(stax_archive)["result"]
+    assert "lanes" not in result["target_ingest"]
+    assert result["target_lanes"][0]["name"] == "target"
+    assert result["counts"]["target_lanes"] == 1

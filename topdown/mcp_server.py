@@ -166,7 +166,7 @@ def collect_stax_profile(
 
 @_apple_tool()
 def query_stax_result(run_id: str, section: str = "summary", offset: StrictInt = 0, limit: StrictInt = 100) -> dict:
-    """Read a Stax summary or page of threads, samples, intervals, wakeups or application_records."""
+    """Read a Stax summary or page of threads, samples, intervals, wakeups, target_lanes or application_records."""
     from topdown.stax_storage import query_stax_result as query
 
     return _stax_query(query, run_id, section, offset, limit)

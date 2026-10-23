@@ -32,7 +32,9 @@ topdown stax doctor
 
 The executables can also be on `PATH`. macOS additionally requires Stax's signed
 privileged helper; `TOPDOWN_STAX_DAEMON_SOCKET` overrides `/var/run/staxd.sock`.
-Linux capture requires permission to use `perf_event_open`. The doctor reports
+Linux capture requires permission for per-CPU, system-wide `perf_event_open`
+events even when attaching to one PID. A successful per-process perf test does not
+establish these permissions. The doctor reports
 prerequisites and policy hints; it does not establish counter availability.
 
 For the pinned macOS revision, use a root-owned helper socket inside a directory
@@ -131,6 +133,8 @@ an ephemeral loopback port. They do not reuse an existing Stax server. MCP
 captures share the existing serialized native-capture worker with Apple profiling.
 
 The output directory contains `capture.json`, server/recorder logs and `archive/`.
+`processes.json` records the live adapter, target, server and recorder IDs for
+resource observations.
 Directory archives avoid loading a duplicated aggregate copy during event replay
 and keep optional code blobs outside the database. Bundle imports and each
 structured directory member have a 512 MiB import limit; use shorter captures
@@ -154,6 +158,6 @@ hashes cover the ingested structured files, not external code blobs.
 same workflow. Paths and PIDs are local to the MCP server host. Collection accepts
 exactly one `pid` or `command` argv list, plus optional labels, duration and frequency.
 Queries page `samples`, `intervals`, `wakeups`, `threads`, `frame_table`,
-`stack_table` and `application_records`, with limits of 1–1000 rows.
+`stack_table`, `target_lanes` and `application_records`, with limits of 1–1000 rows.
 
 See the [pilot plan](stax-plan.md) for platform and overhead acceptance criteria.

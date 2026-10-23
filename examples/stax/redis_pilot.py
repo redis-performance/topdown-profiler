@@ -7,6 +7,7 @@ import hashlib
 import inspect
 import json
 import math
+import os
 from pathlib import Path
 import platform
 import socket
@@ -71,7 +72,20 @@ def percentile(values, fraction):
     return sorted(values)[max(0, math.ceil(len(values) * fraction) - 1)] if values else None
 
 
-def observe(path, seconds):
+def process_snapshot(pid):
+    try:
+        fields = Path(f"/proc/{pid}/stat").read_text().rpartition(") ")[2].split()
+        return {
+            "start_ticks": int(fields[19]),
+            "cpu_ticks": int(fields[11]) + int(fields[12]),
+            "rss_bytes": max(0, int(fields[21])) * os.sysconf("SC_PAGE_SIZE"),
+            "read_at_monotonic_ns": time.monotonic_ns(),
+        }
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def observe(path, seconds, process_ids=None):
     client = Redis(path)
     stop, latencies, errors = threading.Event(), [], []
 
@@ -97,6 +111,7 @@ def observe(path, seconds):
         started_at_ns = time.time_ns()
         started_monotonic_ns = time.monotonic_ns()
         started = time.perf_counter()
+        before = {name: process_snapshot(pid) for name, pid in (process_ids or {}).items()}
         thread.start()
         time.sleep(seconds)
         client.call("MULTI")
@@ -104,6 +119,22 @@ def observe(path, seconds):
             client.call("INFO", section)
         stats, commands, latency = map(info, client.call("EXEC"))
         elapsed = time.perf_counter() - started
+        resources = {}
+        for name, pid in (process_ids or {}).items():
+            after, first = process_snapshot(pid), before[name]
+            if first is None or after is None or first["start_ticks"] != after["start_ticks"]:
+                resources[name] = {"available": False, "reason": "process missing or identity changed"}
+            else:
+                resources[name] = {
+                    "available": True,
+                    "pid": pid,
+                    "cpu_percent_of_one_logical_cpu": 100
+                    * (after["cpu_ticks"] - first["cpu_ticks"])
+                    / os.sysconf("SC_CLK_TCK")
+                    / ((after["read_at_monotonic_ns"] - first["read_at_monotonic_ns"]) / 1e9),
+                    "rss_before_bytes": first["rss_bytes"],
+                    "rss_after_bytes": after["rss_bytes"],
+                }
         ended_at_ns = time.time_ns()
         ended_monotonic_ns = time.monotonic_ns()
         stop.set()
@@ -123,6 +154,7 @@ def observe(path, seconds):
                 "p99": percentile(latencies, 0.99),
             },
             "probe_errors": errors,
+            "process_resources": resources,
         }
     finally:
         stop.set()
@@ -283,7 +315,17 @@ def run(args):
                             frequency_hz=args.frequency,
                         )
                     time.sleep(2)
-                    trial = {"pair": pair, "mode": mode, **observe(path, args.duration)}
+                    process_ids = {
+                        "redis": server.pid,
+                        "set_client": processes[0].pid,
+                        "get_client": processes[1].pid,
+                        "pilot": os.getpid(),
+                    }
+                    live = output / f"capture-{pair}" / "processes.json"
+                    if capture and live.exists():
+                        owned = json.loads(live.read_text())
+                        process_ids.update(stax_server=owned["server_pid"], stax_recorder=owned["recorder_pid"])
+                    trial = {"pair": pair, "mode": mode, **observe(path, args.duration, process_ids)}
                     if capture:
                         archive, metadata = capture.result(timeout=args.duration + 70)
                         scope = metadata["run"]

@@ -283,6 +283,13 @@ def record_profile(*, output, pid=None, command=None, duration_seconds=5, freque
                     stderr=subprocess.STDOUT,
                     start_new_session=True,
                 )
+                metadata["processes"] = {
+                    "server_pid": server.pid,
+                    "recorder_pid": recorder.pid,
+                    "adapter_pid": os.getpid(),
+                    "target_pid": pid,
+                }
+                (output / "processes.json").write_text(json.dumps(metadata["processes"]) + "\n")
                 deadline = time.monotonic() + duration_seconds + 30
                 target_exited = False
                 while recorder.poll() is None:

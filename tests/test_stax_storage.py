@@ -241,3 +241,18 @@ def test_public_selected_legacy_surrogates_are_rejected(sqlite_backend, stax_arc
         query_stax_result(sqlite_backend, copy_run.run_id, "samples")
     with pytest.raises(StaxError, match="Unicode"):
         get_stax_hotspots(sqlite_backend, copy_run.run_id)
+
+
+def test_target_diagnostic_and_wait_thread_lists_are_bounded(sqlite_backend, stax_archive):
+    document = archive_document()
+    document["target_ingest"]["lanes"] = [{"tid": 100 + i, "name": f"lane-{i}"} for i in range(7)]
+    for i in range(7):
+        document["aggregator"]["threads"].append({"tid": 100 + i, "pet_samples": [], "intervals": [], "wakeups": []})
+    stax_archive.write_text(json.dumps(document))
+    run = store_stax_result(sqlite_backend, stax_archive)
+    summary = query_stax_result(sqlite_backend, run.run_id)
+    assert "target_lanes" not in summary["result"] and "lanes" not in summary["result"]["target_ingest"]
+    target = get_stax_target_spans(sqlite_backend, run.run_id, limit=2)
+    assert len(target["lanes"]) == 2 and target["total_lanes"] == 7
+    waits = get_stax_thread_waits(sqlite_backend, run.run_id, limit=2)
+    assert len(waits["threads"]) == 2 and waits["total_threads"] == 8

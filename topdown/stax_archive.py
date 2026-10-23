@@ -156,6 +156,7 @@ class _Symbols:
     def __init__(self, binaries):
         self.binaries = []
         for binary in _array(binaries, "binaries"):
+            check_cancelled()
             _object(binary, "binary")
             start, end = uint(binary["base_avma"], "binary base"), uint(binary["avma_end"], "binary end")
             if end <= start:
@@ -164,6 +165,7 @@ class _Symbols:
             _text(binary["path"], "binary path")
             symbols = []
             for symbol in _array(binary["symbols"], "symbols"):
+                check_cancelled()
                 lo, hi = uint(symbol["start_svma"], "symbol start"), uint(symbol["end_svma"], "symbol end")
                 if hi < lo:
                     raise StaxError("Symbol ends before its start")
@@ -257,6 +259,9 @@ def load_archive(path):
             replayed = bool(source.get("events"))
             archive = _replay(_array(source["events"], "events"), source.get("runs")) if replayed else source
         result = _normalize(archive)
+        result["clock"]["domain"] = {"linux": "CLOCK_MONOTONIC", "macos": "mach_absolute_time nanoseconds"}.get(
+            provenance["os"], "upstream monotonic clock"
+        )
         return {
             "metadata": {
                 "collector": "stax",
@@ -328,6 +333,24 @@ def _validate_run(run):
     return run
 
 
+def _observability(archive):
+    source = _object(archive.get("observability", {}), "observability")
+    records = list(_array(archive.get("application_records", []), "application records"))
+    variants = {
+        "event_kinds": ("TargetEventKind", None),
+        "events": ("TargetEvent", "event"),
+        "counter_sets": ("TargetCounterSet", None),
+        "counter_samples": ("TargetCounterSample", "sample"),
+        "contracts": ("TargetContract", None),
+    }
+    if set(source) - {*variants, "diagnostics"}:
+        raise StaxError("Unsupported Stax observability field")
+    for field, (variant, wrapper) in variants.items():
+        for row in _array(source.get(field, []), field):
+            records.append({variant: {wrapper: row} if wrapper else row})
+    return {"diagnostics": source.get("diagnostics", {})}, records
+
+
 def _normalize(archive):
     runs = _array(archive["runs"], "runs")
     if len(runs) != 1:
@@ -345,6 +368,8 @@ def _normalize(archive):
     symbols = _Symbols(archive["binaries"]["binaries"])
     stacks = _Stacks(symbols)
     target_ingest = _object(archive.get("target_ingest", {}), "target ingest diagnostics")
+    target_lanes = _array(target_ingest.get("lanes", []), "target lanes")
+    observability, application_records = _observability(archive)
     target_tids = {
         uint(lane["tid"], "target lane thread ID", 32)
         for lane in _array(target_ingest.get("lanes", []), "target lanes")
@@ -371,6 +396,7 @@ def _normalize(archive):
             }
         )
         for sample in _array(thread["pet_samples"], "samples"):
+            check_cancelled()
             pmc = _object(sample["pmc"], "PMU snapshot")
             for key, value in pmc.items():
                 uint(value, f"PMU {key}")
@@ -386,6 +412,7 @@ def _normalize(archive):
             )
             counts["target_stack_sample_count" if target_lane else "sample_count"] += 1
         for interval in _array(thread["intervals"], "intervals"):
+            check_cancelled()
             start, end = uint(interval["start_ns"], "interval start"), uint(interval["end_ns"], "interval end")
             open_interval = end == 0
             if open_interval:
@@ -441,6 +468,7 @@ def _normalize(archive):
                 }[kind]
             ] += 1
         for wakeup in _array(thread["wakeups"], "wakeups"):
+            check_cancelled()
             uint(wakeup["timestamp_ns"], "wakeup time")
             uint(wakeup["waker_tid"], "waker thread ID", 32)
             wakeups.append(
@@ -478,6 +506,7 @@ def _normalize(archive):
             "cpu_samples_with_unresolved_user_leaf": unresolved,
             "sampling_observed": cpu_samples > 0,
             "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
             "symbol_names": "archived ranges; not demangled",
         },
         "counts": {
@@ -489,7 +518,8 @@ def _normalize(archive):
             "threads": len(threads),
             "frame_table": len(symbols.cache),
             "stack_table": len(stacks.rows),
-            "application_records": len(archive.get("application_records", [])),
+            "application_records": len(application_records),
+            "target_lanes": len(target_lanes),
         },
         "scope": run,
         "threads": threads,
@@ -498,9 +528,10 @@ def _normalize(archive):
         "wakeups": wakeups,
         "frame_table": sorted(symbols.cache.values(), key=lambda frame: frame["address"]),
         "stack_table": stacks.rows,
-        "target_ingest": target_ingest,
-        "observability": archive.get("observability", {}),
-        "application_records": archive.get("application_records", []),
+        "target_ingest": {key: value for key, value in target_ingest.items() if key != "lanes"},
+        "target_lanes": target_lanes,
+        "observability": observability,
+        "application_records": application_records,
         "limitations": [
             "Sample shares describe observed stack hits, not CPU time or TMA pipeline slots.",
             "Scheduler interval totals may overlap; they are not a utilization denominator.",

@@ -10,7 +10,16 @@ from topdown.collector.apple_runtime import check_cancelled
 from topdown.stax_archive import StaxError, companion_metadata, load_archive
 from topdown.storage.models import Run
 
-BULK_FIELDS = {"samples", "intervals", "wakeups", "threads", "application_records", "frame_table", "stack_table"}
+BULK_FIELDS = {
+    "samples",
+    "intervals",
+    "wakeups",
+    "threads",
+    "application_records",
+    "frame_table",
+    "stack_table",
+    "target_lanes",
+}
 
 
 def store_stax_result(backend, path, process_name=None, labels=None, capture=None):
@@ -108,7 +117,7 @@ def query_stax_result(backend, run_id, section="summary", offset=0, limit=100):
     _page_options(offset, limit)
     if section not in {"summary", *BULK_FIELDS}:
         raise StaxError(
-            "Choose summary, threads, samples, intervals, wakeups, frame_table, stack_table or application_records"
+            "Choose summary, threads, samples, intervals, wakeups, frame_table, stack_table, target_lanes or application_records"
         )
     run = backend.get_run(run_id)
     if run is None or run.labels.get("collector") != "stax":
@@ -233,13 +242,18 @@ def get_stax_thread_waits(backend, run_id, tid=None, limit=20):
         row["interval_count"] += 1
         row["duration_ns"] += interval["duration_ns"]
     rows = sorted(waits.values(), key=lambda row: (-row["duration_ns"], row["tid"]))
+    threads = sorted(
+        (t for t in result["threads"] if tid is None or t["tid"] == tid),
+        key=lambda thread: (-thread.get("off_cpu_interval_ns", 0), thread["tid"]),
+    )
     return _checked(
         {
             "run_id": run_id,
             "collector": "stax",
             "unit": "ns",
             "tid": tid,
-            "threads": [t for t in result["threads"] if tid is None or t["tid"] == tid],
+            "threads": threads[:limit],
+            "total_threads": len(threads),
             "total_wait_stacks": len(rows),
             "rows": rows[:limit],
             "limitations": result["limitations"],
@@ -251,7 +265,7 @@ def get_stax_target_spans(backend, run_id, tid=None, limit=20):
     _page_options(0, limit)
     if tid is not None and (type(tid) is not int or not 0 <= tid < 2**32):
         raise StaxError("Require an unsigned 32-bit thread ID")
-    _, document = _document(backend, run_id, ("threads", "intervals", "frame_table", "stack_table"))
+    _, document = _document(backend, run_id, ("threads", "intervals", "frame_table", "stack_table", "target_lanes"))
     result = document["result"]
     frames = {frame["address"]: frame for frame in result["frame_table"]}
     spans = {}
@@ -284,7 +298,8 @@ def get_stax_target_spans(backend, run_id, tid=None, limit=20):
             row["origin_tids"].add(interval["origin_tid"])
     rows = sorted(spans.values(), key=lambda row: (-row["sum_target_span_ns"], row["tid"]))
     for row in rows:
-        row["origin_tids"] = sorted(row["origin_tids"])
+        row["origin_thread_count"] = len(row["origin_tids"])
+        row["origin_tids"] = sorted(row["origin_tids"])[:limit]
     return _checked(
         {
             "run_id": run_id,
@@ -295,6 +310,8 @@ def get_stax_target_spans(backend, run_id, tid=None, limit=20):
             "total_target_functions": len(rows),
             "rows": rows[:limit],
             "target_ingest": result["target_ingest"],
+            "lanes": [lane for lane in result["target_lanes"] if tid is None or lane["tid"] == tid][:limit],
+            "total_lanes": sum(tid is None or lane["tid"] == tid for lane in result["target_lanes"]),
             "limitations": [
                 *result["limitations"],
                 "Target span durations can overlap; their sum is not GPU utilization.",
