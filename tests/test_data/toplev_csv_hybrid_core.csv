@@ -1,0 +1,2 @@
+Timestamp,CPUs,Area,Value,Unit,Description,Sample,Stddev,Multiplex,Bottleneck,Idle
+1.000341466,core,Frontend_Bound,37.9,% Slots,,frontend_retired.latency_ge_4,0.0,100.0,,

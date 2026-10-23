@@ -455,6 +455,9 @@ def collect_topdown(
     start_time = time.time()
     try:
         toplev_samples = runner.run_and_parse(duration_seconds)
+        from topdown.collector.csv_parser import sample_scope_labels
+
+        run.labels.update(sample_scope_labels(toplev_samples, config.toplev_cpu_type if collector == "toplev" else None))
     except RuntimeError as e:
         return f"Error running collection: {e}"
 
