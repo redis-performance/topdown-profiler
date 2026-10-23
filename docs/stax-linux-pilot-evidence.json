@@ -3,7 +3,6 @@
   "host": "fco-tp",
   "os": "Linux fco-tp 6.17.0-35-generic #35~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 19:30:42 UTC 2 x86_64 x86_64 x86_64 GNU/Linux",
   "cpu_model": "Intel Core Ultra 7 155U",
-  "topdown_base": "0763ba3",
   "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
   "redis_revision": "006e6a6a602ac5265a676b3aebe9f8ba65459190",
   "pmu_tools_revision": "2568760ffc9394ddaa7a71f0c39930e780cf2dca",
@@ -17,101 +16,1536 @@
     "stax-server": "4ce7169e671fb2aa1e0a9bb5d69b722ed069bc198904b4970d906dad84b26f5b",
     "staxd": "35c5d6a7945322ede1e1ea73c369fb37e03bd31540c3b81a3b61d3a6e035bce2"
   },
-  "initial_sysctls": {
-    "kernel.perf_event_paranoid": 1,
-    "kernel.perf_event_mlock_kb": 516
-  },
-  "preflight": [
-    {
-      "name": "perf-process",
-      "argv": [
-        "taskset",
-        "-c",
-        "2",
-        "perf",
-        "stat",
-        "-e",
-        "task-clock,cycles,instructions",
-        "--",
-        "sleep",
-        "0.1"
-      ],
-      "exit_code": 0
+  "local_artifact_directory": "/home/fco/.cache/topdown-stax-linux-pilot",
+  "initial_attempt": {
+    "topdown_base": "0763ba3",
+    "initial_sysctls": {
+      "kernel.perf_event_paranoid": 1,
+      "kernel.perf_event_mlock_kb": 516
     },
-    {
-      "name": "perf-system-wide",
-      "argv": [
-        "perf",
-        "stat",
-        "-a",
-        "-e",
-        "task-clock",
-        "--",
-        "sleep",
-        "0.1"
-      ],
-      "exit_code": 255
+    "preflight": [
+      {
+        "name": "perf-process",
+        "argv": [
+          "taskset",
+          "-c",
+          "2",
+          "perf",
+          "stat",
+          "-e",
+          "task-clock,cycles,instructions",
+          "--",
+          "sleep",
+          "0.1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "perf-system-wide",
+        "argv": [
+          "perf",
+          "stat",
+          "-a",
+          "-e",
+          "task-clock",
+          "--",
+          "sleep",
+          "0.1"
+        ],
+        "exit_code": 255
+      },
+      {
+        "name": "perf-l1-tma",
+        "argv": [
+          "taskset",
+          "-c",
+          "2",
+          "perf",
+          "stat",
+          "-e",
+          "{cpu_core/slots/,cpu_core/topdown-retiring/,cpu_core/topdown-bad-spec/,cpu_core/topdown-fe-bound/,cpu_core/topdown-be-bound/}",
+          "--",
+          "sleep",
+          "0.1"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "stax_attach": {
+      "frequency_hz": 900,
+      "dwarf_unwind": true,
+      "samples": 0,
+      "intervals": 0,
+      "error": "stax: started run 1\nerror: recorder failed: perf_event_open on cpu 0 failed: Permission denied (os error 13) (need perf_event_paranoid low enough, or the daemon)\n\nLocation:\n    stax-linux-capture/src/session.rs:1022:28"
     },
-    {
-      "name": "perf-l1-tma",
-      "argv": [
-        "taskset",
-        "-c",
-        "2",
-        "perf",
-        "stat",
-        "-e",
-        "{cpu_core/slots/,cpu_core/topdown-retiring/,cpu_core/topdown-bad-spec/,cpu_core/topdown-fe-bound/,cpu_core/topdown-be-bound/}",
-        "--",
-        "sleep",
-        "0.1"
-      ],
-      "exit_code": 0
+    "native_tma": {
+      "memtier_exit": 0,
+      "toplev_exit": 0,
+      "raw_metric_rows": 64,
+      "csv_header": "Timestamp,CPUs,Area,Value,Unit,Description,Sample,Stddev,Multiplex,Bottleneck,Idle",
+      "example_raw_row": "1.000341466,core,Frontend_Bound,37.9,% Slots,,frontend_retired.latency_ge_4,0.0,100.0,,",
+      "expected": {
+        "metric_name": "Frontend_Bound",
+        "value": 37.9,
+        "unit": "% Slots",
+        "cpu_group": "core"
+      },
+      "observed_parser_result": {
+        "metric_name": "core",
+        "value": 0.0,
+        "unit": "37.9",
+        "status": "100.0"
+      },
+      "interpretation": "Functional capture only. Background compilation and shared-host load; not an overhead baseline. Raw capture not imported."
+    },
+    "tests": {
+      "topdown": {
+        "passed": 1925,
+        "skipped": 126
+      },
+      "stax_linux_capture": {
+        "passed": 18,
+        "failed": 0
+      }
     }
-  ],
-  "stax_attach": {
-    "frequency_hz": 900,
-    "dwarf_unwind": true,
-    "samples": 0,
-    "intervals": 0,
-    "error": "stax: started run 1\nerror: recorder failed: perf_event_open on cpu 0 failed: Permission denied (os error 13) (need perf_event_paranoid low enough, or the daemon)\n\nLocation:\n    stax-linux-capture/src/session.rs:1022:28"
   },
-  "native_tma": {
-    "memtier_exit": 0,
-    "toplev_exit": 0,
-    "raw_metric_rows": 64,
-    "csv_header": "Timestamp,CPUs,Area,Value,Unit,Description,Sample,Stddev,Multiplex,Bottleneck,Idle",
-    "example_raw_row": "1.000341466,core,Frontend_Bound,37.9,% Slots,,frontend_retired.latency_ge_4,0.0,100.0,,",
-    "expected": {
-      "metric_name": "Frontend_Bound",
-      "value": 37.9,
-      "unit": "% Slots",
-      "cpu_group": "core"
+  "live_validation": {
+    "topdown_base": "f6b4e7e39b4a7c8663ced5bb292ce477b6889447",
+    "sysctls": {
+      "kernel.perf_event_paranoid": 0,
+      "kernel.perf_event_mlock_kb": 65536
     },
-    "observed_parser_result": {
-      "metric_name": "core",
-      "value": 0.0,
-      "unit": "37.9",
-      "status": "100.0"
+    "functional_status": "passed on this Intel Linux host",
+    "overhead_status": "inconclusive: uncontrolled host variability; 5% throughput budget not established",
+    "workload": {
+      "redis_cpu": 2,
+      "memtier_cpus": [
+        4,
+        5
+      ],
+      "stax_server_cpus": [
+        6,
+        7
+      ],
+      "threads": 2,
+      "clients_per_thread": 10,
+      "pipeline": 4,
+      "ratio": "1:1",
+      "value_bytes": 64,
+      "prefilled_keys": 10000,
+      "key_pattern": "R:R",
+      "seed": "memtier fixed default",
+      "warmup_seconds": 5,
+      "measured_seconds": 30,
+      "pairs_per_frequency": 3,
+      "dwarf_unwind": true,
+      "capture_hard_limit_seconds": 45,
+      "ordering": [
+        "baseline",
+        "profiled",
+        "profiled",
+        "baseline",
+        "baseline",
+        "profiled"
+      ],
+      "profiling_path": "native stax record; integrated Python capture verified separately"
     },
-    "interpretation": "Functional capture only. Background compilation and shared-host load; not an overhead baseline. Raw capture not imported."
-  },
-  "tests": {
-    "topdown": {
-      "passed": 1925,
-      "skipped": 126
+    "analysis": {
+      "series": {
+        "paired-900hz": {
+          "frequency_hz": 900,
+          "runs": [
+            {
+              "tag": "01-baseline",
+              "mode": "baseline",
+              "ops_per_second": 223139.7,
+              "requests": 6694344,
+              "p50_ms": 0.311,
+              "p99_ms": 1.887,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "77cab245c918d4728b406553eca0071c64bf24612c4f1bf95fe997af0742d90c",
+              "first_resource_observation_monotonic_ns": 6792722202634662,
+              "last_resource_observation_monotonic_ns": 6792752215918368,
+              "redis_cpu_seconds": 28.68,
+              "redis_max_sampled_rss_bytes": 9687040,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 14323712,
+              "memtier_last_observed_cpu_seconds": 25.77
+            },
+            {
+              "tag": "02-profiled",
+              "mode": "profiled",
+              "ops_per_second": 304209.44,
+              "requests": 9126424,
+              "p50_ms": 0.199,
+              "p99_ms": 1.047,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "ed41e8098dc4dae1cce038c07d87a7b4bea9c321b39d9008ffb64a7d0a55515a",
+              "first_resource_observation_monotonic_ns": 6792760381861670,
+              "last_resource_observation_monotonic_ns": 6792790395841047,
+              "redis_cpu_seconds": 29.01,
+              "redis_max_sampled_rss_bytes": 9687040,
+              "stax_cpu_seconds": 1.53,
+              "stax_max_sampled_rss_bytes": 37462016,
+              "memtier_last_observed_cpu_seconds": 33.97,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            },
+            {
+              "tag": "03-profiled",
+              "mode": "profiled",
+              "ops_per_second": 338114.72,
+              "requests": 10143620,
+              "p50_ms": 0.191,
+              "p99_ms": 1.167,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "c5466b8da0dbb27007b61a47f5ccaadfd29ea953b826fb0c5ff41c8602b6b484",
+              "first_resource_observation_monotonic_ns": 6792801172986035,
+              "last_resource_observation_monotonic_ns": 6792831187065448,
+              "redis_cpu_seconds": 28.78,
+              "redis_max_sampled_rss_bytes": 9818112,
+              "stax_cpu_seconds": 1.79,
+              "stax_max_sampled_rss_bytes": 215175168,
+              "memtier_last_observed_cpu_seconds": 38.38,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            },
+            {
+              "tag": "04-baseline",
+              "mode": "baseline",
+              "ops_per_second": 281954.89,
+              "requests": 8740744,
+              "p50_ms": 0.207,
+              "p99_ms": 1.295,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "9b5d1792cebd611ae01697bad1918cd9e01c8650f5005b6cc842bbbd239cb59d",
+              "first_resource_observation_monotonic_ns": 6792841045409250,
+              "last_resource_observation_monotonic_ns": 6792870059053820,
+              "redis_cpu_seconds": 29.02,
+              "redis_max_sampled_rss_bytes": 9818112,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 299618304,
+              "memtier_last_observed_cpu_seconds": 30.72
+            },
+            {
+              "tag": "05-baseline",
+              "mode": "baseline",
+              "ops_per_second": 278354.18,
+              "requests": 8629176,
+              "p50_ms": 0.215,
+              "p99_ms": 1.199,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "ca3bbb39f748dfaabb759b24431db4c64761dc4c58160f2319f3642d0fccd3bc",
+              "first_resource_observation_monotonic_ns": 6792877128899505,
+              "last_resource_observation_monotonic_ns": 6792906143239542,
+              "redis_cpu_seconds": 29.27,
+              "redis_max_sampled_rss_bytes": 9818112,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 299618304,
+              "memtier_last_observed_cpu_seconds": 32.21
+            },
+            {
+              "tag": "06-profiled",
+              "mode": "profiled",
+              "ops_per_second": 352145.27,
+              "requests": 10212452,
+              "p50_ms": 0.191,
+              "p99_ms": 1.183,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "31ba15e2c6221754c30f4376a8ca706e32be93c62b62ae98a89980abd172cea1",
+              "first_resource_observation_monotonic_ns": 6792914303592566,
+              "last_resource_observation_monotonic_ns": 6792943321030499,
+              "redis_cpu_seconds": 28.88,
+              "redis_max_sampled_rss_bytes": 9949184,
+              "stax_cpu_seconds": 1.66,
+              "stax_max_sampled_rss_bytes": 304902144,
+              "memtier_last_observed_cpu_seconds": 38.38,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            }
+          ],
+          "pairs": [
+            {
+              "pair": 1,
+              "baseline": "01-baseline",
+              "profiled": "02-profiled",
+              "throughput_loss_pct": -36.3313834337861,
+              "p99_change_pct": -44.515103338632755
+            },
+            {
+              "pair": 2,
+              "baseline": "04-baseline",
+              "profiled": "03-profiled",
+              "throughput_loss_pct": -19.91801951014218,
+              "p99_change_pct": -9.88416988416988
+            },
+            {
+              "pair": 3,
+              "baseline": "05-baseline",
+              "profiled": "06-profiled",
+              "throughput_loss_pct": -26.509783327126613,
+              "p99_change_pct": -1.334445371142623
+            }
+          ],
+          "median_paired_throughput_loss_pct": -26.509783327126613,
+          "median_paired_p99_change_pct": -9.88416988416988,
+          "baseline_range_pct_of_median": 21.129623417187414,
+          "baseline_max_over_min_pct": 26.358012491726022,
+          "native_capture_summaries": [
+            {
+              "samples": 26081,
+              "intervals": 26080,
+              "off_cpu_intervals": 67242,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 32059
+            },
+            {
+              "samples": 25927,
+              "intervals": 25926,
+              "off_cpu_intervals": 83272,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 32059
+            },
+            {
+              "samples": 25901,
+              "intervals": 25900,
+              "off_cpu_intervals": 73000,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 31074
+            }
+          ]
+        },
+        "paired-99hz": {
+          "frequency_hz": 99,
+          "runs": [
+            {
+              "tag": "01-baseline",
+              "mode": "baseline",
+              "ops_per_second": 332396.94,
+              "requests": 9972052,
+              "p50_ms": 0.191,
+              "p99_ms": 0.855,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "0307f8359ae185c047ca2f617d367c79b85f39153c233a1565cdc66d97d29e81",
+              "first_resource_observation_monotonic_ns": 6792978452187782,
+              "last_resource_observation_monotonic_ns": 6793008464743760,
+              "redis_cpu_seconds": 29.28,
+              "redis_max_sampled_rss_bytes": 9682944,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 12664832,
+              "memtier_last_observed_cpu_seconds": 36.98
+            },
+            {
+              "tag": "02-profiled",
+              "mode": "profiled",
+              "ops_per_second": 280161.47,
+              "requests": 8685200,
+              "p50_ms": 0.215,
+              "p99_ms": 1.191,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "72e14f76555a8294e9f36245e89616e1a9710eb24947fdc8e20bc34f24c88b86",
+              "first_resource_observation_monotonic_ns": 6793016581700665,
+              "last_resource_observation_monotonic_ns": 6793046598561420,
+              "redis_cpu_seconds": 29.18,
+              "redis_max_sampled_rss_bytes": 9814016,
+              "stax_cpu_seconds": 0.87,
+              "stax_max_sampled_rss_bytes": 24043520,
+              "memtier_last_observed_cpu_seconds": 33.8,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            },
+            {
+              "tag": "03-profiled",
+              "mode": "profiled",
+              "ops_per_second": 298711.25,
+              "requests": 9260220,
+              "p50_ms": 0.207,
+              "p99_ms": 1.783,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "fb730575806917189e25fb98eb6cec0caad3e334c9d8f5a4386d29d5c798b17b",
+              "first_resource_observation_monotonic_ns": 6793056087153168,
+              "last_resource_observation_monotonic_ns": 6793086105806055,
+              "redis_cpu_seconds": 28.5,
+              "redis_max_sampled_rss_bytes": 9814016,
+              "stax_cpu_seconds": 1.29,
+              "stax_max_sampled_rss_bytes": 144457728,
+              "memtier_last_observed_cpu_seconds": 36.64,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            },
+            {
+              "tag": "04-baseline",
+              "mode": "baseline",
+              "ops_per_second": 334280.43,
+              "requests": 9694312,
+              "p50_ms": 0.183,
+              "p99_ms": 2.063,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "f9fbbb1842baf4c1fad0877bccb168abe3284b8306a9478c7667704ee18e6a73",
+              "first_resource_observation_monotonic_ns": 6793095532257169,
+              "last_resource_observation_monotonic_ns": 6793124552741062,
+              "redis_cpu_seconds": 27.77,
+              "redis_max_sampled_rss_bytes": 9814016,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 162680832,
+              "memtier_last_observed_cpu_seconds": 36.03
+            },
+            {
+              "tag": "05-baseline",
+              "mode": "baseline",
+              "ops_per_second": 241556.29,
+              "requests": 7488356,
+              "p50_ms": 0.215,
+              "p99_ms": 2.879,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "a42d30b463462b6d8ce0bb333d09ef09ac8e1d0e6f89c83219d5d8e38035b8c8",
+              "first_resource_observation_monotonic_ns": 6793131625198966,
+              "last_resource_observation_monotonic_ns": 6793160654505946,
+              "redis_cpu_seconds": 25.39,
+              "redis_max_sampled_rss_bytes": 9945088,
+              "stax_cpu_seconds": 0.0,
+              "stax_max_sampled_rss_bytes": 162680832,
+              "memtier_last_observed_cpu_seconds": 31.61
+            },
+            {
+              "tag": "06-profiled",
+              "mode": "profiled",
+              "ops_per_second": 283120.95,
+              "requests": 8776896,
+              "p50_ms": 0.207,
+              "p99_ms": 1.327,
+              "connection_errors": 0,
+              "misses_per_second": 0.0,
+              "memtier_sha256": "bac92c4d082c9a4dde57d4e591bcdac085babebd15c7e414677b68205160e7e0",
+              "first_resource_observation_monotonic_ns": 6793167796580704,
+              "last_resource_observation_monotonic_ns": 6793197810868888,
+              "redis_cpu_seconds": 28.79,
+              "redis_max_sampled_rss_bytes": 9945088,
+              "stax_cpu_seconds": 1.04,
+              "stax_max_sampled_rss_bytes": 179474432,
+              "memtier_last_observed_cpu_seconds": 35.11,
+              "recording_alive_after_benchmark": true,
+              "command_exit_codes": {
+                "record_exit_code": 0,
+                "threads_exit_code": 0,
+                "top-self_exit_code": 0,
+                "top-total_exit_code": 0,
+                "flame_exit_code": 0,
+                "diagnose_exit_code": 0,
+                "annotate_exit_code": 0,
+                "save_exit_code": 0
+              }
+            }
+          ],
+          "pairs": [
+            {
+              "pair": 1,
+              "baseline": "01-baseline",
+              "profiled": "02-profiled",
+              "throughput_loss_pct": 15.714786664401913,
+              "p99_change_pct": 39.298245614035096
+            },
+            {
+              "pair": 2,
+              "baseline": "04-baseline",
+              "profiled": "03-profiled",
+              "throughput_loss_pct": 10.64052119353801,
+              "p99_change_pct": -13.57246728065925
+            },
+            {
+              "pair": 3,
+              "baseline": "05-baseline",
+              "profiled": "06-profiled",
+              "throughput_loss_pct": -17.20702863916315,
+              "p99_change_pct": -53.907606807919414
+            }
+          ],
+          "median_paired_throughput_loss_pct": 10.64052119353801,
+          "median_paired_p99_change_pct": -13.57246728065925,
+          "baseline_range_pct_of_median": 27.895605777838984,
+          "baseline_max_over_min_pct": 38.386141797425346,
+          "native_capture_summaries": [
+            {
+              "samples": 2882,
+              "intervals": 2881,
+              "off_cpu_intervals": 49572,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 32105
+            },
+            {
+              "samples": 2814,
+              "intervals": 2813,
+              "off_cpu_intervals": 77971,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 32126
+            },
+            {
+              "samples": 2830,
+              "intervals": 2829,
+              "off_cpu_intervals": 60707,
+              "dwarf_truncated": 0,
+              "lost": 0,
+              "elapsed_ms": 32085
+            }
+          ]
+        }
+      },
+      "archives": {
+        "smoke-enabled/01-profiled.stax": {
+          "quality": {
+            "reported_cpu_samples": 4345,
+            "observed_cpu_samples": 4345,
+            "cpu_sample_counts_match": true,
+            "cpu_samples_without_user_stack": 0,
+            "cpu_samples_with_unresolved_user_leaf": 87,
+            "sampling_observed": true,
+            "reported_off_cpu_intervals": 13851,
+            "observed_off_cpu_intervals": 13851,
+            "off_cpu_record_counts_match": true,
+            "off_cpu_observed": true,
+            "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
+            "symbol_names": "archived ranges; not demangled"
+          },
+          "counts": {
+            "samples": 4345,
+            "intervals": 18195,
+            "wakeups": 0,
+            "cpu_samples": 4345,
+            "target_stack_samples": 0,
+            "threads": 1,
+            "frame_table": 2686,
+            "stack_table": 2468,
+            "application_records": 0,
+            "target_lanes": 0
+          },
+          "scope": {
+            "id": [
+              1
+            ],
+            "state": "Stopped",
+            "stop_reason": "UserStop",
+            "started_at_unix_ns": 1792788604684024901,
+            "stopped_at_unix_ns": 1792788612762847947,
+            "target_pid": 2307564,
+            "label": "(attached)",
+            "pet_samples": 4345,
+            "off_cpu_intervals": 13851
+          },
+          "clock": {
+            "session_start_ns": 6792692724716073,
+            "last_event_ns": 6792700253248647,
+            "units": "upstream monotonic nanoseconds; target timestamps require producer calibration",
+            "domain": "CLOCK_MONOTONIC"
+          },
+          "threads": [
+            {
+              "tid": 2307564,
+              "name": "redis-server",
+              "kind": "cpu-thread",
+              "sample_count": 4345,
+              "target_stack_sample_count": 0,
+              "on_cpu_interval_ns": 5008887446,
+              "off_cpu_interval_ns": 2673803372,
+              "target_span_ns": 0,
+              "off_cpu_interval_count": 13851,
+              "on_cpu_interval_count": 4344
+            }
+          ],
+          "stack_depth": {
+            "min": 5,
+            "median": 11,
+            "max": 19
+          },
+          "first_sample_monotonic_ns": 6792693249330626,
+          "last_sample_monotonic_ns": 6792700040440232,
+          "samples_with_nonzero_pmc_fields": {
+            "cycles": 4345,
+            "instructions": 4345,
+            "l1d_misses": 4345,
+            "branch_mispreds": 4345
+          },
+          "samples_with_kernel_stack": 2765,
+          "top_self": [
+            {
+              "name": "__write",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 2232,
+              "sample_share": 0.5136939010356731
+            },
+            {
+              "name": "read",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 470,
+              "sample_share": 0.10817031070195628
+            },
+            {
+              "name": "epoll_wait",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 128,
+              "sample_share": 0.029459148446490217
+            },
+            {
+              "name": "prefetchCommands",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 93,
+              "sample_share": 0.02140391254315305
+            },
+            {
+              "name": null,
+              "binary": null,
+              "samples": 87,
+              "sample_share": 0.02002301495972382
+            },
+            {
+              "name": "dictFindLinkInternal",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 70,
+              "sample_share": 0.01611047180667434
+            },
+            {
+              "name": "__strcasecmp_l_avx2",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 66,
+              "sample_share": 0.015189873417721518
+            },
+            {
+              "name": "processInputBuffer",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 60,
+              "sample_share": 0.01380897583429229
+            },
+            {
+              "name": "malloc",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 51,
+              "sample_share": 0.011737629459148446
+            },
+            {
+              "name": "update_zmalloc_stat_alloc",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 46,
+              "sample_share": 0.010586881472957423
+            }
+          ],
+          "artifact": {
+            "path": "/home/fco/.cache/topdown-stax-linux-pilot/smoke-enabled/01-profiled.stax",
+            "size_bytes": 35296712,
+            "sha256": "94daffa8089738f435507fca8a95ccef587c56313c8a0e12607accf268de1281"
+          }
+        },
+        "paired-900hz/02-profiled.stax": {
+          "quality": {
+            "reported_cpu_samples": 26081,
+            "observed_cpu_samples": 26081,
+            "cpu_sample_counts_match": true,
+            "cpu_samples_without_user_stack": 0,
+            "cpu_samples_with_unresolved_user_leaf": 497,
+            "sampling_observed": true,
+            "reported_off_cpu_intervals": 67242,
+            "observed_off_cpu_intervals": 67242,
+            "off_cpu_record_counts_match": true,
+            "off_cpu_observed": true,
+            "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
+            "symbol_names": "archived ranges; not demangled"
+          },
+          "counts": {
+            "samples": 26081,
+            "intervals": 93322,
+            "wakeups": 0,
+            "cpu_samples": 26081,
+            "target_stack_samples": 0,
+            "threads": 1,
+            "frame_table": 6659,
+            "stack_table": 7885,
+            "application_records": 0,
+            "target_lanes": 0
+          },
+          "scope": {
+            "id": [
+              1
+            ],
+            "state": "Stopped",
+            "stop_reason": "UserStop",
+            "started_at_unix_ns": 1792788671814092793,
+            "stopped_at_unix_ns": 1792788703897099118,
+            "target_pid": 2310864,
+            "label": "(attached)",
+            "pet_samples": 26081,
+            "off_cpu_intervals": 67242
+          },
+          "clock": {
+            "session_start_ns": 6792759825094177,
+            "last_event_ns": 6792791398741315,
+            "units": "upstream monotonic nanoseconds; target timestamps require producer calibration",
+            "domain": "CLOCK_MONOTONIC"
+          },
+          "threads": [
+            {
+              "tid": 2310864,
+              "name": "redis-server",
+              "kind": "cpu-thread",
+              "sample_count": 26081,
+              "target_stack_sample_count": 0,
+              "on_cpu_interval_ns": 29984436292,
+              "off_cpu_interval_ns": 2471771907,
+              "target_span_ns": 0,
+              "on_cpu_interval_count": 26080,
+              "off_cpu_interval_count": 67242
+            }
+          ],
+          "stack_depth": {
+            "min": 5,
+            "median": 11,
+            "max": 19
+          },
+          "first_sample_monotonic_ns": 6792759825094177,
+          "last_sample_monotonic_ns": 6792790675090636,
+          "samples_with_nonzero_pmc_fields": {
+            "cycles": 26081,
+            "instructions": 26081,
+            "l1d_misses": 26081,
+            "branch_mispreds": 26081
+          },
+          "samples_with_kernel_stack": 16349,
+          "top_self": [
+            {
+              "name": "__write",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 13241,
+              "sample_share": 0.5076875886660788
+            },
+            {
+              "name": "read",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 2831,
+              "sample_share": 0.10854645143974541
+            },
+            {
+              "name": "prefetchCommands",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 682,
+              "sample_share": 0.026149304091100802
+            },
+            {
+              "name": "epoll_wait",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 618,
+              "sample_share": 0.023695410452053218
+            },
+            {
+              "name": null,
+              "binary": null,
+              "samples": 497,
+              "sample_share": 0.019056017790728883
+            },
+            {
+              "name": "processInputBuffer",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 446,
+              "sample_share": 0.01710057129711284
+            },
+            {
+              "name": "__strcasecmp_l_avx2",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 376,
+              "sample_share": 0.014416625129404547
+            },
+            {
+              "name": "malloc",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 338,
+              "sample_share": 0.012959625781220046
+            },
+            {
+              "name": "dictFindLinkInternal",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 292,
+              "sample_share": 0.011195889728154594
+            },
+            {
+              "name": "decrRefCount",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 279,
+              "sample_share": 0.010697442582723055
+            }
+          ],
+          "artifact": {
+            "path": "/home/fco/.cache/topdown-stax-linux-pilot/paired-900hz/02-profiled.stax",
+            "size_bytes": 153575696,
+            "sha256": "55e78d82b0b2b718cf70516c5c923fa11293bd0d346ff1961b1ca8780e536c5c"
+          },
+          "resource_observations_inside_sample_bounds": true
+        },
+        "paired-99hz/02-profiled.stax": {
+          "quality": {
+            "reported_cpu_samples": 2882,
+            "observed_cpu_samples": 2882,
+            "cpu_sample_counts_match": true,
+            "cpu_samples_without_user_stack": 0,
+            "cpu_samples_with_unresolved_user_leaf": 74,
+            "sampling_observed": true,
+            "reported_off_cpu_intervals": 49572,
+            "observed_off_cpu_intervals": 49572,
+            "off_cpu_record_counts_match": true,
+            "off_cpu_observed": true,
+            "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
+            "symbol_names": "archived ranges; not demangled"
+          },
+          "counts": {
+            "samples": 2882,
+            "intervals": 52453,
+            "wakeups": 0,
+            "cpu_samples": 2882,
+            "target_stack_samples": 0,
+            "threads": 1,
+            "frame_table": 2238,
+            "stack_table": 1838,
+            "application_records": 0,
+            "target_lanes": 0
+          },
+          "scope": {
+            "id": [
+              1
+            ],
+            "state": "Stopped",
+            "stop_reason": "UserStop",
+            "started_at_unix_ns": 1792788928012011634,
+            "stopped_at_unix_ns": 1792788960141375092,
+            "target_pid": 2338996,
+            "label": "(attached)",
+            "pet_samples": 2882,
+            "off_cpu_intervals": 49572
+          },
+          "clock": {
+            "session_start_ns": 6793016055860508,
+            "last_event_ns": 6793047615740002,
+            "units": "upstream monotonic nanoseconds; target timestamps require producer calibration",
+            "domain": "CLOCK_MONOTONIC"
+          },
+          "threads": [
+            {
+              "tid": 2338996,
+              "name": "redis-server",
+              "kind": "cpu-thread",
+              "sample_count": 2882,
+              "target_stack_sample_count": 0,
+              "on_cpu_interval_ns": 30040404076,
+              "off_cpu_interval_ns": 2282481370,
+              "target_span_ns": 0,
+              "off_cpu_interval_count": 49572,
+              "on_cpu_interval_count": 2881
+            }
+          ],
+          "stack_depth": {
+            "min": 5,
+            "median": 11.0,
+            "max": 19
+          },
+          "first_sample_monotonic_ns": 6793016356453101,
+          "last_sample_monotonic_ns": 6793046588776821,
+          "samples_with_nonzero_pmc_fields": {
+            "cycles": 2882,
+            "instructions": 2882,
+            "l1d_misses": 2882,
+            "branch_mispreds": 2882
+          },
+          "samples_with_kernel_stack": 1827,
+          "top_self": [
+            {
+              "name": "__write",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 1489,
+              "sample_share": 0.5166551006245663
+            },
+            {
+              "name": "read",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 314,
+              "sample_share": 0.10895211658570438
+            },
+            {
+              "name": null,
+              "binary": null,
+              "samples": 74,
+              "sample_share": 0.025676613462873005
+            },
+            {
+              "name": "prefetchCommands",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 65,
+              "sample_share": 0.02255378209576683
+            },
+            {
+              "name": "epoll_wait",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 62,
+              "sample_share": 0.021512838306731435
+            },
+            {
+              "name": "__strcasecmp_l_avx2",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 42,
+              "sample_share": 0.01457321304649549
+            },
+            {
+              "name": "processInputBuffer",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 38,
+              "sample_share": 0.0131852879944483
+            },
+            {
+              "name": "malloc",
+              "binary": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "samples": 38,
+              "sample_share": 0.0131852879944483
+            },
+            {
+              "name": "dictFindLinkInternal",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 36,
+              "sample_share": 0.012491325468424705
+            },
+            {
+              "name": "call",
+              "binary": "/home/fco/.cache/topdown-stax-linux-pilot/redis/src/redis-server",
+              "samples": 34,
+              "sample_share": 0.01179736294240111
+            }
+          ],
+          "artifact": {
+            "path": "/home/fco/.cache/topdown-stax-linux-pilot/paired-99hz/02-profiled.stax",
+            "size_bytes": 72356891,
+            "sha256": "8320b590bac81e03d211bf96a31319eb565986159bcf03599e674b7acff9fd5a"
+          },
+          "resource_observations_inside_sample_bounds": false
+        }
+      }
     },
-    "stax_linux_capture": {
-      "passed": 18,
-      "failed": 0
+    "integration": {
+      "captures": {
+        "cli_capture": {
+          "run_id": "48b49855-a571-42ae-b098-104faa7f3a89",
+          "labels": {
+            "test_name": "linux-native-pilot-cli",
+            "collector": "stax",
+            "measurement_kind": "stax-sampled-stacks-and-scheduler-intervals",
+            "time_basis": "archive_run_timestamps",
+            "sampling_frequency_hz": "99",
+            "os": "linux",
+            "arch": "x86_64"
+          },
+          "counts": {
+            "samples": 423,
+            "intervals": 11497,
+            "wakeups": 0,
+            "cpu_samples": 423,
+            "target_stack_samples": 0,
+            "threads": 1,
+            "frame_table": 676,
+            "stack_table": 354,
+            "application_records": 0,
+            "target_lanes": 0
+          },
+          "quality": {
+            "reported_cpu_samples": 423,
+            "observed_cpu_samples": 423,
+            "cpu_sample_counts_match": true,
+            "cpu_samples_without_user_stack": 0,
+            "cpu_samples_with_unresolved_user_leaf": 10,
+            "sampling_observed": true,
+            "reported_off_cpu_intervals": 11075,
+            "observed_off_cpu_intervals": 11075,
+            "off_cpu_record_counts_match": true,
+            "off_cpu_observed": true,
+            "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
+            "symbol_names": "archived ranges; not demangled"
+          },
+          "run": {
+            "id": [
+              1
+            ],
+            "state": "Stopped",
+            "stop_reason": "TimeLimit",
+            "started_at_unix_ns": 1792789161677075001,
+            "stopped_at_unix_ns": 1792789166739692584,
+            "target_pid": 2379990,
+            "label": "(attached)",
+            "pet_samples": 423,
+            "off_cpu_intervals": 11075
+          },
+          "artifacts": [
+            {
+              "path": "/home/fco/.cache/topdown-stax-linux-pilot/integration-enabled/cli-capture/archive/manifest.json",
+              "size_bytes": 705,
+              "sha256": "0ef2c302a2a12ba3f8be1fcba31e4466c73b3368d70f7376b674d6296b9c2b1c"
+            },
+            {
+              "path": "/home/fco/.cache/topdown-stax-linux-pilot/integration-enabled/cli-capture/archive/events.jsonl",
+              "size_bytes": 6127125,
+              "sha256": "4fed2800298e407f8f50ae6b9abb8c5064404a93ebda70cbf85afc08d44b3609"
+            }
+          ]
+        },
+        "mcp_capture": {
+          "run_id": "955da1db-ad2c-41cf-9328-3756a0cb3833",
+          "labels": {
+            "test_name": "linux-native-pilot-mcp",
+            "collector": "stax",
+            "measurement_kind": "stax-sampled-stacks-and-scheduler-intervals",
+            "time_basis": "archive_run_timestamps",
+            "sampling_frequency_hz": "99",
+            "os": "linux",
+            "arch": "x86_64"
+          },
+          "counts": {
+            "samples": 427,
+            "intervals": 11520,
+            "wakeups": 0,
+            "cpu_samples": 427,
+            "target_stack_samples": 0,
+            "threads": 1,
+            "frame_table": 706,
+            "stack_table": 366,
+            "application_records": 0,
+            "target_lanes": 0
+          },
+          "quality": {
+            "reported_cpu_samples": 427,
+            "observed_cpu_samples": 427,
+            "cpu_sample_counts_match": true,
+            "cpu_samples_without_user_stack": 0,
+            "cpu_samples_with_unresolved_user_leaf": 8,
+            "sampling_observed": true,
+            "reported_off_cpu_intervals": 11094,
+            "observed_off_cpu_intervals": 11094,
+            "off_cpu_record_counts_match": true,
+            "off_cpu_observed": true,
+            "pmu_availability": "unverified",
+            "native_loss_accounting": "not represented by the v3 archive",
+            "symbol_names": "archived ranges; not demangled"
+          },
+          "run": {
+            "id": [
+              1
+            ],
+            "state": "Stopped",
+            "stop_reason": "TimeLimit",
+            "started_at_unix_ns": 1792789170880851267,
+            "stopped_at_unix_ns": 1792789175921741969,
+            "target_pid": 2379990,
+            "label": "(attached)",
+            "pet_samples": 427,
+            "off_cpu_intervals": 11094
+          },
+          "artifacts": [
+            {
+              "path": "/home/fco/.cache/topdown-stax-linux-pilot/integration-enabled/stax-captures/7df15eee9a5b4816be09d91c3cfe7e40/archive/manifest.json",
+              "size_bytes": 705,
+              "sha256": "1f3fc989ee09df076c1db99a397925c54b297d5d3ed2ef32e47c9e803ae30d6b"
+            },
+            {
+              "path": "/home/fco/.cache/topdown-stax-linux-pilot/integration-enabled/stax-captures/7df15eee9a5b4816be09d91c3cfe7e40/archive/events.jsonl",
+              "size_bytes": 6119371,
+              "sha256": "75d929b2a7917f04d552fdc16170c7723d533e0d6d9b32f7538e7c90f0e9460d"
+            }
+          ]
+        }
+      },
+      "sql_rows": {
+        "runs": 2,
+        "stax_results": 2,
+        "samples": 0
+      },
+      "registered_mcp_queries_match_cli": true,
+      "attached_target_survived_both_captures": true,
+      "transport_scope": "registered FastMCP call_tool; external MCP transport not exercised"
+    },
+    "replay": {
+      "replay_output_identical": {
+        "threads": true,
+        "top-self": true,
+        "top-total": true,
+        "flame": true,
+        "annotate": true
+      },
+      "directory_counts_match_bundle": true,
+      "directory_result_matches_bundle": true,
+      "kernel_stack_quality": {
+        "samples_with_stack": 2765,
+        "samples_with_resolved_leaf": 0,
+        "example_frames": [
+          {
+            "address": 18446744071746524900,
+            "name": null,
+            "name_bytes": null,
+            "binary": null,
+            "symbol_address": null
+          },
+          {
+            "address": 18446744071746520171,
+            "name": null,
+            "name_bytes": null,
+            "binary": null,
+            "symbol_address": null
+          },
+          {
+            "address": 18446744071746520233,
+            "name": null,
+            "name_bytes": null,
+            "binary": null,
+            "symbol_address": null
+          }
+        ]
+      },
+      "self_compare": {
+        "baseline": {
+          "label": "(attached)",
+          "path": "/home/fco/.cache/topdown-stax-linux-pilot/smoke-enabled/01-profiled.stax"
+        },
+        "candidate": {
+          "label": "(attached)",
+          "path": "/home/fco/.cache/topdown-stax-linux-pilot/smoke-enabled/01-profiled.stax"
+        },
+        "metrics": {
+          "pet_samples": {
+            "baseline": 4345,
+            "candidate": 4345,
+            "delta": 0
+          },
+          "on_cpu": {
+            "baseline_ns": 5008887446,
+            "candidate_ns": 5008887446,
+            "delta_ns": 0
+          },
+          "off_cpu": {
+            "baseline_ns": 2673803372,
+            "candidate_ns": 2673803372,
+            "delta_ns": 0
+          },
+          "target_time": {
+            "baseline_ns": 0,
+            "candidate_ns": 0,
+            "delta_ns": 0
+          },
+          "target_spans": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "target_lanes": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "spans_with_origin": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "linked_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "unlinked_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "missing_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "bad_duration_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "target_queue_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "worker_disconnect_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          }
+        },
+        "top_target_lanes": [],
+        "threshold_failures": []
+      },
+      "candidate_compare": {
+        "baseline": {
+          "label": "(attached)",
+          "path": "/home/fco/.cache/topdown-stax-linux-pilot/paired-900hz/02-profiled.stax"
+        },
+        "candidate": {
+          "label": "(attached)",
+          "path": "/home/fco/.cache/topdown-stax-linux-pilot/paired-900hz/03-profiled.stax"
+        },
+        "metrics": {
+          "pet_samples": {
+            "baseline": 26081,
+            "candidate": 25927,
+            "delta": -154
+          },
+          "on_cpu": {
+            "baseline_ns": 29984436292,
+            "candidate_ns": 27681101769,
+            "delta_ns": -2303334523
+          },
+          "off_cpu": {
+            "baseline_ns": 2471771907,
+            "candidate_ns": 2046138511,
+            "delta_ns": -425633396
+          },
+          "target_time": {
+            "baseline_ns": 0,
+            "candidate_ns": 0,
+            "delta_ns": 0
+          },
+          "target_spans": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "target_lanes": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "spans_with_origin": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "linked_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "unlinked_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "missing_origins": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "bad_duration_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "target_queue_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          },
+          "worker_disconnect_drops": {
+            "baseline": 0,
+            "candidate": 0,
+            "delta": 0
+          }
+        },
+        "top_target_lanes": [],
+        "threshold_failures": []
+      },
+      "completed": true
+    },
+    "current_native_tma_parser": {
+      "topdown_base": "f6b4e7e",
+      "row_count": 64,
+      "first": {
+        "timestamp": 1.000341466,
+        "cpu": null,
+        "metric_name": "Frontend_Bound",
+        "value": 37.9,
+        "unit": "% Slots",
+        "status": "",
+        "cpu_group": "core"
+      }
+    },
+    "limitations": [
+      "Only P-core CPU 2 was targeted; PMU group setup failed with ENOENT on CPUs 4-13.",
+      "Nonzero P-core PMU fields have unverified system-wide scope; no per-process CPI or TMA derived.",
+      "Wakeup attribution disabled; kernel stack addresses captured but no resolved kernel leaf in the smoke archive.",
+      "Native logs report zero loss and DWARF truncation; the v3 archive itself does not carry that loss accounting.",
+      "Sample-gap on-CPU intervals may overlap off-CPU intervals and are not utilization.",
+      "Sample timestamps are not recording boundaries. Last 99 Hz sample precedes the final resource observation by 9.785 ms; recorder was alive after the benchmark.",
+      "Shared laptop, changing CPU pressure and nearly full swap. No clock-frequency controls or exclusive CPU reservation.",
+      "One server retained history across each series. Sampled RSS is during workload only, excluding save/import peaks.",
+      "900 Hz and 99 Hz were sequential series; no inference of comparative frequency overhead.",
+      "An idle default Stax server was briefly started and stopped during 99 Hz trial 6 while inspecting unsupported --help; no capture ran on it.",
+      "Archive comparison is functional validation; different completed request counts preclude a regression claim."
+    ],
+    "artifact_manifest": [
+      {
+        "path": "run_pilot.py",
+        "size_bytes": 9953,
+        "sha256": "4e481df240b889324ff382ff24f66f25d46b28671a91ca06637b2a1e47065e05"
+      },
+      {
+        "path": "run_native.py",
+        "size_bytes": 3077,
+        "sha256": "20822dcf1e81d17b473dfbcdd3e97c40fec2d6ec4e06465121985d18ab015c91"
+      },
+      {
+        "path": "analyze_live.py",
+        "size_bytes": 5720,
+        "sha256": "c3be9b6b449da612c91f35f37b39dd05da89a502b96d7632ef9ecd4dbae37122"
+      },
+      {
+        "path": "validate_integration.py",
+        "size_bytes": 6186,
+        "sha256": "10875d4b33a2dc9e1edcbbe2025f5a778b2b9450a5f8713ebc466d8f4ad3804b"
+      },
+      {
+        "path": "validate_replay.py",
+        "size_bytes": 3978,
+        "sha256": "6a7dc44042e7cf24f369eaa2cc999826653035bc3fb6270f6f6f4588e2dd5118"
+      },
+      {
+        "path": "live-analysis.json",
+        "size_bytes": 28413,
+        "sha256": "7aa6b3361eac797a76b3bb053f44465874f71bfb66e5817aecb44ceac42f79a8"
+      },
+      {
+        "path": "integration-enabled/validation.json",
+        "size_bytes": 21705,
+        "sha256": "e8e3b8a7127007ffc005884931e5ad2e3cb8be463edf428e7b36d0d4fff1248e"
+      },
+      {
+        "path": "replay-enabled/validation.json",
+        "size_bytes": 6821,
+        "sha256": "656ee67a3ab2d327bbeb0ece638cf585115ef9f06536c95eff1f87019f810415"
+      },
+      {
+        "path": "native-tma/current-parser-check.json",
+        "size_bytes": 237,
+        "sha256": "4e8797c101c9acee5a065d982b39d24f4b5ed509a328dae3a63d53097c385cc8"
+      },
+      {
+        "path": "smoke-enabled/driver.json",
+        "size_bytes": 20098,
+        "sha256": "2cdea27b8eac3d80d2a043833c6d7a42175cb1e1caf22e1cfafd40522637e66f"
+      },
+      {
+        "path": "smoke-enabled/stax-server.stderr",
+        "size_bytes": 11213,
+        "sha256": "865e9fb1263fbde83977ec7f2a61937482d74e61844bbce86f3e5e1f1a834a22"
+      },
+      {
+        "path": "smoke-enabled/01-profiled.stax",
+        "size_bytes": 35296712,
+        "sha256": "94daffa8089738f435507fca8a95ccef587c56313c8a0e12607accf268de1281"
+      },
+      {
+        "path": "smoke-enabled/01-profiled.json",
+        "size_bytes": 11464,
+        "sha256": "4720105720fd2aa60683c780f40903791bdaff642ad5ab2d06a99a91b1f4c9a9"
+      },
+      {
+        "path": "paired-900hz/driver.json",
+        "size_bytes": 145099,
+        "sha256": "4dabb6eebe9c642b861bb47617cf7fbf4c21dcc44cbf12ef1871ec2cb3e28140"
+      },
+      {
+        "path": "paired-900hz/stax-server.stderr",
+        "size_bytes": 32123,
+        "sha256": "124421dac9f53b24cd8f3b78261bdf0e75d2a09c726acb597ce18e13eb54a44d"
+      },
+      {
+        "path": "paired-900hz/02-profiled.stax",
+        "size_bytes": 153575696,
+        "sha256": "55e78d82b0b2b718cf70516c5c923fa11293bd0d346ff1961b1ca8780e536c5c"
+      },
+      {
+        "path": "paired-900hz/03-profiled.stax",
+        "size_bytes": 162550352,
+        "sha256": "75ba87d03238744d5f637cf8ba7301b0dc242a9ff76fbda450fe6b6b7afe567b"
+      },
+      {
+        "path": "paired-900hz/06-profiled.stax",
+        "size_bytes": 159549624,
+        "sha256": "2e98380efffc676f319456eb20d4825b717ed92d7bbccd58c7e8e221724a6081"
+      },
+      {
+        "path": "paired-900hz/01-baseline.json",
+        "size_bytes": 33599,
+        "sha256": "77cab245c918d4728b406553eca0071c64bf24612c4f1bf95fe997af0742d90c"
+      },
+      {
+        "path": "paired-900hz/04-baseline.json",
+        "size_bytes": 33532,
+        "sha256": "9b5d1792cebd611ae01697bad1918cd9e01c8650f5005b6cc842bbbd239cb59d"
+      },
+      {
+        "path": "paired-900hz/05-baseline.json",
+        "size_bytes": 33400,
+        "sha256": "ca3bbb39f748dfaabb759b24431db4c64761dc4c58160f2319f3642d0fccd3bc"
+      },
+      {
+        "path": "paired-900hz/02-profiled.json",
+        "size_bytes": 33370,
+        "sha256": "ed41e8098dc4dae1cce038c07d87a7b4bea9c321b39d9008ffb64a7d0a55515a"
+      },
+      {
+        "path": "paired-900hz/03-profiled.json",
+        "size_bytes": 33501,
+        "sha256": "c5466b8da0dbb27007b61a47f5ccaadfd29ea953b826fb0c5ff41c8602b6b484"
+      },
+      {
+        "path": "paired-900hz/06-profiled.json",
+        "size_bytes": 33411,
+        "sha256": "31ba15e2c6221754c30f4376a8ca706e32be93c62b62ae98a89980abd172cea1"
+      },
+      {
+        "path": "paired-99hz/driver.json",
+        "size_bytes": 145546,
+        "sha256": "bee8a97f30bdcbf66a2c217f6dfffa837a84bf108addbef587f42d78dffe00fb"
+      },
+      {
+        "path": "paired-99hz/stax-server.stderr",
+        "size_bytes": 32099,
+        "sha256": "fb65e40ee7f08c148a8dfcf0b7960b2a7290bb5c5c5eacbf3abcc1d89c75c137"
+      },
+      {
+        "path": "paired-99hz/02-profiled.stax",
+        "size_bytes": 72356891,
+        "sha256": "8320b590bac81e03d211bf96a31319eb565986159bcf03599e674b7acff9fd5a"
+      },
+      {
+        "path": "paired-99hz/03-profiled.stax",
+        "size_bytes": 104514627,
+        "sha256": "c9ac5aec137307a31c4e9af579f01317d8ee802ef9dd823393b2aa23a5330309"
+      },
+      {
+        "path": "paired-99hz/06-profiled.stax",
+        "size_bytes": 84852541,
+        "sha256": "6cb491652a8213c4d47b3449ba89202e12cdb2dc371b7e2e018fea712ad7755a"
+      },
+      {
+        "path": "paired-99hz/01-baseline.json",
+        "size_bytes": 33283,
+        "sha256": "0307f8359ae185c047ca2f617d367c79b85f39153c233a1565cdc66d97d29e81"
+      },
+      {
+        "path": "paired-99hz/04-baseline.json",
+        "size_bytes": 33834,
+        "sha256": "f9fbbb1842baf4c1fad0877bccb168abe3284b8306a9478c7667704ee18e6a73"
+      },
+      {
+        "path": "paired-99hz/05-baseline.json",
+        "size_bytes": 34059,
+        "sha256": "a42d30b463462b6d8ce0bb333d09ef09ac8e1d0e6f89c83219d5d8e38035b8c8"
+      },
+      {
+        "path": "paired-99hz/02-profiled.json",
+        "size_bytes": 33423,
+        "sha256": "72e14f76555a8294e9f36245e89616e1a9710eb24947fdc8e20bc34f24c88b86"
+      },
+      {
+        "path": "paired-99hz/03-profiled.json",
+        "size_bytes": 33625,
+        "sha256": "fb730575806917189e25fb98eb6cec0caad3e334c9d8f5a4386d29d5c798b17b"
+      },
+      {
+        "path": "paired-99hz/06-profiled.json",
+        "size_bytes": 33572,
+        "sha256": "bac92c4d082c9a4dde57d4e591bcdac085babebd15c7e414677b68205160e7e0"
+      },
+      {
+        "path": "topdown-tests-enabled.log",
+        "size_bytes": 2526,
+        "sha256": "41b7e7ee54444fe09252ba77a6ea8f3eb267911a53f5e3030fa7ef3ea097fd75"
+      }
+    ],
+    "pending": [
+      "controlled_host_overhead_acceptance",
+      "independent_Apple_M1_M6_CPU_acceptance"
+    ],
+    "tests": {
+      "topdown": {
+        "passed": 2080,
+        "skipped": 146,
+        "duration_seconds": 109.56,
+        "command": "PYTHONPATH=. /home/fco/redislabs/topdown/.venv/bin/python -m pytest tests/ -q"
+      },
+      "stax_linux_capture": {
+        "passed": 18,
+        "failed": 0,
+        "phase": "initial pinned-source build; not repeated"
+      }
     }
-  },
-  "pending": [
-    "successful_stax_capture",
-    "stack_quality",
-    "overhead_pairs",
-    "archive_reopen",
-    "archive_compare"
-  ],
-  "local_artifact_directory": "/home/fco/.cache/topdown-stax-linux-pilot"
+  }
 }
