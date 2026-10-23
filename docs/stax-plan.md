@@ -3,6 +3,10 @@
 Status: pilot in progress. The optional integration is being tested; the acceptance
 criteria below remain required before claiming platform support.
 
+Linux builds and preflight are tested; live capture needs host permissions.
+See the [Linux pilot report](stax-linux-pilot.md) for pinned revisions, results,
+and remaining checks. Apple validation is being handled separately on the M6.
+
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes
 archive format v3 and requires Rust 1.92, despite CLI help and some published docs
