@@ -58,6 +58,12 @@ profiles must not be presented as Intel TMA funnels.
   Measure throughput and latency changes, record variability, and inspect profiler
   resource use. Begin with a 30-second capture and adjust duration or frequency if
   sample quality or overhead requires it.
+- For overhead acceptance, start a fresh owned Stax server for each profiled
+  round, save its archive, then stop it; keep baseline rounds free of that
+  server. Record server CPU time and RSS over the measurement window and at
+  save/import peaks. The [Intel Linux pilot](stax-linux-pilot.md) retained
+  server history across rounds, so its rising RSS cannot be assigned to one
+  capture. The M1 rootless runner already isolates servers per profiled round.
 - Include a separate latency-sensitive, low-pipeline control. In the
   [Linux VM pilot](stax-vm-pilot.md), pipeline-16 median throughput and PING
   p99 met the declared budget while pipeline-1 PING p99 exceeded it sharply.
