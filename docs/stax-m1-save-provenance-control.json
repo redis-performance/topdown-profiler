@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-23",
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Copy the rootless cumulative-before v3 archive, replace only its manifest producer_version with a source-sentinel string, then open and save it with a separately signed patched Stax server. Compare the saved manifest and imported PMU values. No root helper or hardware PMU collection was used.",
+  "source_archive_sha256": "571287fe86adf4106dbd297ffc22566a5e3304a472cc670ab1c24b731182da11",
+  "resaved_archive_sha256": "531d09fede39a7ca578c048e4349c1960f9dd89c08fe51c5668d1e2a617cdc16",
+  "saving_server_sha256": "db01596a07a897eec97b9999c77dca77957789917880c9d047a6be3b3e59382f",
+  "source_provenance": {
+    "producer": "stax-server",
+    "producer_version": "source-sentinel",
+    "os": "macos",
+    "arch": "aarch64"
+  },
+  "resaved_provenance": {
+    "producer": "stax-server",
+    "producer_version": "0.1.0",
+    "os": "macos",
+    "arch": "aarch64"
+  },
+  "values_preserved": {
+    "cpu_samples": 348,
+    "first_three_cycles": [100, 200, 300],
+    "sum_archived_cycles": 6072600
+  },
+  "inference": "SavedRunArchiveProvenance describes the saving binary, not necessarily the binary that captured the run. A future PMU conversion marker placed only there could mislabel an older cumulative run after open/save. Capture-time per-run semantics must survive the archive round trip.",
+  "limitations": "The sentinel version is synthetic and only tests provenance retention. It does not test a future PMU-semantics field or live M1 kperf counter behavior."
+}

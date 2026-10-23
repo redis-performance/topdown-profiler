@@ -85,7 +85,9 @@ profiles must not be presented as Intel TMA funnels.
   server and drops that manifest field when reconstructing `SavedRunArchive`.
   A server-build marker on the manifest could therefore mislabel an old run
   after it is reopened and saved again. Test that older archives remain
-  `unknown` after such a round trip.
+  `unknown` after such a round trip. The
+  [M1 open/save control](stax-m1-save-provenance-control.json) confirms that
+  the current server replaces a source archive's producer version when saving.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing
