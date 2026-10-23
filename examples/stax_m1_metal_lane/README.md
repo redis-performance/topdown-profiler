@@ -75,3 +75,35 @@ The app reports one span per completed **command buffer**. That timestamp
 does not separate multiple kernels within a command buffer and carries no
 GPU hardware counters. A real Stax helper is still needed to test CPU stack
 origins, waits, and PMU data alongside this GPU lane.
+
+## Synthetic CPU/PMU software-path control
+
+The separate [fake sample daemon](fake_sample_daemon.rs) verifies the software
+path through the experimental M1 PMU patch, Stax's parser and archive, and the
+optional collector in PR #47. It rejects any session configuration other than
+class mask `3` with the M1 config words `[163, 0, 0, 203, 0, 0, 0, 0]`. It
+then emits an invented user-stack sample every 100 ms with cycles `100`,
+instructions `200`, L1D misses `13` in slot 2, and branch mispredicts `17` in
+slot 5. **These are fixture values, not measured counters or real CPU stacks.**
+
+Copy the source to the pinned Stax checkout's `staxd/examples/` directory and
+build it with full Xcode selected:
+
+```sh
+cp examples/stax_m1_metal_lane/fake_sample_daemon.rs \
+  /private/tmp/stax-m1-pilot/staxd/examples/fake_sample_daemon.rs
+cd /private/tmp/stax-m1-pilot
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_DEBUG=0 \
+  cargo build --release --locked -p staxd --example fake_sample_daemon
+codesign --force --sign - target/release/examples/fake_sample_daemon
+```
+
+Start this fake daemon on a private socket, run the opt-in patched Stax server
+with `STAX_EXPERIMENTAL_APPLE_PMU=1`, and attach Stax to the Metal app. The
+[captured M1 control](../../docs/stax-m1-synthetic-pmu-control.json) used the
+PR #47 adapter with only its root-owned helper-socket preflight bypassed in
+the test process. It stored 78 invented CPU samples and all 299 real GPU
+spans; every stored CPU sample retained the four expected fixture values.
+The pinned CLI's `compare` counted 377 samples, while the proposed corrected
+CLI counted 78 CPU samples and 299 target spans.

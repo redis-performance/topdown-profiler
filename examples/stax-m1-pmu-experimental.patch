@@ -1,3 +1,40 @@
+diff --git a/stax-mac-kperf-parse/src/parser.rs b/stax-mac-kperf-parse/src/parser.rs
+index f4aef69..db0c908 100644
+--- a/stax-mac-kperf-parse/src/parser.rs
++++ b/stax-mac-kperf-parse/src/parser.rs
+@@ -384,2 +384,32 @@ mod tests {
+     }
++
++    #[test]
++    fn keeps_nonconsecutive_configurable_pmc_slots() {
++        let mut parser = Parser::new();
++        let mut pmc = Vec::new();
++        for rec in [
++            start(),
++            uhdr(1, 0),
++            udata(10, 0, 0, 0),
++            rec(
++                debugid(perf::sc::KPC, perf::kpc::DATA_THREAD, DBG_FUNC_NONE),
++                100,
++                200,
++                13,
++                0,
++            ),
++            rec(
++                debugid(perf::sc::KPC, perf::kpc::DATA_THREAD, DBG_FUNC_NONE),
++                0,
++                17,
++                0,
++                0,
++            ),
++            end(),
++        ] {
++            parser.feed(&rec, |sample| pmc = sample.pmc.to_vec());
++        }
++
++        assert_eq!(pmc, [100, 200, 13, 0, 0, 17]);
++    }
+ }
 diff --git a/stax-mac-kperf-sys/src/pmu_events.rs b/stax-mac-kperf-sys/src/pmu_events.rs
 index f5c2d3f..33cb886 100644
 --- a/stax-mac-kperf-sys/src/pmu_events.rs

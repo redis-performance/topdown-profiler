@@ -109,8 +109,10 @@ pinned Stax source moves counter allocation before event additions, uses
 `kpep_config_kpc_map` for parser indices, and wires the two events into the
 macOS recorder only when its **server process** has
 `STAX_EXPERIMENTAL_APPLE_PMU=1`. Its SHA-256 is
-`3a1740d9f6f1ff34af228c5e50586a1eac88e008c9665b80e07b441473ad8aff`.
+`fdf2eff435c67e84239b41e7d228c137d09d64fd2d3ab9d76695da5cda3107a0`.
 The patch applies cleanly to the pinned index and compiled in release mode.
+It includes a parser regression test for the zero-filled counter slots between
+L1D and branch mispredicts; all five macOS parser unit tests pass.
 Calling the patched Rust `configure` on this M1, without root, returned class
 mask 3, fixed count 2, sample indices `[2, 5]`, and config words
 `[163, 0, 0, 203, 0, 0, 0, 0]`. A separately staged, ad hoc signed
@@ -124,6 +126,19 @@ the opt-in server, CLI, and unprivileged helper reached the helper's `NotRoot`
 gate after creating a run;
 the run reported zero kperf samples. This exercises the client configuration
 path and RPC wiring without claiming hardware collection.
+
+A second [software-path control](stax-m1-synthetic-pmu-control.json) used a
+[synthetic sample daemon](../examples/stax_m1_metal_lane/fake_sample_daemon.rs)
+that rejects any client configuration other than class mask `3` and the M1
+KPEP words `[163, 0, 0, 203, 0, 0, 0, 0]`. It emitted invented PET/PMC
+records with cycles `100`, instructions `200`, L1D misses `13` at sample slot
+2, and branch mispredicts `17` at slot 5. The patched Stax server captured 78
+such samples alongside 299 real M1 GPU spans. PR #47's importer stored all 78
+CPU samples with those four exact values, and gave CPU hotspots a denominator
+of 78. This proves the opt-in configuration and parser/index wiring through
+the archive and SQLite path; **it does not measure Apple PMU hardware**. The
+test process bypassed the collector's root-owned helper-socket preflight only
+for the fake daemon.
 
 To reproduce the experimental server from a clean pinned Stax checkout, apply
 the patch, build `stax-server` with full Xcode selected, and stage it separately
@@ -146,7 +161,7 @@ For the separate experimental pilot, set
 `--stax-server /private/tmp/stax-m1-pmu-experimental/stax-server` to the
 benchmark command below, and choose a new `--output` directory.
 
-The experimental patch has **not** been tested with kperf sampling. Run the
+The experimental patch has **not** been tested with privileged kperf sampling. Run the
 unmodified Stax server first for the baseline pilot; then use the patched
 server in a separate capture with a new output directory and the opt-in
 variable. The pilot records the server digest and opt-in state. Live acceptance
@@ -211,6 +226,10 @@ samples and 299 target spans. All 39 CLI unit tests pass with the patch, and
 it applies to the pinned Stax index. The patched CLI is staged only in the
 local Stax build; the installed baseline CLI and pilot interpretation remain
 unchanged pending upstream review.
+On the synthetic CPU plus real GPU control, the original CLI reports 377 PET
+samples while the patched CLI reports the 78 invented CPU samples and 299
+target spans. This checks that the correction preserves CPU-sample counts
+while excluding target markers.
 
 The concurrent optional collector draft, [PR #47](https://github.com/redis-performance/topdown-profiler/pull/47)
 at `c3ba2de4af57f9ad0f8aa4e9b4cfbc9494257579`, also passed an M1
