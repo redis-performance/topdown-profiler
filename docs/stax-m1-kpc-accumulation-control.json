@@ -41,13 +41,14 @@
   },
   "topdown_after_patch_import": {
     "public_import_and_sample_query_succeeded": true,
-    "stored_run_id": "fe926118-b80a-444f-804a-4a4cd50e3f8b",
+    "stored_run_id": "863a07cd-4c51-4969-8732-2a5b73dd27d9",
     "stored_cpu_samples": 348,
     "stored_target_stack_samples": 299,
     "cpu_samples_with_trace_cpu_id": 348,
     "first_sample_cycles": 0,
     "target_spans_with_cpu_id_or_pmu_fields": 0,
-    "pmu_counter_semantics": "unverified because v3 does not record conversion provenance"
+    "pmu_counter_semantics": "unverified",
+    "pmu_counter_semantics_reason": "no validated capture-time delta conversion provenance was found"
   },
   "checks": {
     "stax_parser_library_tests": "8 passed, including per-thread differencing, reset/vector-change rebasing and all-zero buffer error handling",

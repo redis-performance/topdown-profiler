@@ -263,9 +263,10 @@ def load_archive(path):
             provenance["os"], "upstream monotonic clock"
         )
         if provenance["os"] == "macos":
-            result["quality"]["pmu_counter_semantics"] = (
-                "unverified: XNU source returns cumulative KPC thread snapshots; "
-                "Stax v3 does not record whether samples were converted to deltas"
+            result["quality"]["pmu_counter_semantics"] = "unverified"
+            result["quality"]["pmu_counter_semantics_reason"] = (
+                "XNU source returns cumulative KPC thread snapshots; "
+                "no validated capture-time delta conversion provenance was found"
             )
             result["limitations"].append(
                 "macOS PMU fields cannot be summed as per-sample deltas without verified conversion provenance."

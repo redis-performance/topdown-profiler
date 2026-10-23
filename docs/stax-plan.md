@@ -102,6 +102,10 @@ profiles must not be presented as Intel TMA funnels.
   scope; these are not expected to be identical. Use scheduler evidence for
   any P/E attribution, because the same trace CPU at adjacent PET ticks does
   not rule out migration between those ticks.
+  The proposed M1 delta patch advances the per-thread baseline even when Stax
+  later drops an empty-user-stack sample; its diagnostic PMU sum includes that
+  parsed sample while the saved archive does not. Reconcile parsed, emitted,
+  and archived sample counts before comparing totals.
 - Save a `.stax` artifact, reopen it, and verify that the required views survive.
   Exercise baseline/candidate comparison and its JSON output.
 - On macOS, compare the workflow and diagnostic coverage with existing

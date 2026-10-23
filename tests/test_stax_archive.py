@@ -152,7 +152,8 @@ def test_macos_pmu_snapshots_are_not_presented_as_verified_deltas(stax_archive):
     doc["provenance"]["os"] = "macos"
     stax_archive.write_text(json.dumps(doc))
     result = load_archive(stax_archive)["result"]
-    assert "cumulative KPC thread snapshots" in result["quality"]["pmu_counter_semantics"]
+    assert result["quality"]["pmu_counter_semantics"] == "unverified"
+    assert "cumulative KPC thread snapshots" in result["quality"]["pmu_counter_semantics_reason"]
     assert any("cannot be summed as per-sample deltas" in text for text in result["limitations"])
 
 
