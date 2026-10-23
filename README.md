@@ -1,6 +1,6 @@
 # topdown-profiler
 
-CPU/GPU profiling and Top-Down Microarchitecture Analysis (TMA) for Intel, AMD Zen, ARM Neoverse, and Apple silicon (M1/M6). Linux TMA and native Apple results share SQL storage, run labels, and an MCP server; Apple measurements retain their native counters and categories.
+CPU profiling for Intel, AMD Zen, ARM Neoverse, and Apple silicon (M1/M6), plus native Apple GPU analysis. Linux Top-Down Microarchitecture Analysis (TMA) and native Apple results share SQL storage, run labels, and an MCP server; Apple measurements retain their native counters and categories.
 
 On Linux, wraps [pmu-tools/toplev](https://github.com/andikleen/pmu-tools) on Intel, [AMD uProf](https://www.amd.com/en/developer/uprof.html) (`AMDuProfPcm`) on AMD Zen, or `perf stat --topdown` on ARM Neoverse to collect, store, and query CPU performance data — like [Polar Signals](https://www.polarsignals.com/) but for hardware performance counters.
 
@@ -365,7 +365,8 @@ and shifts the dominant limiter from Control Flow to F32 execution:
 | Same FMAs, unrolled loop | 0.0861 ms | F32 55.86% |
 
 The guide includes M6 capture/report commands, matched 4/8-pass controls, memory
-experiments, and measurement evidence. Limiters overlap, and some M6 values
+experiments and [independent FMA chains](docs/apple-gpu-experiment.md#m6-compute-control-independent-fma-chains),
+with measurement evidence. Limiters overlap, and some M6 values
 exceed 100%; they are retained and flagged. Use the packaged CLI with full Xcode
 (M3/A17 Pro or later for replay):
 
