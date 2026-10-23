@@ -126,6 +126,10 @@ budget; otherwise document the limitation or narrow the supported configuration.
   [M1 shared SQLite control](stax-m1-storage-coexistence-control.json)
   verifies Apple and Stax run routing with real native Apple data and a
   separate rootless Stax archive.
+  Preserve optional raw per-sample CPU IDs when a Stax archive provides them;
+  [the rootless M1 core-identity control](stax-m1-core-identity-control.json)
+  verifies a proposed upstream parser-to-archive patch and topdown import.
+  A raw ID is not a validated P/E core label or PMU scope.
   In the pinned Stax v3 implementation, comparison JSON's `pet_samples` count
   includes synthetic target-span markers: the
   [M1 Metal lane control](stax-m1-gpu-target-control.json) reports 299 there

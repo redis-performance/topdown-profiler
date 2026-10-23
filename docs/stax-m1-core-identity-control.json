@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-23",
+  "host": "MacBookAir10,1 Apple M1, macOS 27.0.1, Xcode 27.1",
+  "stax_revision": "aedd85e08894fc3250ec975a486544d091e11281",
+  "method": "Apply the proposed core-identity patch to a clean pinned Stax worktree. A rootless fake daemon emits invented PET/PMC records with alternating kdebug cpuid values 0 and 4, while a real M1 Metal app reports target spans. Save a v3 Stax archive, then import and query it with the M1 topdown branch. No root helper or hardware PMU capture is used.",
+  "stax_patch_sha256": "9cbbe03e5d05bbf64c5c127102df6d9e2cfe20fb86e356ca9191c1082860d20e",
+  "fake_daemon_source_sha256": "b129e69f77fe5b4397de6b223aad39014ab9f60d6af1ea963cbb319f0b83f0d3",
+  "signed_stax_server_sha256": "a5afc47c288aeaf5c4ed03d3d9aa28ccaa385f892dd1dc0af141de5d0e32ca94",
+  "signed_fake_daemon_sha256": "43795bc0f3f9a55cdbccdf5e3e9fecfc5b54aca66194deb3550cbd554d18b88a",
+  "raw_local_path": "/private/tmp/stax-m1-core-id-control/run-002",
+  "archive_sha256": "2aa2f49cd986e012b28803d14c03f980ae2793c594e2dc0444a64983eb888580",
+  "fixture": {
+    "accepted_class_mask": 1,
+    "accepted_configurable_event_words": [],
+    "invented_cpu_ids": [0, 4],
+    "invented_cycles_per_sample": 100,
+    "invented_instructions_per_sample": 200
+  },
+  "capture": {
+    "target_exit_code": 0,
+    "real_m1_gpu_command_buffers": 300,
+    "gpu_checksum": 4915200,
+    "reported_target_spans": 299,
+    "cpu_pet_samples": 348,
+    "archived_cpu_id_0_samples": 174,
+    "archived_cpu_id_4_samples": 174,
+    "target_stack_samples_with_unknown_cpu": 299
+  },
+  "topdown": {
+    "public_import_succeeded": true,
+    "public_samples_query_succeeded": true,
+    "stored_run_id": "9f96aeec-021e-40dd-9394-18e7c01903f2",
+    "stored_cpu_samples": 348,
+    "stored_cpu_samples_with_cpu_id": 348,
+    "queried_cpu_ids": [0, 4],
+    "stored_target_stack_samples": 299,
+    "target_samples_with_cpu_id": 0
+  },
+  "checks": {
+    "stax_parser_unit_tests": "5 passed",
+    "stax_aggregator_round_trip_test": "passed",
+    "stax_old_sample_json_default_test": "passed",
+    "patched_server_opened_unmodified_v3_archive": "passed; 341 old CPU samples and 299 target spans remained queryable",
+    "stax_server_and_cli_release_check": "passed",
+    "topdown_archive_tests": "40 passed",
+    "upstream_parser_doctest": "fails in the pinned unmodified source because its example refers to undefined placeholders"
+  },
+  "limitations": "The CPU IDs, PMCs, and CPU stack records are synthetic. This proves software preservation of the raw ID, not physical M1 core residency, P/E topology classification, PMU scope, or complete sample delivery. The patch is a proposed upstream change, not part of the pinned installed Stax binaries."
+}

@@ -400,6 +400,9 @@ def _normalize(archive):
             pmc = _object(sample["pmc"], "PMU snapshot")
             for key, value in pmc.items():
                 uint(value, f"PMU {key}")
+            cpu = sample.get("cpu")
+            if cpu is not None:
+                cpu = uint(cpu, "sample CPU ID", 32)
             samples.append(
                 {
                     "tid": tid,
@@ -408,6 +411,7 @@ def _normalize(archive):
                     "stack_id": stacks.intern(sample["stack"]),
                     "kernel_stack_id": stacks.intern(sample["kernel_stack"]),
                     "pmc": pmc,
+                    **({"cpu": cpu} if cpu is not None else {}),
                 }
             )
             counts["target_stack_sample_count" if target_lane else "sample_count"] += 1
@@ -504,6 +508,7 @@ def _normalize(archive):
             "cpu_sample_counts_match": run["pet_samples"] == cpu_samples,
             "cpu_samples_without_user_stack": missing,
             "cpu_samples_with_unresolved_user_leaf": unresolved,
+            "cpu_samples_with_cpu_id": sum("cpu" in sample for sample in cpu_rows),
             "sampling_observed": cpu_samples > 0,
             "pmu_availability": "unverified",
             "native_loss_accounting": "not represented by the v3 archive",
@@ -536,6 +541,7 @@ def _normalize(archive):
             "Sample shares describe observed stack hits, not CPU time or TMA pipeline slots.",
             "Scheduler interval totals may overlap; they are not a utilization denominator.",
             "Raw PMU fields are retained without summing; zero does not establish counter availability.",
+            "Archived CPU IDs, when present, are raw host IDs; core type and PMU scope remain unvalidated.",
             "Synthetic target spans are separate from CPU intervals and native GPU hardware counters.",
             "Symbols use archived names without demangling; source artifacts remain required for disassembly.",
         ],

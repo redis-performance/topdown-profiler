@@ -76,6 +76,25 @@ does not separate multiple kernels within a command buffer and carries no
 GPU hardware counters. Native CPU stack origins, waits, and PMU data alongside
 this GPU lane remain unverified without a real Stax capture.
 
+## Raw CPU identity software-path control
+
+For raw CPU identity, a separate [proposed Stax patch](../stax-m1-core-identity.patch)
+adds an optional CPU ID to each saved PET sample. Apply it to a **clean**
+checkout of the pinned Stax revision; it does not require the experimental
+configurable-PMU patch. Copy [fake_core_id_daemon.rs](fake_core_id_daemon.rs)
+into `staxd/examples/` in that checkout. Build `stax-server` and the
+`fake_core_id_daemon` example with the pinned lockfile and full Xcode selected,
+then sign both ad hoc. The fake daemon accepts fixed-counter class mask 1 and
+alternates invented kdebug CPU IDs 0 and 4. Start it and the patched server
+on sockets inside a private `0700` directory, then use the `stax record` and
+`stax save` commands above with the fake daemon socket and this Metal app.
+The patch uses zero context to keep the checked-in diff whitespace-clean;
+apply it with `git apply --unidiff-zero` only at the pinned revision.
+The [M1 control](../../docs/stax-m1-core-identity-control.json) archived 348
+invented CPU samples and 299 real Metal target spans. The topdown importer
+retained the raw IDs but did not infer P/E core type or PMU scope. This is a
+software-path fixture, not a hardware-counter validation.
+
 ## Synthetic CPU/PMU software-path control
 
 The separate [fake sample daemon](fake_sample_daemon.rs) verifies the software

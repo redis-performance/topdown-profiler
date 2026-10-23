@@ -458,6 +458,27 @@ trace facilities. Stax target lanes can show GPU spans only when a cooperating
 application reports them; they are separate from native Metal hardware
 counters and replay diagnostics.
 
+A [post-merge native M1 probe](stax-m1-postmerge-native-probe.json) also passed
+after PR #47 was integrated: 556 sampled ten-position counter vectors, a
+verified target checksum, and 553 `alu_work` leaf samples after public SQLite
+store and query. The native profile labeled 34 samples on E cores and 522 on P
+cores. This separately confirms that the merged application still accepts and
+stores native M1 captures; it does not fill Stax v3's missing per-sample core
+identity or calibrate the vector positions and TMA formulas.
+
+A proposed [Stax core-identity patch](../examples/stax-m1-core-identity.patch)
+preserves the raw kdebug CPU ID from the sample-start record through Stax's
+live aggregator and v3 saved sample. It uses an optional field so old saved
+samples reopen with unknown CPU identity; a parser test, archive round-trip
+test, and old-JSON test passed. A [rootless M1 control](stax-m1-core-identity-control.json)
+used a [fake daemon](../examples/stax_m1_metal_lane/fake_core_id_daemon.rs)
+to alternate invented IDs 0 and 4. The patched server archived 174 CPU
+samples with each ID alongside 299 real Metal target spans whose CPU ID
+remained unknown. The topdown importer now retains and validates optional raw
+CPU IDs: public import and sample queries preserved all 348 synthetic IDs.
+These IDs cannot establish core residency or P/E event behavior until a
+privileged capture and independent topology validation are available.
+
 One separate [native M1 Redis control](stax-m1-native-control.json) completed
 before a Stax recording was available. `topdown apple stat` observed the pinned
 Redis PID for 35 seconds while the 30-million-request SET/GET benchmark took

@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from topdown.stax_archive import StaxError, load_archive
+from topdown.stax_storage import query_stax_result, store_stax_result
 
 
 def archive_document():
@@ -103,6 +104,8 @@ def test_native_addresses_counters_and_interval_units(stax_archive):
     result = doc["result"]
     assert result["tma_available"] is False
     assert result["samples"][0]["pmc"]["cycles"] == 2**64 - 1
+    assert "cpu" not in result["samples"][0]
+    assert result["quality"]["cpu_samples_with_cpu_id"] == 0
     table = {f["address"]: f for f in result["frame_table"]}
     frames = [table[a] for a in result["stack_table"][result["samples"][0]["stack_id"]]]
     assert [frame["name"] for frame in frames] == ["hot", "caller", "hot"]
@@ -122,6 +125,35 @@ def test_events_override_stale_aggregates(stax_archive):
     result = load_archive(stax_archive)
     assert result["metadata"]["ingestion"] == "event-replay"
     assert result["result"]["frame_table"][0]["name"] == "hot"
+
+
+@pytest.mark.parametrize("event_replay", [False, True])
+def test_optional_raw_cpu_id_survives_import_and_query(stax_archive, sqlite_backend, event_replay):
+    doc = archive_document()
+    first = doc["aggregator"]["threads"][0]["pet_samples"][0]
+    first["cpu"] = 0
+    second = copy.deepcopy(first)
+    second.update(timestamp_ns=121, cpu=4)
+    doc["aggregator"]["threads"][0]["pet_samples"].append(second)
+    doc["runs"][0]["pet_samples"] = 2
+    if event_replay:
+        doc["events"] = archive_events(doc)
+        doc["aggregator"]["threads"] = []
+    stax_archive.write_text(json.dumps(doc))
+
+    run = store_stax_result(sqlite_backend, stax_archive)
+    page = query_stax_result(sqlite_backend, run.run_id, "samples")
+    assert [row["cpu"] for row in page["rows"]] == [0, 4]
+    assert page["result"]["quality"]["cpu_samples_with_cpu_id"] == 2
+
+
+@pytest.mark.parametrize("cpu", [True, -1, 2**32, 1.5, "4"])
+def test_invalid_raw_cpu_id_rejected(stax_archive, cpu):
+    doc = archive_document()
+    doc["aggregator"]["threads"][0]["pet_samples"][0]["cpu"] = cpu
+    stax_archive.write_text(json.dumps(doc))
+    with pytest.raises(StaxError, match="sample CPU ID"):
+        load_archive(stax_archive)
 
 
 @pytest.mark.parametrize("event_log", [False, True])
