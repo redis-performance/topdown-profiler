@@ -74,7 +74,8 @@ def test_sigterm_cancels_and_waits_for_shielded_cleanup():
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX process groups and pipe readiness")
 @pytest.mark.parametrize("ignore_term", [False, True])
-def test_real_stdio_sigterm_reaps_only_owned_capture(tmp_path, ignore_term):
+@pytest.mark.parametrize("shutdown", ["sigterm", "eof"])
+def test_real_stdio_shutdown_reaps_only_owned_capture(tmp_path, ignore_term, shutdown):
     pidfile = tmp_path / "target.pid"
     marker = tmp_path / "cleanup-finished"
     child = ("import os,signal,sys,time;from pathlib import Path;"
@@ -117,11 +118,14 @@ mcp_server.run_server()
                 time.sleep(.01)
             assert pidfile.exists(), "owned target did not start"
             target = int(pidfile.read_text())
-            server.send_signal(signal.SIGTERM)
-            if ignore_term:
-                time.sleep(.1)
+            if shutdown == "eof":
+                server.stdin.close()
+            else:
                 server.send_signal(signal.SIGTERM)
-            assert server.wait(timeout=8) == 143, (tmp_path / "server.stderr").read_text()
+                if ignore_term:
+                    time.sleep(.1)
+                    server.send_signal(signal.SIGTERM)
+            assert server.wait(timeout=8) == (0 if shutdown == "eof" else 143), (tmp_path / "server.stderr").read_text()
             assert marker.read_text() == "cleaned"
             with pytest.raises(ProcessLookupError):
                 os.kill(target, 0)
@@ -135,7 +139,8 @@ mcp_server.run_server()
                     os.kill(target, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
-            server.stdin.close()
+            if not server.stdin.closed:
+                server.stdin.close()
             server.stdout.close()
 
 
@@ -176,6 +181,33 @@ async def test_stdio_file_writer_preserves_utf8(tmp_path):
         await writer.write("🙂\n" * 10000)
         await writer.flush()
     assert path.read_text() == "🙂\n" * 10000
+
+
+@pytest.mark.asyncio
+async def test_eof_cancels_old_sdk_handler_join_and_waits_for_cleanup(monkeypatch, tmp_path):
+    from topdown import mcp_runtime
+
+    cleaned = []
+
+    async def run(reader, writer, options):
+        try:
+            async for _ in reader:
+                pass
+            await anyio.sleep_forever()
+        finally:
+            with anyio.CancelScope(shield=True):
+                await anyio.sleep(.01)
+                cleaned.append(True)
+
+    native = SimpleNamespace(run=run, create_initialization_options=lambda: None)
+    with (tmp_path / "input").open("w+b") as source, (tmp_path / "output").open("wb") as destination:
+        monkeypatch.setattr(sys, "stdin", source)
+        monkeypatch.setattr(sys, "stdout", destination)
+        with anyio.fail_after(1):
+            await mcp_runtime.serve_stdio(SimpleNamespace(_mcp_server=native))
+        assert os.get_blocking(source.fileno())
+        assert os.get_blocking(destination.fileno())
+    assert cleaned == [True]
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX pipe readiness")
