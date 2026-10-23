@@ -71,6 +71,26 @@ def test_real_m6_metal_excerpt_round_trip(sampling_backend):
     assert page["rows"][0]["lane_kind"] == "Metal"
 
 
+@pytest.mark.parametrize("cpu", ["Apple M1", "Apple M6"])
+def test_capture_host_identity_is_retained_without_using_import_host(sampling_backend, tmp_path, cpu, monkeypatch):
+    path = tmp_path / "profile.stax"
+    document = archive_document()
+    document["provenance"]["os"] = "macos"
+    path.write_text(json.dumps(document))
+    monkeypatch.setattr("topdown.collector.apple_environment.capture_environment",
+                        lambda: pytest.fail("read the importing host identity"))
+    environment = {"cpu": cpu, "os_version": "27.0.1", "os_build": "test-build", "kernel_uuid": "captured-kernel"}
+    capture = {"collector": "stax", "pid": 42, "frequency_hz": 99, "capabilities": {"environment": environment}}
+    run = store_stax_result(sampling_backend, path, labels={"cpu": "caller-guess"}, capture=capture)
+    assert {key: run.labels[key] for key in environment} == environment
+    summary = query_stax_result(sampling_backend, run.run_id)
+    assert summary["metadata"]["capture"]["capabilities"]["environment"] == environment
+    assert run.labels["arch"] == "aarch64"
+    imported = store_stax_result(sampling_backend, path)
+    assert "cpu" not in imported.labels
+    assert "kernel_uuid" not in imported.labels
+
+
 @pytest.mark.parametrize("native_text", ["zero\x00byte", "quotes'\"\\ and Ω", "\ud800legacy"])
 def test_encoded_native_documents_retain_strings_and_integer_pages(stored_sampling, native_text):
     backend, original_run = stored_sampling

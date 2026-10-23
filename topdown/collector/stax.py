@@ -58,6 +58,8 @@ def _digest(path):
 
 def doctor():
     """Inspect installed tools and permission hints without installing a helper."""
+    from topdown.collector.apple_environment import capture_environment
+
     system = platform.system()
     tools = {
         "stax": _executable("TOPDOWN_STAX_PATH", "stax"),
@@ -105,6 +107,7 @@ def doctor():
         "collector": "stax",
         "os": system,
         "arch": platform.machine(),
+        "environment": capture_environment(),
         "executables": tools,
         "capture_prerequisites_present": not reasons,
         "reasons": reasons,

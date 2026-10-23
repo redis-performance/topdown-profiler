@@ -62,6 +62,12 @@ def store_stax_result(backend, path, process_name=None, labels=None, capture=Non
     )
     if capture:
         all_labels["sampling_frequency_hz"] = str(capture["frequency_hz"])
+        capabilities = capture.get("capabilities")
+        environment = capabilities.get("environment") if isinstance(capabilities, dict) else None
+        if isinstance(environment, dict):
+            for key in ("cpu", "os_version", "os_build", "kernel_uuid"):
+                if isinstance(environment.get(key), str) and environment[key]:
+                    all_labels[key] = environment[key]
     for key in ("os", "arch"):
         if isinstance(provenance.get(key), str):
             all_labels[key] = provenance[key]
