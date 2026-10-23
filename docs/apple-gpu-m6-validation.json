@@ -1,0 +1,1639 @@
+{
+  "measurement_kind": "apple-gpu-m6-validation",
+  "started_at": "2026-10-22T15:57:43.012861+00:00",
+  "ended_at": "2026-10-22T15:59:01.397742+00:00",
+  "environment": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "xcode": "xctrace version 27.1 (27A9275)",
+    "cpu": "Apple M6",
+    "os_build": "26A434",
+    "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+  },
+  "measurement_source_sha256": {
+    "probe.swift": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+    "replay_profile.py": "f4d45bb7f56322a90f90c095595c523b6f1f84ff901d89cbfb370b0901aa0fac",
+    "make_counter_template.py": "6da92b099a549260130f3aca4655dfb6c5fed3f5b61289ceec073275edfd520e",
+    "summarize_counters.py": "60c79c7af0a41528e443d17bafec9c3ea2085462a62df914cef4f728518e799c"
+  },
+  "probe_binary_sha256": "453d83efcc03e26d4b001025d46f5163ae7e4af2d4c5e6aad87e574cc4457dc9",
+  "replay_counter_inventory_discovery": {
+    "scope": "initial four-pass compute capture",
+    "groups": [
+      "active_cores",
+      "occupancy",
+      "occupancy_manager",
+      "top_occupancy_target_influence",
+      "occupancy_target_influences",
+      "instruction_throughput",
+      "shader_launch_limiter",
+      "bandwidth",
+      "alu",
+      "f32",
+      "f16",
+      "integer_and_conditional",
+      "neural_accelerator",
+      "control_flow",
+      "address_generation",
+      "integer_and_complex",
+      "texture_read",
+      "texture_filtering",
+      "texture_read_cache",
+      "texture_compression",
+      "texture_write",
+      "mmu",
+      "last_level_cache",
+      "l1_cache",
+      "l1_residency",
+      "l1_read_bandwidth",
+      "l1_write_bandwidth",
+      "l1_cache_reads",
+      "l1_cache_writes",
+      "l2_bandwidth",
+      "other_l1c_utilization",
+      "simd_groups_inflight_per_core",
+      "gpu_peak_bandwidth"
+    ],
+    "source_sha256": "7b8b409ae08a1806926cd77f227507f6c1898cec1865d28981cd9414a5216141"
+  },
+  "replay_cases": [
+    {
+      "case": "compute-4",
+      "probe": {
+        "checksum": 8336.906823405065,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8336.906823405065,
+        "gpu_seconds": 0.0005819583166157827,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 4
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.2661 ms",
+        "Frame end": "266083 ns",
+        "GPU time": "0.2661 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce1",
+          "label": "\"compute compute pass 1\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "26.19%",
+            "Control Flow Limiter": "71,31%",
+            "Cost": "26.19%",
+            "Duration": "0.0592 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "15,70%",
+            "Instruction Throughput Limiter": "47,18%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "41,73%",
+            "Kernel Occupancy": "23,51%",
+            "Occupancy Manager Target": "100,00%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"compute compute pass 3\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.96%",
+            "Control Flow Limiter": "65,02%",
+            "Cost": "25.96%",
+            "Duration": "0.0580 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,04%",
+            "Instruction Throughput Limiter": "42,32%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "37,19%",
+            "Kernel Occupancy": "21,26%",
+            "Occupancy Manager Target": "92,76%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"compute compute pass 2\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "24.67%",
+            "Control Flow Limiter": "68,31%",
+            "Cost": "24.67%",
+            "Duration": "0.0564 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,85%",
+            "Instruction Throughput Limiter": "44,58%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,62%",
+            "Kernel Occupancy": "22,28%",
+            "Occupancy Manager Target": "97,43%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"compute compute pass 0\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "23.17%",
+            "Control Flow Limiter": "61,22%",
+            "Cost": "23.17%",
+            "Duration": "0.0561 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "13,36%",
+            "Instruction Throughput Limiter": "40,13%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "35,93%",
+            "Kernel Occupancy": "20,13%",
+            "Occupancy Manager Target": "86,75%"
+          }
+        }
+      ],
+      "profile_sha256": "5f7daf62afcc13db22e066d35c2ed9cc75e008d73ff467e22cb88e4726f02146"
+    },
+    {
+      "case": "compute-8",
+      "probe": {
+        "checksum": 8571.205042485148,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8571.205042485148,
+        "gpu_seconds": 0.0011198749853065237,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 8
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "8",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "8",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.5395 ms",
+        "Frame end": "539500 ns",
+        "GPU time": "0.5395 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce0",
+          "label": "\"compute compute pass 0\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "14.05%",
+            "Control Flow Limiter": "73,46%",
+            "Cost": "14.05%",
+            "Duration": "0.0560 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "15,68%",
+            "Instruction Throughput Limiter": "47,13%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "42,39%",
+            "Kernel Occupancy": "23,66%",
+            "Occupancy Manager Target": "100,00%"
+          }
+        },
+        {
+          "id": "ce6",
+          "label": "\"compute compute pass 6\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "13.74%",
+            "Control Flow Limiter": "68,96%",
+            "Cost": "13.74%",
+            "Duration": "0.0555 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,82%",
+            "Instruction Throughput Limiter": "44,58%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,82%",
+            "Kernel Occupancy": "22,31%",
+            "Occupancy Manager Target": "94,67%"
+          }
+        },
+        {
+          "id": "ce7",
+          "label": "\"compute compute pass 7\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.71%",
+            "Control Flow Limiter": "63,22%",
+            "Cost": "12.71%",
+            "Duration": "0.0530 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,03%",
+            "Instruction Throughput Limiter": "42,18%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "37,19%",
+            "Kernel Occupancy": "21,05%",
+            "Occupancy Manager Target": "90,06%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"compute compute pass 3\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.20%",
+            "Control Flow Limiter": "68,40%",
+            "Cost": "12.20%",
+            "Duration": "0.0555 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,82%",
+            "Instruction Throughput Limiter": "44,55%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,94%",
+            "Kernel Occupancy": "22,18%",
+            "Occupancy Manager Target": "93,86%"
+          }
+        },
+        {
+          "id": "ce4",
+          "label": "\"compute compute pass 4\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.18%",
+            "Control Flow Limiter": "68,48%",
+            "Cost": "12.18%",
+            "Duration": "0.0581 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,81%",
+            "Instruction Throughput Limiter": "44,52%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,86%",
+            "Kernel Occupancy": "22,20%",
+            "Occupancy Manager Target": "93,71%"
+          }
+        },
+        {
+          "id": "ce5",
+          "label": "\"compute compute pass 5\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "11.92%",
+            "Control Flow Limiter": "68,22%",
+            "Cost": "11.92%",
+            "Duration": "0.0555 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,82%",
+            "Instruction Throughput Limiter": "44,59%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,74%",
+            "Kernel Occupancy": "22,27%",
+            "Occupancy Manager Target": "95,11%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"compute compute pass 2\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "11.76%",
+            "Control Flow Limiter": "68,34%",
+            "Cost": "11.76%",
+            "Duration": "0.0530 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,82%",
+            "Instruction Throughput Limiter": "44,55%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,25%",
+            "Kernel Occupancy": "22,24%",
+            "Occupancy Manager Target": "95,11%"
+          }
+        },
+        {
+          "id": "ce1",
+          "label": "\"compute compute pass 1\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "11.44%",
+            "Control Flow Limiter": "67,52%",
+            "Cost": "11.44%",
+            "Duration": "0.0530 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "14,83%",
+            "Instruction Throughput Limiter": "44,58%",
+            "Instructions": "83984564",
+            "Integer and Conditional Limiter": "39,25%",
+            "Kernel Occupancy": "22,27%",
+            "Occupancy Manager Target": "94,27%"
+          }
+        }
+      ],
+      "profile_sha256": "8c068f453acc21cb8494e68ddd77c8b3a4d2af6dd9ce170a5cf76814e496285b"
+    },
+    {
+      "case": "alu-4",
+      "probe": {
+        "checksum": 8336.906823405065,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8336.906823405065,
+        "gpu_seconds": 0.00013083334488328546,
+        "items": 16384,
+        "mode": "alu",
+        "passes": 4
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.0861 ms",
+        "Frame end": "86083 ns",
+        "GPU time": "0.0861 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce1",
+          "label": "\"alu compute pass 1\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "34.13%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "34.13%",
+            "Duration": "0.0119 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,86%",
+            "Instruction Throughput Limiter": "46,60%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,41%",
+            "Kernel Occupancy": "15,14%",
+            "Occupancy Manager Target": "49,94%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"alu compute pass 3\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "31.79%",
+            "Compute Shader Launch Limiter": "1,21%",
+            "Control Flow Limiter": "2,16%",
+            "Cost": "31.79%",
+            "Duration": "0.0118 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "69,64%",
+            "Instruction Throughput Limiter": "58,15%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,25%",
+            "Kernel Occupancy": "18,83%",
+            "Occupancy Manager Target": "62,50%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"alu compute pass 2\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "20.30%",
+            "Compute Shader Launch Limiter": "1,20%",
+            "Control Flow Limiter": "2,16%",
+            "Cost": "20.30%",
+            "Duration": "0.0119 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "69,80%",
+            "Instruction Throughput Limiter": "58,23%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,26%",
+            "Kernel Occupancy": "18,92%",
+            "Occupancy Manager Target": "62,31%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"alu compute pass 0\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "13.78%",
+            "Compute Shader Launch Limiter": "1,05%",
+            "Control Flow Limiter": "2,12%",
+            "Cost": "13.78%",
+            "Duration": "0.0124 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "68,52%",
+            "Instruction Throughput Limiter": "56,95%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,16%",
+            "Kernel Occupancy": "18,45%",
+            "Occupancy Manager Target": "61,80%"
+          }
+        }
+      ],
+      "profile_sha256": "7def0f954bd5cb93a3bfc5bb23a68462debfdbd66506874e69e4300c669c0d7e"
+    },
+    {
+      "case": "alu-8",
+      "probe": {
+        "checksum": 8571.205042485148,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8571.205042485148,
+        "gpu_seconds": 0.00026079163944814354,
+        "items": 16384,
+        "mode": "alu",
+        "passes": 8
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "8",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "8",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.1830 ms",
+        "Frame end": "183041 ns",
+        "GPU time": "0.1830 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce0",
+          "label": "\"alu compute pass 0\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "19.02%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "19.02%",
+            "Duration": "0.0126 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,77%",
+            "Instruction Throughput Limiter": "46,41%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,41%",
+            "Kernel Occupancy": "15,51%",
+            "Occupancy Manager Target": "51,00%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"alu compute pass 3\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "14.35%",
+            "Compute Shader Launch Limiter": "1,19%",
+            "Control Flow Limiter": "2,15%",
+            "Cost": "14.35%",
+            "Duration": "0.0120 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "69,45%",
+            "Instruction Throughput Limiter": "57,98%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,24%",
+            "Kernel Occupancy": "19,02%",
+            "Occupancy Manager Target": "62,87%"
+          }
+        },
+        {
+          "id": "ce6",
+          "label": "\"alu compute pass 6\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "14.10%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "14.10%",
+            "Duration": "0.0121 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,89%",
+            "Instruction Throughput Limiter": "46,60%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,41%",
+            "Kernel Occupancy": "15,19%",
+            "Occupancy Manager Target": "50,37%"
+          }
+        },
+        {
+          "id": "ce5",
+          "label": "\"alu compute pass 5\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "13.30%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "13.30%",
+            "Duration": "0.0120 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,87%",
+            "Instruction Throughput Limiter": "46,59%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,40%",
+            "Kernel Occupancy": "15,28%",
+            "Occupancy Manager Target": "50,49%"
+          }
+        },
+        {
+          "id": "ce4",
+          "label": "\"alu compute pass 4\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "10.86%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "10.86%",
+            "Duration": "0.0120 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,94%",
+            "Instruction Throughput Limiter": "46,61%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,42%",
+            "Kernel Occupancy": "15,17%",
+            "Occupancy Manager Target": "50,35%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"alu compute pass 2\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "9.63%",
+            "Compute Shader Launch Limiter": "1,17%",
+            "Control Flow Limiter": "2,15%",
+            "Cost": "9.63%",
+            "Duration": "0.0121 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "69,57%",
+            "Instruction Throughput Limiter": "57,95%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,24%",
+            "Kernel Occupancy": "18,78%",
+            "Occupancy Manager Target": "62,26%"
+          }
+        },
+        {
+          "id": "ce1",
+          "label": "\"alu compute pass 1\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "9.46%",
+            "Control Flow Limiter": "1,73%",
+            "Cost": "9.46%",
+            "Duration": "0.0120 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "55,90%",
+            "Instruction Throughput Limiter": "46,61%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "3,41%",
+            "Kernel Occupancy": "15,29%",
+            "Occupancy Manager Target": "50,53%"
+          }
+        },
+        {
+          "id": "ce7",
+          "label": "\"alu compute pass 7\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "9.28%",
+            "Compute Shader Launch Limiter": "1,20%",
+            "Control Flow Limiter": "2,15%",
+            "Cost": "9.28%",
+            "Duration": "0.0121 ms",
+            "Encoder type": "Compute",
+            "F32 Limiter": "69,34%",
+            "Instruction Throughput Limiter": "58,04%",
+            "Instructions": "18972852",
+            "Integer and Conditional Limiter": "4,24%",
+            "Kernel Occupancy": "19,07%",
+            "Occupancy Manager Target": "62,49%"
+          }
+        }
+      ],
+      "profile_sha256": "af7b96eecc6482929c363c229ab4360f452f6cc9c031f7c2e42aca1661eab171"
+    },
+    {
+      "case": "memory-4",
+      "probe": {
+        "checksum": 8302359.986465197,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8302359.986454325,
+        "gpu_seconds": 0.005471750002470799,
+        "items": 16777216,
+        "mode": "memory",
+        "passes": 4
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "10 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "4.4176 ms",
+        "Frame end": "4417625 ns",
+        "GPU time": "4.4176 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce2",
+          "label": "\"memory compute pass 2\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.28%",
+            "Compute Shader Launch Limiter": "105,14%",
+            "Cost": "25.28%",
+            "Duration": "1.1515 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,39%",
+            "Instructions": "69397910",
+            "Kernel Occupancy": "51,53%",
+            "MMU Limiter": "26,41%",
+            "Occupancy Manager Target": "51,90%"
+          }
+        },
+        {
+          "id": "ce1",
+          "label": "\"memory compute pass 1\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.08%",
+            "Compute Shader Launch Limiter": "105,24%",
+            "Cost": "25.08%",
+            "Duration": "1.1431 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,42%",
+            "Instructions": "69423510",
+            "Kernel Occupancy": "51,05%",
+            "Last Level Cache Limiter": "34,25%",
+            "MMU Limiter": "20,23%",
+            "Occupancy Manager Target": "51,43%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"memory compute pass 3\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.07%",
+            "Compute Shader Launch Limiter": "104,82%",
+            "Cost": "25.07%",
+            "Duration": "1.1403 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,51%",
+            "Instructions": "69574550",
+            "Kernel Occupancy": "51,03%",
+            "MMU Limiter": "15,87%",
+            "Occupancy Manager Target": "51,40%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"memory compute pass 0\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "24.57%",
+            "Compute Shader Launch Limiter": "105,26%",
+            "Cost": "24.57%",
+            "Duration": "1.1198 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,49%",
+            "Instructions": "69467030",
+            "Kernel Occupancy": "51,18%",
+            "Last Level Cache Limiter": "28,59%",
+            "MMU Limiter": "35,82%",
+            "Occupancy Manager Target": "51,56%"
+          }
+        }
+      ],
+      "profile_sha256": "0d34c993dd99019617a24216eb0b878a91aa8f007bafce5f7ec5aaa08fe937f9"
+    },
+    {
+      "case": "memory-8",
+      "probe": {
+        "checksum": 8302593.127732211,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8302593.127717096,
+        "gpu_seconds": 0.011298499972326681,
+        "items": 16777216,
+        "mode": "memory",
+        "passes": 8
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "8",
+        "Consistent state": "yes",
+        "Cores": "5 sampled / 12 total",
+        "Encoders": "8",
+        "Frame begin": "0 ns",
+        "Frame duration": "8.3792 ms",
+        "Frame end": "8379166 ns",
+        "GPU time": "8.3792 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce2",
+          "label": "\"memory compute pass 2\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.88%",
+            "Compute Shader Launch Limiter": "104,16%",
+            "Cost": "12.88%",
+            "Duration": "1.1267 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,46%",
+            "Instructions": "34217035",
+            "Kernel Occupancy": "50,91%",
+            "Last Level Cache Limiter": "27,14%",
+            "MMU Limiter": "29,57%",
+            "Occupancy Manager Target": "51,28%"
+          }
+        },
+        {
+          "id": "ce5",
+          "label": "\"memory compute pass 5\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.68%",
+            "Compute Shader Launch Limiter": "101,15%",
+            "Cost": "12.68%",
+            "Duration": "1.1095 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,32%",
+            "Instructions": "33973835",
+            "Kernel Occupancy": "48,83%",
+            "MMU Limiter": "4,33%",
+            "Occupancy Manager Target": "49,18%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"memory compute pass 3\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.65%",
+            "Compute Shader Launch Limiter": "103,47%",
+            "Cost": "12.65%",
+            "Duration": "1.1081 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,46%",
+            "Instructions": "33900875",
+            "Kernel Occupancy": "50,51%",
+            "Last Level Cache Limiter": "14,31%",
+            "MMU Limiter": "29,99%",
+            "Occupancy Manager Target": "50,88%"
+          }
+        },
+        {
+          "id": "ce7",
+          "label": "\"memory compute pass 7\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.62%",
+            "Compute Shader Launch Limiter": "103,40%",
+            "Cost": "12.62%",
+            "Duration": "1.1059 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,45%",
+            "Instructions": "34019915",
+            "Kernel Occupancy": "49,99%",
+            "Last Level Cache Limiter": "26,50%",
+            "MMU Limiter": "7,01%",
+            "Occupancy Manager Target": "50,35%"
+          }
+        },
+        {
+          "id": "ce6",
+          "label": "\"memory compute pass 6\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.46%",
+            "Compute Shader Launch Limiter": "101,63%",
+            "Cost": "12.46%",
+            "Duration": "1.0880 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,31%",
+            "Instructions": "34281035",
+            "Kernel Occupancy": "49,66%",
+            "Last Level Cache Limiter": "18,80%",
+            "MMU Limiter": "29,03%",
+            "Occupancy Manager Target": "50,01%"
+          }
+        },
+        {
+          "id": "ce1",
+          "label": "\"memory compute pass 1\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.41%",
+            "Compute Shader Launch Limiter": "103,43%",
+            "Cost": "12.41%",
+            "Duration": "1.0871 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,46%",
+            "Instructions": "34336075",
+            "Kernel Occupancy": "50,41%",
+            "Last Level Cache Limiter": "1,27%",
+            "MMU Limiter": "6,92%",
+            "Occupancy Manager Target": "50,76%"
+          }
+        },
+        {
+          "id": "ce4",
+          "label": "\"memory compute pass 4\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.38%",
+            "Compute Shader Launch Limiter": "102,46%",
+            "Cost": "12.38%",
+            "Duration": "1.0828 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,32%",
+            "Instructions": "33637195",
+            "Kernel Occupancy": "50,22%",
+            "Last Level Cache Limiter": "31,04%",
+            "MMU Limiter": "18,69%",
+            "Occupancy Manager Target": "50,57%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"memory compute pass 0\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "11.92%",
+            "Compute Shader Launch Limiter": "103,96%",
+            "Cost": "11.92%",
+            "Duration": "1.0442 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "5,46%",
+            "Instructions": "33975115",
+            "Kernel Occupancy": "50,71%",
+            "MMU Limiter": "34,52%",
+            "Occupancy Manager Target": "51,07%"
+          }
+        }
+      ],
+      "profile_sha256": "de68d29735743d2c1ee2cb9002abefc648f26d6cf7536b01e8af5ef20bc85dfb"
+    },
+    {
+      "case": "stream-4",
+      "probe": {
+        "checksum": 8302359.986465197,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8302359.986454325,
+        "gpu_seconds": 0.006189499981701374,
+        "items": 16777216,
+        "mode": "stream",
+        "passes": 4
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "4.0438 ms",
+        "Frame end": "4043750 ns",
+        "GPU time": "4.0438 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce1",
+          "label": "\"stream compute pass 1\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.14%",
+            "Compute Shader Launch Limiter": "91,86%",
+            "Cost": "25.14%",
+            "Duration": "1.0348 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,29%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "18,97%",
+            "L1 Cache Limiter": "1,16%",
+            "Last Level Cache Limiter": "6,45%",
+            "MMU Limiter": "5,53%",
+            "Occupancy Manager Target": "19,70%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"stream compute pass 0\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.10%",
+            "Compute Shader Launch Limiter": "94,35%",
+            "Cost": "25.10%",
+            "Duration": "1.0379 ms",
+            "Encoder type": "Compute",
+            "Fragment Shader Launch Limiter": "2,60%",
+            "FS Occupancy": "4,36%",
+            "Instruction Throughput Limiter": "4,37%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "18,39%",
+            "Last Level Cache Limiter": "3,75%",
+            "MMU Limiter": "8,14%",
+            "Occupancy Manager Target": "23,39%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"stream compute pass 2\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "25.10%",
+            "Compute Shader Launch Limiter": "92,27%",
+            "Cost": "25.10%",
+            "Duration": "1.0369 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,28%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,07%",
+            "L1 Cache Limiter": "1,12%",
+            "Last Level Cache Limiter": "8,08%",
+            "MMU Limiter": "3,55%",
+            "Occupancy Manager Target": "19,76%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"stream compute pass 3\"",
+          "native_counters": {
+            "Commands": "4",
+            "Compute": "24.66%",
+            "Compute Shader Launch Limiter": "91,69%",
+            "Cost": "24.66%",
+            "Duration": "1.0130 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,42%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,10%",
+            "L1 Cache Limiter": "1,31%",
+            "Last Level Cache Limiter": "12,07%",
+            "MMU Limiter": "5,08%",
+            "Occupancy Manager Target": "19,87%"
+          }
+        }
+      ],
+      "profile_sha256": "2b54f7c2955c2e366a252390a2ab6917f359cd281c61215f2137c9a2a54fad2e"
+    },
+    {
+      "case": "stream-8",
+      "probe": {
+        "checksum": 8302593.127732211,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8302593.127717096,
+        "gpu_seconds": 0.010692333336919546,
+        "items": 16777216,
+        "mode": "stream",
+        "passes": 8
+      },
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "8",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "8",
+        "Frame begin": "0 ns",
+        "Frame duration": "8.1504 ms",
+        "Frame end": "8150375 ns",
+        "GPU time": "8.1504 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoders": [
+        {
+          "id": "ce6",
+          "label": "\"stream compute pass 6\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.80%",
+            "Compute Shader Launch Limiter": "91,38%",
+            "Cost": "12.80%",
+            "Duration": "1.0523 ms",
+            "Encoder type": "Compute",
+            "FS Occupancy": "0,04%",
+            "Instruction Throughput Limiter": "1,46%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,16%",
+            "L1 Cache Limiter": "1,28%",
+            "Last Level Cache Limiter": "4,62%",
+            "MMU Limiter": "2,54%",
+            "Occupancy Manager Target": "19,84%"
+          }
+        },
+        {
+          "id": "ce3",
+          "label": "\"stream compute pass 3\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.72%",
+            "Compute Shader Launch Limiter": "91,78%",
+            "Cost": "12.72%",
+            "Duration": "1.0420 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,40%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,17%",
+            "L1 Cache Limiter": "1,23%",
+            "MMU Limiter": "2,88%",
+            "Occupancy Manager Target": "19,91%"
+          }
+        },
+        {
+          "id": "ce1",
+          "label": "\"stream compute pass 1\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.56%",
+            "Compute Shader Launch Limiter": "91,36%",
+            "Cost": "12.56%",
+            "Duration": "1.0285 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,49%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,15%",
+            "L1 Cache Limiter": "1,30%",
+            "Last Level Cache Limiter": "4,61%",
+            "MMU Limiter": "4,49%",
+            "Occupancy Manager Target": "19,77%"
+          }
+        },
+        {
+          "id": "ce4",
+          "label": "\"stream compute pass 4\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.51%",
+            "Compute Shader Launch Limiter": "91,15%",
+            "Cost": "12.51%",
+            "Duration": "1.0171 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,47%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,18%",
+            "L1 Cache Limiter": "1,29%",
+            "Last Level Cache Limiter": "1,12%",
+            "MMU Limiter": "2,18%",
+            "Occupancy Manager Target": "19,85%"
+          }
+        },
+        {
+          "id": "ce7",
+          "label": "\"stream compute pass 7\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.45%",
+            "Compute Shader Launch Limiter": "91,41%",
+            "Cost": "12.45%",
+            "Duration": "1.0220 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,47%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,00%",
+            "L1 Cache Limiter": "1,30%",
+            "Last Level Cache Limiter": "8,11%",
+            "MMU Limiter": "11,92%",
+            "Occupancy Manager Target": "19,66%"
+          }
+        },
+        {
+          "id": "ce2",
+          "label": "\"stream compute pass 2\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.41%",
+            "Compute Shader Launch Limiter": "91,50%",
+            "Cost": "12.41%",
+            "Duration": "1.0205 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,45%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,05%",
+            "L1 Cache Limiter": "1,26%",
+            "Last Level Cache Limiter": "9,72%",
+            "MMU Limiter": "3,63%",
+            "Occupancy Manager Target": "20,02%"
+          }
+        },
+        {
+          "id": "ce0",
+          "label": "\"stream compute pass 0\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.28%",
+            "Compute Shader Launch Limiter": "91,71%",
+            "Cost": "12.28%",
+            "Duration": "1.0121 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,50%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,10%",
+            "L1 Cache Limiter": "1,29%",
+            "Last Level Cache Limiter": "5,53%",
+            "MMU Limiter": "3,91%",
+            "Occupancy Manager Target": "19,84%"
+          }
+        },
+        {
+          "id": "ce5",
+          "label": "\"stream compute pass 5\"",
+          "native_counters": {
+            "Commands": "8",
+            "Compute": "12.27%",
+            "Compute Shader Launch Limiter": "91,60%",
+            "Cost": "12.27%",
+            "Duration": "1.0064 ms",
+            "Encoder type": "Compute",
+            "Instruction Throughput Limiter": "1,51%",
+            "Instructions": "37748964",
+            "Kernel Occupancy": "19,21%",
+            "L1 Cache Limiter": "1,31%",
+            "Last Level Cache Limiter": "6,80%",
+            "MMU Limiter": "6,16%",
+            "Occupancy Manager Target": "19,78%"
+          }
+        }
+      ],
+      "profile_sha256": "fbeb6ae5613708233422351e3e98aade8ca7eb0ad4ad2cce0e88455141e0c7a8"
+    }
+  ],
+  "instruments_cases": [
+    {
+      "case": "default-128",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 4938,
+        "sample_intervals": 4938,
+        "counter_names": {
+          "1.RT Unit Active": 4938
+        }
+      },
+      "counter_info_names": [
+        "RT Unit Active"
+      ],
+      "target_gpu_intervals": 128,
+      "other_process_gpu_intervals": 215,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "63407fc21519e410da60ffd46f1bec5847bfc1e9a6cdb642e02f4beb35faf744",
+        "gpu-counter-info.xml": "e7d1a57d3def0cc4cfb69756a09c9ed1dbac6da56dbe8706a79f9fbf9310514b",
+        "metal-gpu-intervals.xml": "ce367d8782b4b2656252f264e1c76c0c6df064c4c074330d8a3f4258963fd79f"
+      },
+      "probe": {
+        "checksum": 16043.619398862123,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 16043.619398862123,
+        "gpu_seconds": 0.017819916640291922,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 128
+      }
+    },
+    {
+      "case": "limiters-128",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 0,
+        "sample_intervals": 0,
+        "counter_names": {}
+      },
+      "counter_info_names": [],
+      "target_gpu_intervals": 128,
+      "other_process_gpu_intervals": 261,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "4835aa8a070ac65a2f80b71ee1a53957921a85e55ba2f9925874df9092c36bb3",
+        "gpu-counter-info.xml": "58a63b48c6daee8add2f242d62ad98c77063a0d15a9d84cfc383a8db0e27f720",
+        "metal-gpu-intervals.xml": "f55cc3ed3b6efa1bc7c27699e6d8d6ec7c73cb01c2202a5f37ef95e01e983c03"
+      },
+      "probe": {
+        "checksum": 16043.619398862123,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 16043.619398862123,
+        "gpu_seconds": 0.017998833282035775,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 128
+      }
+    },
+    {
+      "case": "limiters-256",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 10918,
+        "sample_intervals": 10918,
+        "counter_names": {
+          "1.RT Unit Active": 10918
+        }
+      },
+      "counter_info_names": [
+        "RT Unit Active"
+      ],
+      "target_gpu_intervals": 256,
+      "other_process_gpu_intervals": 298,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "a3101985445ff1abc00bfc9fad21e7dd44eb406add48dca30dc6a76b8f9714f3",
+        "gpu-counter-info.xml": "e8b56828ab0c546b819299564d3446b8dbbf44eaaa7c6f1aa6b21db7fa2a1036",
+        "metal-gpu-intervals.xml": "2d023ae5e71bdd9d0502bf84b0a5acaf323efc3c501aa7bf1941f34efd4456a6"
+      },
+      "probe": {
+        "checksum": 25042.804523706436,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 25042.804523706436,
+        "gpu_seconds": 0.03517750001628883,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 256
+      }
+    },
+    {
+      "case": "utilizations-128",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 4443,
+        "sample_intervals": 4443,
+        "counter_names": {
+          "1.RT Unit Active": 4443
+        }
+      },
+      "counter_info_names": [
+        "RT Unit Active"
+      ],
+      "target_gpu_intervals": 128,
+      "other_process_gpu_intervals": 285,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "d31218ee75b654e3a0dff597d3949c94c0114685054ad4859941d56ddef7a6a7",
+        "gpu-counter-info.xml": "f4dde0b4c0baab483ea5794185c07a1c66a4b86169cb4d20cfb6e472950e237a",
+        "metal-gpu-intervals.xml": "aed096aced89c79e90c167dd43266d8eace1571966f67b0004b872536645d954"
+      },
+      "probe": {
+        "checksum": 16043.619398862123,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 16043.619398862123,
+        "gpu_seconds": 0.018116708350135013,
+        "items": 16384,
+        "mode": "compute",
+        "passes": 128
+      }
+    },
+    {
+      "case": "limiters-idle",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 1716,
+        "sample_intervals": 1716,
+        "counter_names": {
+          "1.RT Unit Active": 1716
+        }
+      },
+      "counter_info_names": [
+        "RT Unit Active"
+      ],
+      "target_gpu_intervals": 0,
+      "other_process_gpu_intervals": 192,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "e9cc799737afa2cbe45ca8fc52ddb72c3d4268f17074fa89ebf46eb5be53ba6b",
+        "gpu-counter-info.xml": "8ce8b47f6d91a698b0df7edacd54abb3537b7a08eeaf8950ee433ffd8aa9051f",
+        "metal-gpu-intervals.xml": "b61be6655db5a29deb714f1aa31dca19ea6d3e5f7f1ace8caefbd2e0e3947650"
+      },
+      "probe": {
+        "checksum": 8103.463756225072,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8103.463756225072,
+        "gpu_seconds": 0,
+        "items": 16384,
+        "mode": "idle",
+        "passes": 0
+      }
+    },
+    {
+      "case": "utilizations-idle",
+      "counter_summary": {
+        "schema": "metal-gpu-counter-intervals",
+        "counter_rows": 0,
+        "sample_intervals": 0,
+        "counter_names": {}
+      },
+      "counter_info_names": [],
+      "target_gpu_intervals": 0,
+      "other_process_gpu_intervals": 312,
+      "source_sha256": {
+        "metal-gpu-counter-intervals.xml": "4835aa8a070ac65a2f80b71ee1a53957921a85e55ba2f9925874df9092c36bb3",
+        "gpu-counter-info.xml": "d306d2784bc50c8001c8582721735044f603438bfa97820dd2e04b7a5437aaa8",
+        "metal-gpu-intervals.xml": "89fb8470bd1d7a27ceff85a71ef81f3c54061061de00b321d0b25acb3825baf6"
+      },
+      "probe": {
+        "checksum": 8103.463756225072,
+        "checksum_verified": true,
+        "device": "Apple M6",
+        "expected_checksum": 8103.463756225072,
+        "gpu_seconds": 0,
+        "items": 16384,
+        "mode": "idle",
+        "passes": 0
+      }
+    }
+  ],
+  "unprofiled_timing_control": {
+    "scope": "unprofiled Metal command GPU timestamps; alternating mode order",
+    "passes": 4,
+    "items": 1048576,
+    "records": [
+      {
+        "trial": 0,
+        "mode": "compute",
+        "gpu_seconds": 0.027036333325668238,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 0,
+        "mode": "alu",
+        "gpu_seconds": 0.004626000009011477,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 1,
+        "mode": "alu",
+        "gpu_seconds": 0.005229125017649494,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 1,
+        "mode": "compute",
+        "gpu_seconds": 0.026207375005469657,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 2,
+        "mode": "compute",
+        "gpu_seconds": 0.013758666667854413,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 2,
+        "mode": "alu",
+        "gpu_seconds": 0.0022240416728891432,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 3,
+        "mode": "alu",
+        "gpu_seconds": 0.00202058331342414,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 3,
+        "mode": "compute",
+        "gpu_seconds": 0.008604041679063812,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 4,
+        "mode": "compute",
+        "gpu_seconds": 0.007824541666195728,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 4,
+        "mode": "alu",
+        "gpu_seconds": 0.001644666655920446,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 5,
+        "mode": "alu",
+        "gpu_seconds": 0.0021235000021988526,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 5,
+        "mode": "compute",
+        "gpu_seconds": 0.012904333358164877,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 6,
+        "mode": "compute",
+        "gpu_seconds": 0.007802333362633362,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      },
+      {
+        "trial": 6,
+        "mode": "alu",
+        "gpu_seconds": 0.001623625008505769,
+        "checksum": 533821.5067126406,
+        "checksum_verified": true
+      }
+    ],
+    "modes": {
+      "compute": {
+        "median_gpu_seconds": 0.012904333358164877,
+        "min_gpu_seconds": 0.007802333362633362,
+        "max_gpu_seconds": 0.027036333325668238
+      },
+      "alu": {
+        "median_gpu_seconds": 0.0021235000021988526,
+        "min_gpu_seconds": 0.001623625008505769,
+        "max_gpu_seconds": 0.005229125017649494
+      }
+    },
+    "median_speedup": 6.076917044879977
+  },
+  "interpretation": [
+    "Replay profiles describe the captured Metal workload under the recorded settings, not original application wall time.",
+    "Native limiter percentages overlap; no GPU pipeline-slot partition is derived.",
+    "Values above 100 percent are preserved and flagged, with their M6 denominator unvalidated.",
+    "The memory controls do not establish a calibrated DRAM-bound classification.",
+    "Native core sampling coverage varies; comparisons must account for the reported coverage.",
+    "Raw .trace/.gputrace captures and system-wide counter exports remain local."
+  ],
+  "measurement_commit": "10847a14f5cf1cc3337ca0ef72b0f1b60dbd8e90",
+  "integration_validation": {
+    "cli_record": {
+      "workflow": "apple gpu record --store; apple query --section encoders; apple gpu report --run-id",
+      "profile_sha256": "c66e11e1f37be1e9aba843d51960ca7cc7e3ef343051e1d578617ce313fb6f64",
+      "started_at": "2026-10-22T16:20:16.607589+00:00",
+      "ended_at": "2026-10-22T16:20:24.461207+00:00",
+      "device": "Apple M6",
+      "settings": {
+        "execution": "overlapping",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.0858 ms",
+        "Frame end": "85833 ns",
+        "GPU time": "0.0858 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoder_count": 4
+    },
+    "mcp": {
+      "tools_exercised": [
+        "collect_apple_gpu_profile",
+        "query_apple_result",
+        "get_apple_gpu_report"
+      ],
+      "device": "Apple M6",
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.2646 ms",
+        "Frame end": "264583 ns",
+        "GPU time": "0.2646 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoder_count": 4,
+      "top_encoder_limiter": {
+        "name": "Control Flow Limiter",
+        "percent": 72.54,
+        "native_value": "72,54%",
+        "exceeds_100": false
+      }
+    },
+    "existing_trace": {
+      "workflow": "apple gpu profile --execution serial --store",
+      "profile_sha256": "318683c72c621fbab802ae26703d805cb2e6fa83ff3ba77cc6608dfe6ee691a6",
+      "started_at": "2026-10-22T16:24:27.844904+00:00",
+      "ended_at": "2026-10-22T16:24:34.779684+00:00",
+      "device": "Apple M6",
+      "settings": {
+        "execution": "serial",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.0867 ms",
+        "Frame end": "86666 ns",
+        "GPU time": "0.0867 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoder_count": 4
+    },
+    "installed_wheel": {
+      "workflow": "installed wheel, outside checkout: apple gpu profile --execution serial --store",
+      "profile_sha256": "12805dbf37eaeac88d9a8a23ed36816daad699fb3865f61d61787b87601b5bdd",
+      "started_at": "2026-10-22T16:26:07.633449+00:00",
+      "ended_at": "2026-10-22T16:26:14.618080+00:00",
+      "device": "Apple M6",
+      "settings": {
+        "execution": "serial",
+        "gpu_state": "default",
+        "replayed": true
+      },
+      "timeline": {
+        "Commands": "4",
+        "Consistent state": "yes",
+        "Cores": "12 sampled / 12 total",
+        "Encoders": "4",
+        "Frame begin": "0 ns",
+        "Frame duration": "0.0861 ms",
+        "Frame end": "86125 ns",
+        "GPU time": "0.0861 ms",
+        "Overlap": "yes",
+        "Profiled state": "default"
+      },
+      "encoder_count": 4,
+      "wheel_sha256": "ee2c2ab1f255f1d108af1fd4c817a4c9e104d5b06cd15a085a1677bf1c4c77fb",
+      "bundled_swift_probe_verified": true,
+      "native_probe_capture_also_verified_with_prior_wheel": true
+    },
+    "postgresql": {
+      "disposable_server": true,
+      "native_profiles_round_tripped": 3,
+      "native_document_equality_verified": true,
+      "encoder_pagination_verified": true,
+      "mcp_queries_and_reports_verified": true,
+      "linux_metric_samples_created": false
+    },
+    "local_m6_test_suite": {
+      "passed": 1196,
+      "skipped": 5,
+      "coverage_percent": 84.54776323500684,
+      "previous_coverage_percent": 83.86558129826759
+    },
+    "combined_m1_m6_test_suite": {
+      "passed": 1201,
+      "skipped": 5,
+      "coverage_percent": 84.54776323500684,
+      "postgresql_enabled": true
+    }
+  }
+}

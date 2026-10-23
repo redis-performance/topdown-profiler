@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "host": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "cpu": "Apple M1",
+    "os_build": "26A434",
+    "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066"
+  },
+  "source": "proc_pid_rusage RUSAGE_INFO_V6 process-lifetime",
+  "method": "Paired 0 and 100,000,000-iteration runs of an inline three-instruction ARM64 loop at default and background QoS; process startup/shutdown differ between runs.",
+  "expected_loop_instructions": 300000000,
+  "probe_source_sha256": "40a59de88f324edef827302a1e03fd9e25730bf8bc9804f6026b5cdcda3fda14",
+  "probe_binary_sha256": "95ba1e5ae730381a39e11eac159ef8052b02103ec8c4fbdba639f428d4bf30a5",
+  "collector_sha256": "8470eb322d9cf29c44eb05e7cf01a637fda393e146da2b370cc643bb49c7d2c4",
+  "all_captures_completed": true,
+  "all_v6_instruction_cycle_and_mach_time_partitions_exact": true,
+  "all_tma_unavailable": true,
+  "trials": [
+    {
+      "qos": "default",
+      "trial": 0,
+      "baseline_stat_sha256": "ab6e64f6ca65683585040a34b100e8f90d80147d8d809b2435743cdb0d5a0e4f",
+      "workload_stat_sha256": "b0f3c4e082e435f1a310fa6129aca74346355451c51df3c0f7bc0410d81589a8",
+      "instruction_delta": 300105777,
+      "instruction_delta_error_from_300m": 105777,
+      "performance_instruction_delta": 300086530,
+      "other_instruction_delta": 19247,
+      "cycle_delta": 100015217
+    },
+    {
+      "qos": "default",
+      "trial": 1,
+      "baseline_stat_sha256": "789658724444d3cf40e3a36a60ce8d5e88bed88ab9dbc327d63d6273b7c2a7ca",
+      "workload_stat_sha256": "68cc86e5d53598614e48bf3a6ef9b52733b5e7e4b8bf776ec5d708e40cf414f0",
+      "instruction_delta": 299951004,
+      "instruction_delta_error_from_300m": -48996,
+      "performance_instruction_delta": 299528562,
+      "other_instruction_delta": 422442,
+      "cycle_delta": 100681321
+    },
+    {
+      "qos": "default",
+      "trial": 2,
+      "baseline_stat_sha256": "9baba1753c2ee7e00c52836b8a668183ddaeb1b74f2ae988d6e233c915dcf25a",
+      "workload_stat_sha256": "8e2ac578dafb28022db4f7f9a06657976a97b2e703229055d6050a49daf9f141",
+      "instruction_delta": 300104646,
+      "instruction_delta_error_from_300m": 104646,
+      "performance_instruction_delta": 300274252,
+      "other_instruction_delta": -169606,
+      "cycle_delta": 99790568
+    },
+    {
+      "qos": "background",
+      "trial": 0,
+      "baseline_stat_sha256": "c8b74bf3d061d62d8f992428abc9e7ac2837618f938199061931ecb84449051a",
+      "workload_stat_sha256": "0950fe1bf67aebdb662970a8d14f78bc9bccddd1b663243a3eb55cee1978b485",
+      "instruction_delta": 301110186,
+      "instruction_delta_error_from_300m": 1110186,
+      "performance_instruction_delta": -106552,
+      "other_instruction_delta": 301216738,
+      "cycle_delta": 101873492
+    },
+    {
+      "qos": "background",
+      "trial": 1,
+      "baseline_stat_sha256": "b18914c03cef5143f42057bfd8a02d0d7794f271e14e3dd9101f5e1bed12c7bd",
+      "workload_stat_sha256": "be833dddbfdb357f61d7f5570d470bfa06d2549f5168151eee3dcdb6c9becffc",
+      "instruction_delta": 300790586,
+      "instruction_delta_error_from_300m": 790586,
+      "performance_instruction_delta": 161048,
+      "other_instruction_delta": 300629538,
+      "cycle_delta": 101494399
+    },
+    {
+      "qos": "background",
+      "trial": 2,
+      "baseline_stat_sha256": "72c56732d5af160205e35dc69da0a8465c25be166fb52d8aac2d211649e6cdb4",
+      "workload_stat_sha256": "9f09724daf43cd073911a104eb1be5a4e716a382adb930b61279099d5021eca5",
+      "instruction_delta": 301529498,
+      "instruction_delta_error_from_300m": 1529498,
+      "performance_instruction_delta": 138029,
+      "other_instruction_delta": 301391469,
+      "cycle_delta": 101402341
+    }
+  ],
+  "barrier_interval_validation": {
+    "validation_script_sha256": "c1ae212d8432bd8f7695371e34dcd72d35d2c15f211374907f959d917b1e7498",
+    "results_json_sha256": "e843c236f2d61c80d1f8cd987802f60a29cc62ed1da68c0bb3d061e751f9a6b2",
+    "binary_sha256": "2f3b90577607c46afc56f0f68a352db43694a2e1a22d47339e9c4f5dfcb983ef",
+    "cases": 16,
+    "all_v6_partitions_exact_and_tma_unavailable": true,
+    "method": "Each case samples proc_pid_rusage after the child startup barrier and immediately after the counted loop, before child shutdown. Two observations per iteration count and QoS.",
+    "by_qos_and_iterations": {
+      "default": {
+        "0": {
+          "instruction_counts": [
+            17656,
+            19305
+          ],
+          "median_instructions": 18480.5
+        },
+        "1000000": {
+          "instruction_counts": [
+            3019691,
+            3019224
+          ],
+          "median_instructions": 3019457.5,
+          "baseline_subtracted_ratio_to_planned_loop": 1.00032567
+        },
+        "10000000": {
+          "instruction_counts": [
+            30019219,
+            30030213
+          ],
+          "median_instructions": 30024716.0,
+          "baseline_subtracted_ratio_to_planned_loop": 1.00020785
+        },
+        "100000000": {
+          "instruction_counts": [
+            300282890,
+            300410135
+          ],
+          "median_instructions": 300346512.5,
+          "baseline_subtracted_ratio_to_planned_loop": 1.00109344
+        }
+      },
+      "background": {
+        "0": {
+          "instruction_counts": [
+            19641,
+            19072
+          ],
+          "median_instructions": 19356.5
+        },
+        "1000000": {
+          "instruction_counts": [
+            3019172,
+            3019373
+          ],
+          "median_instructions": 3019272.5,
+          "baseline_subtracted_ratio_to_planned_loop": 0.999972
+        },
+        "10000000": {
+          "instruction_counts": [
+            30206459,
+            30067441
+          ],
+          "median_instructions": 30136950.0,
+          "baseline_subtracted_ratio_to_planned_loop": 1.00391978
+        },
+        "100000000": {
+          "instruction_counts": [
+            300943157,
+            301179997
+          ],
+          "median_instructions": 301061577.0,
+          "baseline_subtracted_ratio_to_planned_loop": 1.00347407
+        }
+      }
+    }
+  }
+}

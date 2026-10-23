@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "topdown-profiler"
 version = "0.3.1"
-description = "CPU profiling for Intel, AMD Zen, ARM Neoverse, and Apple M1/M6; Linux TMA and native macOS results with MCP and SQL backends."
+description = "Linux CPU TMA for Intel, AMD Zen and ARM Neoverse; native Apple M1/M6 CPU/GPU profiling; CLI, MCP, SQLite and PostgreSQL."
 authors = ["redis-performance"]
 readme = "README.md"
 license = "MIT"
 packages = [{include = "topdown"}]
-keywords = ["pmu", "toplev", "topdown", "profiler", "performance", "mcp", "arm", "neoverse", "graviton", "apple-silicon", "m1", "m6"]
+keywords = ["pmu", "toplev", "topdown", "profiler", "performance", "mcp", "arm", "neoverse", "graviton", "apple-silicon", "m1", "m6", "gpu", "metal"]
 
 [tool.poetry.scripts]
 topdown = "topdown.cli:app_main"

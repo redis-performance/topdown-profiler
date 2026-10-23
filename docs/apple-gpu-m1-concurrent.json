@@ -1,0 +1,174 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "gpu_cores": 7,
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "Two checksummed M1 Metal probes launched concurrently inside one 8-second Instruments Metal System Trace capture with Performance Limiters counter profile 3; 500 ALU passes and 100 stream passes. Summary selected each probe PID from the same device-wide counter export.",
+  "counter_scope": "device-wide",
+  "selection_without_pid": "multiple labeled probe PIDs; pass --pid to select one",
+  "probe_source_sha256": "fec63983b3589ae8f578d96dba08c5e64d0ce03af284e78b1c36e5c8a3badea5",
+  "selected_template_sha256": "936997d41f2a1231623da319e7a5e540d1df04cc7d8be2c2aa19e61ae1753d6c",
+  "toc_sha256": "ee2d74007c0c58d6ae5788850c697350820ca95092aac775ba99a083afe65f65",
+  "counter_xml_sha256": "7ef73ddde0fd9e747b7a5f42f4a575d440a5627ebb008c93b8edbeb7f121386a",
+  "gpu_xml_sha256": "d6a7ee583cd9f240477f46608cbae503501e9b7d95fb57ab582f0a487c7446b1",
+  "launch_script_sha256": "8e058ad4d6ec7f2192b62ce5ecc261ac20814a53e46f016a06dcf89e7026fd42",
+  "measurements": [
+    {
+      "mode": "alu",
+      "requested_passes": 500,
+      "checksum": "45655.31820189953",
+      "checksum_verified": true,
+      "counter_rows": 386798,
+      "sample_intervals": 12206,
+      "probe_coverage": {
+        "selected_pid": 21382,
+        "status": "sampled",
+        "workloads_observed": [
+          "burn"
+        ],
+        "passes_observed": 495,
+        "passes_with_counter_samples": 495,
+        "gpu_work_time_ns": 81212910,
+        "sampled_gpu_work_time_ns": 36480418,
+        "counter_sample_intervals_overlapping": 2064,
+        "other_active_gpu_time_overlapping_ns": 69619074,
+        "other_active_gpu_time_in_counter_samples_ns": 32639416,
+        "last_counter_end_minus_last_probe_end_ns": 1041644416,
+        "sampled_gpu_work_fraction": 0.4491948139772359,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.8947105814412544
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 62.320646,
+          "unit": "%",
+          "sampled_time_ns": 36480418,
+          "counter_intervals": 2064
+        },
+        "Buffer Write Limiter": {
+          "value": 39.728693,
+          "unit": "%",
+          "sampled_time_ns": 36480418,
+          "counter_intervals": 2064
+        },
+        "GPU Read Bandwidth": {
+          "value": 23.660062,
+          "unit": "GB/s",
+          "sampled_time_ns": 36480418,
+          "counter_intervals": 2064
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Limiter": {
+          "value": 74.523619,
+          "unit": "%",
+          "sampled_time_ns": 3531001,
+          "counter_intervals": 203
+        },
+        "Buffer Write Limiter": {
+          "value": 1.150936,
+          "unit": "%",
+          "sampled_time_ns": 3531001,
+          "counter_intervals": 203
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.765053,
+          "unit": "GB/s",
+          "sampled_time_ns": 3531001,
+          "counter_intervals": 203
+        }
+      },
+      "top_limiter": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 23181543,
+        "share_of_top_limiter_samples_percent": 63.5452
+      },
+      "top_limiter_without_observed_other_activity": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 3446126,
+        "share_of_top_limiter_samples_percent": 97.5963
+      },
+      "top_limiter_unparsed_sampled_time_ns": 0,
+      "top_limiter_unparsed_clean_sampled_time_ns": 0
+    },
+    {
+      "mode": "stream",
+      "requested_passes": 100,
+      "checksum": "822083536.0",
+      "checksum_verified": true,
+      "counter_rows": 386798,
+      "sample_intervals": 12206,
+      "probe_coverage": {
+        "selected_pid": 21383,
+        "status": "sampled",
+        "workloads_observed": [
+          "stream"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "gpu_work_time_ns": 248046500,
+        "sampled_gpu_work_time_ns": 122891375,
+        "counter_sample_intervals_overlapping": 6199,
+        "other_active_gpu_time_overlapping_ns": 87406024,
+        "other_active_gpu_time_in_counter_samples_ns": 41662999,
+        "last_counter_end_minus_last_probe_end_ns": 1005129958,
+        "sampled_gpu_work_fraction": 0.4954368434950705,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.339022970489182
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 18.568401,
+          "unit": "%",
+          "sampled_time_ns": 122891375,
+          "counter_intervals": 6199
+        },
+        "Buffer Write Limiter": {
+          "value": 82.512464,
+          "unit": "%",
+          "sampled_time_ns": 122891375,
+          "counter_intervals": 6199
+        },
+        "GPU Read Bandwidth": {
+          "value": 27.377915,
+          "unit": "GB/s",
+          "sampled_time_ns": 122891375,
+          "counter_intervals": 6199
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Limiter": {
+          "value": 1.962755,
+          "unit": "%",
+          "sampled_time_ns": 74241209,
+          "counter_intervals": 3741
+        },
+        "Buffer Write Limiter": {
+          "value": 98.831324,
+          "unit": "%",
+          "sampled_time_ns": 74241209,
+          "counter_intervals": 3741
+        },
+        "GPU Read Bandwidth": {
+          "value": 28.329034,
+          "unit": "GB/s",
+          "sampled_time_ns": 74241209,
+          "counter_intervals": 3741
+        }
+      },
+      "top_limiter": {
+        "name": "Buffer Write Limiter",
+        "sampled_time_ns": 101547041,
+        "share_of_top_limiter_samples_percent": 82.6315
+      },
+      "top_limiter_without_observed_other_activity": {
+        "name": "Buffer Write Limiter",
+        "sampled_time_ns": 73976375,
+        "share_of_top_limiter_samples_percent": 99.6433
+      },
+      "top_limiter_unparsed_sampled_time_ns": 0,
+      "top_limiter_unparsed_clean_sampled_time_ns": 0
+    }
+  ]
+}

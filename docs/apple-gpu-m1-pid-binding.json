@@ -1,0 +1,81 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": [
+      "Xcode 27.1",
+      "Build version 27A9275"
+    ],
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "The checked M1 Instruments runner requires the summarized counter PID to match exactly one TOC process at the compiled probe path, after checksum and pass coverage checks. Both the original M1 and packaged Metal probes completed natively. Raw traces remain local.",
+  "captures": {
+    "legacy_alu": {
+      "capture": {
+        "mode": "alu",
+        "passes": 4,
+        "items": null,
+        "probe_source": "m1",
+        "counter_profile": "Performance Limiters",
+        "checksum_verified": true,
+        "target_exit_status": 0,
+        "probe_process_verified": true,
+        "source_sha256": "fec63983b3589ae8f578d96dba08c5e64d0ce03af284e78b1c36e5c8a3badea5",
+        "binary_sha256": "c610df29dbdcef8c80bda8ae48612f42d981fecaf0fdb0e8085935d5440ad34f",
+        "template_sha256": "936997d41f2a1231623da319e7a5e540d1df04cc7d8be2c2aa19e61ae1753d6c",
+        "toc_sha256": "e5834fe2f2ca3b9025325580feb8855a9cd51c7bb959e49d97136921fadd525f",
+        "counter_xml_sha256": "f2e4a7a8d7e47ae07e374a8022ccec6a02a02fcc6787a7213052b9f49b6f6dfc",
+        "gpu_xml_sha256": "0d5b50ef743027fdc01a16129b35cec0f48e63b953d5dafe190822cba52e6a55"
+      },
+      "profile_json_sha256": "03b468135107a421ba946ba2b460ed3bfbfdc1101f016584635194d2953b7cbd",
+      "selected_pid": 43207,
+      "toc_probe_process": {
+        "name": "probe",
+        "pid": 43207,
+        "path_matches_compiled_probe": true
+      },
+      "passes_with_counter_samples": 4,
+      "required_metric_pass_coverage": {
+        "ALU Limiter": 4,
+        "Buffer Write Limiter": 4,
+        "GPU Read Bandwidth": 4,
+        "Top Performance Limiter": 4
+      },
+      "sampled_gpu_work_fraction": 0.15368973589010002
+    },
+    "packaged_compute": {
+      "capture": {
+        "mode": "compute",
+        "passes": 100,
+        "items": 65536,
+        "probe_source": "packaged",
+        "counter_profile": "Performance Limiters",
+        "checksum_verified": true,
+        "target_exit_status": 0,
+        "probe_process_verified": true,
+        "source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+        "binary_sha256": "93ae438444bacdf18867bc01996ae5bd6f0c1cc1e26db507048ecb0586ee338f",
+        "template_sha256": "936997d41f2a1231623da319e7a5e540d1df04cc7d8be2c2aa19e61ae1753d6c",
+        "toc_sha256": "2294123eb4d966cda770181b42400ceaa3e9861d29b836edcceabd95fe5c78b9",
+        "counter_xml_sha256": "56e688676c6ac45db82f6b0862437afc682f978765eba1df42403ed791eda903",
+        "gpu_xml_sha256": "3e96e5083da6009b73924fe32a5b64411bd26f57200fec0a1cbd1893d2b1355c",
+        "probe_json_sha256": "6cb22f4f649cccd37df450a33af31e1856d8aa118d21785fab5d705e9a9fd5e6"
+      },
+      "profile_json_sha256": "1e460eb3aaa5383c91745e23896bbc77448c2e8173910012dbb818608269ce59",
+      "selected_pid": 43243,
+      "toc_probe_process": {
+        "name": "probe",
+        "pid": 43243,
+        "path_matches_compiled_probe": true
+      },
+      "passes_with_counter_samples": 100,
+      "required_metric_pass_coverage": {
+        "ALU Limiter": 100,
+        "Buffer Write Limiter": 100,
+        "GPU Read Bandwidth": 100,
+        "Top Performance Limiter": 100
+      },
+      "sampled_gpu_work_fraction": 0.26376554536295793
+    }
+  }
+}

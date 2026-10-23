@@ -54,6 +54,18 @@ class StorageBackend(ABC):
     def get_apple_result(self, run_id: str) -> dict | None:
         ...
 
+    def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
+                              offset: int = 0, limit: int = 100) -> dict | None:
+        """Read summary metadata and one array page, preserving native JSON types."""
+        document = self.get_apple_result(run_id)
+        if document is None:
+            return None
+        result = document["result"]
+        rows = result.get(section) if section is not None else None
+        return {"metadata": document["metadata"], "result": {k: v for k, v in result.items() if k not in omit_fields},
+                "total": len(rows) if isinstance(rows, list) else None,
+                "rows": rows[offset:offset + limit] if isinstance(rows, list) else None}
+
     @abstractmethod
     def get_run(self, run_id: str) -> Run | None:
         ...

@@ -2,16 +2,23 @@
 
 import ctypes
 import errno
-import math
 import os
 import platform
 import signal
 import subprocess
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from topdown.collector.apple import AppleProfileError, TMA_ROOTS, _sha256, _write_json
+from topdown.collector.apple_environment import capture_environment
+from topdown.collector.apple_runtime import check_cancelled, sleep, uncancellable
+
+
+def _validate_pid(pid):
+    if type(pid) is not int or not 1 <= pid <= 2**31 - 1:
+        raise AppleProfileError("Require a positive PID (integer 1–2147483647; native signed pid_t)")
 
 
 class _RusageInfoV4(ctypes.Structure):
@@ -61,11 +68,12 @@ class _UsageReader:
         libsystem.mach_timebase_info.argtypes = [ctypes.POINTER(_Timebase)]
         libsystem.mach_timebase_info.restype = ctypes.c_int
         self.timebase = _Timebase()
-        if libsystem.mach_timebase_info(ctypes.byref(self.timebase)) or not self.timebase.denom:
+        if libsystem.mach_timebase_info(ctypes.byref(self.timebase)) or not self.timebase.numer or not self.timebase.denom:
             raise AppleProfileError("Cannot determine Mach timebase")
         self.flavor_id = 6
 
     def read(self, pid):
+        _validate_pid(pid)
         info = _RusageInfoV6() if self.flavor_id == 6 else _RusageInfoV4()
         ctypes.set_errno(0)
         status = self.libproc.proc_pid_rusage(pid, self.flavor_id, ctypes.byref(info))
@@ -83,6 +91,8 @@ class _UsageReader:
             "cycles": info.ri_cycles,
             "user_time_ns": info.ri_user_time * numer // denom,
             "system_time_ns": info.ri_system_time * numer // denom,
+            "user_time_mach": info.ri_user_time,
+            "system_time_mach": info.ri_system_time,
             "process_start_mach": info.ri_proc_start_abstime,
             "process_exit_mach": info.ri_proc_exit_abstime,
         }
@@ -95,8 +105,13 @@ class _UsageReader:
                           other_cycles=info.ri_cycles - info.ri_pcycles,
                           performance_user_time_ns=info.ri_user_ptime * numer // denom,
                           performance_system_time_ns=info.ri_system_ptime * numer // denom,
-                          other_user_time_ns=result["user_time_ns"] - info.ri_user_ptime * numer // denom,
-                          other_system_time_ns=result["system_time_ns"] - info.ri_system_ptime * numer // denom)
+                          performance_user_time_mach=info.ri_user_ptime,
+                          performance_system_time_mach=info.ri_system_ptime,
+                          other_user_time_mach=info.ri_user_time - info.ri_user_ptime,
+                          other_system_time_mach=info.ri_system_time - info.ri_system_ptime,
+                          # Scaling each native remainder keeps an idle core group monotonic across snapshots.
+                          other_user_time_ns=(info.ri_user_time - info.ri_user_ptime) * numer // denom,
+                          other_system_time_ns=(info.ri_system_time - info.ri_system_ptime) * numer // denom)
         return result
 
 
@@ -119,6 +134,7 @@ def _peek_exit(pid):
 
 def _wait_for_exit(pid, deadline):
     while True:
+        check_cancelled()
         # Keep the child as a zombie until libproc reads its final counters; wait()/poll() would reap it.
         observed = _peek_exit(pid)
         if observed is not None:
@@ -129,6 +145,7 @@ def _wait_for_exit(pid, deadline):
         time.sleep(min(0.01, remaining))
 
 
+@uncancellable()
 def _terminate(process):
     try:
         if _wait_for_exit(process.pid, time.monotonic()) is not None:
@@ -156,7 +173,7 @@ def _report(reader):
         "schema_version": 1, "measurement_kind": "process-accounted-fixed-counters",
         "started_at": datetime.now(timezone.utc).isoformat(),
         "collector_sha256": _sha256(Path(__file__)),
-        "environment": {"system": platform.system(), "arch": platform.machine(), "os_version": platform.mac_ver()[0]},
+        "environment": capture_environment(),
         "source": {"api": "proc_pid_rusage", "flavor": f"RUSAGE_INFO_V{flavor_id}", "flavor_id": flavor_id,
                    "mach_timebase": {"numer": reader.timebase.numer, "denom": reader.timebase.denom}},
         "status": "failed", "exit_code": 1, "counters": None,
@@ -166,6 +183,7 @@ def _report(reader):
             "V6 separates performance-core usage from the remainder; per-core slots and measurement bias remain unvalidated.",
             "When V6 is available, 'other' core counts are aggregate totals minus performance-core-only totals.",
             "Fixed cycles/instructions do not provide programmable events, stacks or a TMA decomposition.",
+            "Each native Mach CPU-time counter is floored to nanoseconds independently; split sums can differ by 1 ns.",
         ],
     }
 
@@ -177,8 +195,9 @@ def _require_host():
 
 def stat_pid(output: Path, pid: int, duration: float = 5) -> dict:
     """Read a bounded interval of one existing PID without controlling its lifetime."""
+    _validate_pid(pid)
     _require_host()
-    if pid <= 0 or not math.isfinite(duration) or duration <= 0:
+    if type(duration) not in (int, float) or not 0 < duration <= threading.TIMEOUT_MAX:
         raise AppleProfileError("Require a positive PID and a positive, finite duration")
     reader = _UsageReader()
     output = output.resolve()
@@ -194,7 +213,11 @@ def stat_pid(output: Path, pid: int, duration: float = 5) -> dict:
         started = time.monotonic_ns()
         interrupted = False
         try:
-            time.sleep(duration)
+            sleep(duration)
+        except AppleProfileError as exc:
+            if exc.code != "interrupted":
+                raise
+            interrupted = True
         except KeyboardInterrupt:
             interrupted = True
         after = reader.read(pid)
@@ -204,11 +227,7 @@ def stat_pid(output: Path, pid: int, duration: float = 5) -> dict:
             raise AppleProfileError("Process identity changed or could not be established; no interval counters reported")
         if set(before) != set(after):
             raise AppleProfileError("Counter flavor changed during observation; no interval counters reported")
-        fields = ("instructions", "cycles", "user_time_ns", "system_time_ns")
-        if "performance_instructions" in before:
-            fields += ("performance_instructions", "performance_cycles", "other_instructions", "other_cycles",
-                       "performance_user_time_ns", "performance_system_time_ns",
-                       "other_user_time_ns", "other_system_time_ns")
+        fields = tuple(key for key in before if key not in ("process_start_mach", "process_exit_mach"))
         if any(after[field] < before[field] for field in fields):
             raise AppleProfileError("Process counters decreased; no interval counters reported")
         result["counters"] = {field: after[field] - before[field] for field in fields}
@@ -236,7 +255,7 @@ def stat_process(output: Path, command: list[str], timeout: float = 30) -> dict:
     and include executable startup/shutdown. No programmable events are enabled.
     """
     _require_host()
-    if not math.isfinite(timeout) or timeout <= 0:
+    if type(timeout) not in (int, float) or not 0 < timeout <= threading.TIMEOUT_MAX:
         raise AppleProfileError("Require a positive, finite timeout")
     if not command or not Path(command[0]).is_file() or not os.access(command[0], os.X_OK):
         raise AppleProfileError("Supply an executable path after '--'")
@@ -252,6 +271,7 @@ def stat_process(output: Path, command: list[str], timeout: float = 30) -> dict:
     reaped = False
     try:
         with (output / "target.stdout").open("w") as stdout, (output / "target.stderr").open("w") as stderr:
+            check_cancelled()
             process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
                                        start_new_session=True)
             result["scope"] = {"pid": process.pid, "threads": "all", "descendants": False,
@@ -259,6 +279,10 @@ def stat_process(output: Path, command: list[str], timeout: float = 30) -> dict:
             interrupted, timed_out = False, False
             try:
                 timed_out = _wait_for_exit(process.pid, time.monotonic() + timeout) is None
+            except AppleProfileError as exc:
+                if exc.code != "interrupted":
+                    raise
+                interrupted = True
             except KeyboardInterrupt:
                 interrupted = True
             if timed_out or interrupted:
@@ -281,6 +305,8 @@ def stat_process(output: Path, command: list[str], timeout: float = 30) -> dict:
                 result.update(status="completed", exit_code=target_exit if target_exit >= 0 else 128 - target_exit)
     except (OSError, AppleProfileError, subprocess.SubprocessError) as exc:
         result["error"] = str(exc)
+        if isinstance(exc, AppleProfileError) and exc.code == "interrupted":
+            result.update(status="interrupted", exit_code=130)
     finally:
         if process is not None and not reaped:
             try:

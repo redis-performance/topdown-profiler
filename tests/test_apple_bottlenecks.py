@@ -40,6 +40,7 @@ def test_guided_ratios_are_cycle_weighted_and_scoped(tmp_path):
     profile = parse_apple_bottlenecks(path, 42)
     assert profile["sample_count"] == 2
     assert profile["excluded_rows"] == 5
+    assert profile["valid_cycle_fraction_of_scoped_intervals"] == 1
     assert profile["apple_bottlenecks"]["cycles"] == 400
     assert profile["apple_bottlenecks"]["weighting"] == "sampled_core_cycles"
     assert profile["apple_bottlenecks_available"] is True
@@ -60,8 +61,23 @@ def test_bad_guided_metric_is_not_reported_as_complete(tmp_path):
     profile = parse_apple_bottlenecks(path, 42)
     assert profile["sample_count"] == 1
     assert profile["invalid_intervals"] == 1
+    assert profile["invalid_cycles_with_known_count"] == 100
+    assert profile["valid_cycle_fraction_of_scoped_intervals"] == 0.75
     with pytest.raises(AppleProfileError, match="No valid guided"):
         parse_apple_bottlenecks(path, 42, end_ns=200)
+
+
+def test_missing_cycle_count_does_not_claim_known_guided_coverage(tmp_path):
+    path = tmp_path / "metrics.xml"
+    xml = metric_xml()
+    start = xml.index("<row>")
+    end = xml.index("</row>", start) + len("</row>")
+    path.write_text(xml[:start] + xml[end:])
+    profile = parse_apple_bottlenecks(path, 42)
+    assert profile["sample_count"] == 1
+    assert profile["invalid_intervals"] == 1
+    assert profile["invalid_intervals_without_cycle_count"] == 1
+    assert profile["valid_cycle_fraction_of_scoped_intervals"] is None
 
 
 def test_guided_cycle_count_keeps_full_uint64_precision(tmp_path):

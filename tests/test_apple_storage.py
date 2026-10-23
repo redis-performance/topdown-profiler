@@ -293,6 +293,11 @@ def test_invalid_native_payloads(apple_artifact, kind):
     ("guided", ("apple_bottlenecks", "shares", "delivery"), 0.405),
     ("guided", ("apple_bottlenecks_by_core", 0, "core"), 7),
     ("guided", ("apple_bottlenecks_by_core", 0, "cycles"), 999),
+    ("guided", ("invalid_cycles_with_known_count",), -1),
+    ("guided", ("invalid_cycles_with_known_count",), 100),
+    ("guided", ("invalid_intervals_without_cycle_count",), 1),
+    ("guided", ("valid_cycle_fraction_of_scoped_intervals",), 0.5),
+    ("guided", ("valid_cycle_fraction_of_scoped_intervals",), None),
 ])
 def test_corrupt_native_observations_are_rejected_before_storage(sqlite_backend, apple_artifact, kind, field, value):
     path, result = apple_artifact(kind)
@@ -305,6 +310,19 @@ def test_corrupt_native_observations_are_rejected_before_storage(sqlite_backend,
         store_apple_result(sqlite_backend, path)
     assert sqlite_backend.list_runs() == []
     assert sqlite_backend._get_conn().execute("SELECT COUNT(*) FROM apple_results").fetchone()[0] == 0
+
+
+def test_guided_import_retains_consistent_partial_cycle_coverage(apple_artifact):
+    _, result = apple_artifact("guided")
+    result.update(invalid_intervals=1, invalid_cycles_with_known_count=100,
+                  valid_cycle_fraction_of_scoped_intervals=0.8)
+    validate_result(result)
+    result["valid_cycle_fraction_of_scoped_intervals"] = 0.9
+    with pytest.raises(AppleProfileError, match="cycle coverage"):
+        validate_result(result)
+    result["invalid_cycles_with_known_count"] = 2**64
+    with pytest.raises(AppleProfileError, match="coverage counts"):
+        validate_result(result)
 
 
 def test_valid_zero_counters_and_unresolved_frames_are_retained(sqlite_backend, apple_artifact):

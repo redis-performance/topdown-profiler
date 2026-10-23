@@ -1,0 +1,338 @@
+{
+  "measurement_kind": "apple-gpu-m6-mixed-validation",
+  "environment": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "xcode": "xctrace version 27.1 (27A9275)",
+    "cpu": "Apple M6",
+    "os_build": "26A434",
+    "kernel_uuid": "77F5F1F1-C717-3A42-A5FA-487ACF280495"
+  },
+  "source": "examples/apple_gpu/mixed_probe.swift",
+  "source_sha256": "00001d5a595ad17b8b15e1442785ba4916a73a1ac6a455ee6daa3fec004539c3",
+  "probe": {
+    "buffer_verified": true,
+    "device": "Apple M6",
+    "encoder_types": [
+      "compute",
+      "blit",
+      "render"
+    ],
+    "gpu_seconds": 0.0008045833383221179,
+    "pixel": [
+      255,
+      0,
+      0,
+      255
+    ]
+  },
+  "profile": {
+    "schema_version": 1,
+    "measurement_kind": "apple-gpu-replay-profile",
+    "scope": {
+      "kind": "captured-metal-workload",
+      "trace_name": "capture.gputrace"
+    },
+    "settings": {
+      "execution": "overlapping",
+      "gpu_state": "default",
+      "replayed": true
+    },
+    "device": "Apple M6",
+    "timeline": {
+      "Commands": "3",
+      "Consistent state": "yes",
+      "Cores": "12 sampled / 12 total",
+      "Encoders": "3",
+      "Frame begin": "0 ns",
+      "Frame duration": "0.0140 ms",
+      "Frame end": "14000 ns",
+      "GPU time": "0.0140 ms",
+      "Overlap": "yes",
+      "Profiled state": "default"
+    },
+    "encoders": [
+      {
+        "id": "ce0",
+        "listing": {
+          "actions": "go, info",
+          "name": "ce0",
+          "values": [
+            {
+              "type": "string",
+              "value": "\"mixed increment\""
+            },
+            {
+              "type": "percentage",
+              "value": 81.07455592282855
+            },
+            null,
+            null,
+            {
+              "type": "string",
+              "value": "0.0015 ms"
+            }
+          ]
+        },
+        "counters": {
+          "Commands": "3",
+          "Compute": "81.07%",
+          "Cost": "81.07%",
+          "Duration": "0.0019 ms",
+          "Encoder type": "Compute",
+          "Instructions": "20660",
+          "Kernel Occupancy": "0,66%",
+          "Last Level Cache Limiter": "2,84%",
+          "MMU Limiter": "1,27%",
+          "Occupancy Manager Target": "6,68%"
+        }
+      },
+      {
+        "id": "re0",
+        "listing": {
+          "actions": "go, info",
+          "name": "re0",
+          "values": [
+            {
+              "type": "string",
+              "value": "\"mixed offscreen red\""
+            },
+            {
+              "type": "percentage",
+              "value": 15.727128849705368
+            },
+            {
+              "type": "string",
+              "value": "0.0021 ms"
+            },
+            {
+              "type": "string",
+              "value": "0.0019 ms"
+            }
+          ]
+        },
+        "counters": {
+          "Commands": "3",
+          "Cost": "15.73%",
+          "Cull Unit Limiter": "2,42%",
+          "Duration": "0.0055 ms",
+          "Encoder type": "Render",
+          "Fragment": "11.67%",
+          "FS Occupancy": "0,10%",
+          "Instructions": "29177",
+          "Occupancy Manager Target": "1,82%",
+          "Texture Write Limiter": "1,73%",
+          "Tile size": "32 x 32",
+          "Vertex": "3.62%"
+        }
+      },
+      {
+        "id": "be0",
+        "listing": {
+          "actions": "go, info",
+          "name": "be0",
+          "values": [
+            {
+              "type": "string",
+              "value": "\"mixed buffer copy\""
+            },
+            {
+              "type": "percentage",
+              "value": 3.1983152274660895
+            },
+            null,
+            null,
+            {
+              "type": "string",
+              "value": "0.0020 ms"
+            }
+          ]
+        },
+        "counters": {
+          "Commands": "3",
+          "Compute": "3.20%",
+          "Cost": "3.20%",
+          "Duration": "0.0019 ms",
+          "Encoder type": "Blit",
+          "Instructions": "7209",
+          "Kernel Occupancy": "0,18%",
+          "Last Level Cache Limiter": "1,51%",
+          "MMU Limiter": "1,04%",
+          "Occupancy Manager Target": "0,95%"
+        }
+      }
+    ],
+    "tma_available": false,
+    "tma": {
+      "Frontend_Bound": null,
+      "Bad_Speculation": null,
+      "Backend_Bound": null,
+      "Retiring": null
+    },
+    "started_at": "2026-10-23T10:18:48.624921+00:00",
+    "ended_at": "2026-10-23T10:18:55.524494+00:00",
+    "limitations": [
+      "Measurements describe replay of the captured Metal workload, not original application wall time.",
+      "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+      "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+      "Default replay GPU state and execution mode can change timings; compare matched settings."
+    ]
+  },
+  "report": {
+    "run_id": "e96a1cf2-8afb-4d12-ae48-6a945fd5b57c",
+    "measurement_kind": "apple-gpu-replay-bottleneck-report",
+    "device": "Apple M6",
+    "settings": {
+      "execution": "overlapping",
+      "gpu_state": "default",
+      "replayed": true
+    },
+    "scope": {
+      "kind": "captured-metal-workload",
+      "trace_name": "capture.gputrace"
+    },
+    "timeline": {
+      "Commands": "3",
+      "Consistent state": "yes",
+      "Cores": "12 sampled / 12 total",
+      "Encoders": "3",
+      "Frame begin": "0 ns",
+      "Frame duration": "0.0140 ms",
+      "Frame end": "14000 ns",
+      "GPU time": "0.0140 ms",
+      "Overlap": "yes",
+      "Profiled state": "default"
+    },
+    "encoders": [
+      {
+        "id": "ce0",
+        "label": "mixed increment",
+        "cost_percent": 81.07,
+        "duration": "0.0019 ms",
+        "limiters": [
+          {
+            "name": "Last Level Cache Limiter",
+            "percent": 2.84,
+            "native_value": "2,84%",
+            "exceeds_100": false
+          },
+          {
+            "name": "MMU Limiter",
+            "percent": 1.27,
+            "native_value": "1,27%",
+            "exceeds_100": false
+          }
+        ],
+        "native_counters": {
+          "Commands": "3",
+          "Compute": "81.07%",
+          "Cost": "81.07%",
+          "Duration": "0.0019 ms",
+          "Encoder type": "Compute",
+          "Instructions": "20660",
+          "Kernel Occupancy": "0,66%",
+          "Last Level Cache Limiter": "2,84%",
+          "MMU Limiter": "1,27%",
+          "Occupancy Manager Target": "6,68%"
+        }
+      },
+      {
+        "id": "re0",
+        "label": "mixed offscreen red",
+        "cost_percent": 15.73,
+        "duration": "0.0055 ms",
+        "limiters": [
+          {
+            "name": "Cull Unit Limiter",
+            "percent": 2.42,
+            "native_value": "2,42%",
+            "exceeds_100": false
+          },
+          {
+            "name": "Texture Write Limiter",
+            "percent": 1.73,
+            "native_value": "1,73%",
+            "exceeds_100": false
+          }
+        ],
+        "native_counters": {
+          "Commands": "3",
+          "Cost": "15.73%",
+          "Cull Unit Limiter": "2,42%",
+          "Duration": "0.0055 ms",
+          "Encoder type": "Render",
+          "Fragment": "11.67%",
+          "FS Occupancy": "0,10%",
+          "Instructions": "29177",
+          "Occupancy Manager Target": "1,82%",
+          "Texture Write Limiter": "1,73%",
+          "Tile size": "32 x 32",
+          "Vertex": "3.62%"
+        }
+      },
+      {
+        "id": "be0",
+        "label": "mixed buffer copy",
+        "cost_percent": 3.2,
+        "duration": "0.0019 ms",
+        "limiters": [
+          {
+            "name": "Last Level Cache Limiter",
+            "percent": 1.51,
+            "native_value": "1,51%",
+            "exceeds_100": false
+          },
+          {
+            "name": "MMU Limiter",
+            "percent": 1.04,
+            "native_value": "1,04%",
+            "exceeds_100": false
+          }
+        ],
+        "native_counters": {
+          "Commands": "3",
+          "Compute": "3.20%",
+          "Cost": "3.20%",
+          "Duration": "0.0019 ms",
+          "Encoder type": "Blit",
+          "Instructions": "7209",
+          "Kernel Occupancy": "0,18%",
+          "Last Level Cache Limiter": "1,51%",
+          "MMU Limiter": "1,04%",
+          "Occupancy Manager Target": "0,95%"
+        }
+      }
+    ],
+    "total_encoders": 3,
+    "offset": 0,
+    "limit": 20,
+    "tma_available": false,
+    "limitations": [
+      "Measurements describe replay of the captured Metal workload, not original application wall time.",
+      "Native limiter percentages overlap and must not be summed into a pipeline-slot partition.",
+      "Encoder cost is the profiler's cost attribution, not a CPU-time percentage.",
+      "Default replay GPU state and execution mode can change timings; compare matched settings."
+    ]
+  },
+  "integration": {
+    "mcp_collection": true,
+    "sqlite_storage": true,
+    "encoder_page_exact": true,
+    "linux_tma_samples_created": false
+  },
+  "cancellation": {
+    "policy": "Finish the current bounded debugger command before closing the owned session; keep reader requests responsive and skip automatic storage.",
+    "observed_seconds": 6.579506999987643,
+    "reader_request_seconds": 0.0021972910035401583,
+    "database_rows": 0,
+    "sessions_after": "No active sessions.",
+    "next_mcp_capture_succeeded": true
+  },
+  "limitations": [
+    "One small mixed-encoder correctness/control run; not a bottleneck calibration or portable performance result.",
+    "Original Metal command-buffer timestamps and GPU replay timing describe different execution paths.",
+    "Native cost is profiler attribution and does not equal duration divided by total GPU time.",
+    "Immediate client termination during active profiling stranded an experiment-owned native XPC operation; cancellation is deferred to avoid this observed failure."
+  ]
+}

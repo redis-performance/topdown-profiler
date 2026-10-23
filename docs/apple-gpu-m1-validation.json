@@ -1,0 +1,543 @@
+{
+  "format_version": 1,
+  "date": "2026-10-22",
+  "host": {
+    "gpu": "Apple M1",
+    "gpu_cores": 7,
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)"
+  },
+  "counter_set": "Performance Limiters",
+  "template_profile_code": 3,
+  "probe_source_sha256": "8d0aaab66fcab1c2d7f4bbef17e9645a7bb5fb40584846edaa3835099b2e5e0f",
+  "method": "xctrace Metal System Trace; shell waits one second after probe; xctrace XML intervals aligned with labeled probe GPU intervals; counter means weighted by timestamp overlap",
+  "limits": "System-wide sampled counters; incomplete GPU-work coverage and occasional concurrent GPU events. Native limiter values are not Intel CPU slot-TMA fractions.",
+  "runs": [
+    {
+      "workload": "alu",
+      "passes": 100,
+      "checksum": 14220.936989367008,
+      "gpu_seconds_from_probe": 0.0340685001865495,
+      "coverage": {
+        "status": "sampled",
+        "workloads_observed": [
+          "burn"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "gpu_work_time_ns": 34044378,
+        "sampled_gpu_work_time_ns": 5368418,
+        "counter_sample_intervals_overlapping": 284,
+        "other_active_gpu_time_overlapping_ns": 322458,
+        "last_counter_end_minus_last_probe_end_ns": 936792875
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 73.609985,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "ALU Utilization": {
+          "value": 35.135993,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "Buffer Read Limiter": {
+          "value": 0.013095,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "Buffer Write Limiter": {
+          "value": 0.108624,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "Compute Occupancy": {
+          "value": 55.654724,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "GPU Last Level Cache Limiter": {
+          "value": 0.263597,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.184916,
+          "unit": "GB/s",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "GPU Write Bandwidth": {
+          "value": 0.196714,
+          "unit": "GB/s",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "MMU Limiter": {
+          "value": 0.198382,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        },
+        "Top Performance Limiter": {
+          "value": 73.612753,
+          "unit": "%",
+          "sampled_time_ns": 5368418,
+          "counter_intervals": 284
+        }
+      },
+      "sum_of_individual_limiter_means_percent": 74.687046,
+      "top_limiter_categories": [
+        {
+          "name": "ALU Limiter",
+          "sampled_time_ns": 5297335,
+          "share_of_top_limiter_samples_percent": 98.6759
+        },
+        {
+          "name": "MMU Limiter",
+          "sampled_time_ns": 71083,
+          "share_of_top_limiter_samples_percent": 1.3241
+        }
+      ]
+    },
+    {
+      "workload": "alu",
+      "passes": 200,
+      "checksum": 20965.918399870396,
+      "gpu_seconds_from_probe": 0.06753158356877975,
+      "coverage": {
+        "status": "sampled",
+        "workloads_observed": [
+          "burn"
+        ],
+        "passes_observed": 200,
+        "passes_with_counter_samples": 199,
+        "gpu_work_time_ns": 67531541,
+        "sampled_gpu_work_time_ns": 10761381,
+        "counter_sample_intervals_overlapping": 562,
+        "other_active_gpu_time_overlapping_ns": 199415,
+        "last_counter_end_minus_last_probe_end_ns": 923627792
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 72.915817,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "ALU Utilization": {
+          "value": 34.727611,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "Buffer Read Limiter": {
+          "value": 0.013563,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "Buffer Write Limiter": {
+          "value": 0.107783,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "Compute Occupancy": {
+          "value": 55.306471,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "GPU Last Level Cache Limiter": {
+          "value": 0.209166,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.092516,
+          "unit": "GB/s",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "GPU Write Bandwidth": {
+          "value": 0.140096,
+          "unit": "GB/s",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "MMU Limiter": {
+          "value": 0.134762,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        },
+        "Top Performance Limiter": {
+          "value": 72.929249,
+          "unit": "%",
+          "sampled_time_ns": 10761381,
+          "counter_intervals": 562
+        }
+      },
+      "sum_of_individual_limiter_means_percent": 73.614422,
+      "top_limiter_categories": [
+        {
+          "name": "ALU Limiter",
+          "sampled_time_ns": 10711796,
+          "share_of_top_limiter_samples_percent": 99.5392
+        },
+        {
+          "name": "MMU Limiter",
+          "sampled_time_ns": 29585,
+          "share_of_top_limiter_samples_percent": 0.2749
+        },
+        {
+          "name": "GPU Last Level Cache Limiter",
+          "sampled_time_ns": 20000,
+          "share_of_top_limiter_samples_percent": 0.1858
+        }
+      ]
+    },
+    {
+      "workload": "stream",
+      "passes": 100,
+      "checksum": 822083536.0,
+      "gpu_seconds_from_probe": 0.22546629150747322,
+      "coverage": {
+        "status": "sampled",
+        "workloads_observed": [
+          "stream"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "gpu_work_time_ns": 225466209,
+        "sampled_gpu_work_time_ns": 111812710,
+        "counter_sample_intervals_overlapping": 5634,
+        "other_active_gpu_time_overlapping_ns": 0,
+        "last_counter_end_minus_last_probe_end_ns": 819746167
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 1.329549,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "ALU Utilization": {
+          "value": 1.329337,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "Buffer Read Limiter": {
+          "value": 67.153916,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "Buffer Write Limiter": {
+          "value": 99.439501,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "Compute Occupancy": {
+          "value": 76.274397,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "GPU Last Level Cache Limiter": {
+          "value": 43.677392,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "GPU Read Bandwidth": {
+          "value": 29.595827,
+          "unit": "GB/s",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "GPU Write Bandwidth": {
+          "value": 29.547391,
+          "unit": "GB/s",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "MMU Limiter": {
+          "value": 48.629438,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        },
+        "Top Performance Limiter": {
+          "value": 99.439706,
+          "unit": "%",
+          "sampled_time_ns": 111812710,
+          "counter_intervals": 5634
+        }
+      },
+      "sum_of_individual_limiter_means_percent": 260.229887,
+      "top_limiter_categories": [
+        {
+          "name": "Buffer Write Limiter",
+          "sampled_time_ns": 111792628,
+          "share_of_top_limiter_samples_percent": 99.982
+        },
+        {
+          "name": "MMU Limiter",
+          "sampled_time_ns": 10375,
+          "share_of_top_limiter_samples_percent": 0.0093
+        },
+        {
+          "name": "GPU Last Level Cache Limiter",
+          "sampled_time_ns": 9707,
+          "share_of_top_limiter_samples_percent": 0.0087
+        }
+      ]
+    },
+    {
+      "workload": "stream",
+      "passes": 200,
+      "checksum": 822083536.0,
+      "gpu_seconds_from_probe": 0.46695424983045086,
+      "coverage": {
+        "status": "sampled",
+        "workloads_observed": [
+          "stream"
+        ],
+        "passes_observed": 200,
+        "passes_with_counter_samples": 200,
+        "gpu_work_time_ns": 466826500,
+        "sampled_gpu_work_time_ns": 234037418,
+        "counter_sample_intervals_overlapping": 11813,
+        "other_active_gpu_time_overlapping_ns": 17825747,
+        "last_counter_end_minus_last_probe_end_ns": 901856875
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 1.605625,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "ALU Utilization": {
+          "value": 1.582199,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "Buffer Read Limiter": {
+          "value": 61.631875,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "Buffer Write Limiter": {
+          "value": 98.263629,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "Compute Occupancy": {
+          "value": 73.510619,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "GPU Last Level Cache Limiter": {
+          "value": 37.629187,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "GPU Read Bandwidth": {
+          "value": 28.930098,
+          "unit": "GB/s",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "GPU Write Bandwidth": {
+          "value": 28.696287,
+          "unit": "GB/s",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "MMU Limiter": {
+          "value": 46.328283,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        },
+        "Top Performance Limiter": {
+          "value": 99.085263,
+          "unit": "%",
+          "sampled_time_ns": 234037418,
+          "counter_intervals": 11813
+        }
+      },
+      "sum_of_individual_limiter_means_percent": 247.325058,
+      "top_limiter_categories": [
+        {
+          "name": "Buffer Write Limiter",
+          "sampled_time_ns": 231371837,
+          "share_of_top_limiter_samples_percent": 98.861
+        },
+        {
+          "name": "Texture Sample Limiter",
+          "sampled_time_ns": 1678708,
+          "share_of_top_limiter_samples_percent": 0.7173
+        },
+        {
+          "name": "Texture Write Limiter",
+          "sampled_time_ns": 500000,
+          "share_of_top_limiter_samples_percent": 0.2136
+        },
+        {
+          "name": "ALU Limiter",
+          "sampled_time_ns": 420000,
+          "share_of_top_limiter_samples_percent": 0.1795
+        },
+        {
+          "name": "GPU Last Level Cache Limiter",
+          "sampled_time_ns": 38374,
+          "share_of_top_limiter_samples_percent": 0.0164
+        },
+        {
+          "name": "MMU Limiter",
+          "sampled_time_ns": 28499,
+          "share_of_top_limiter_samples_percent": 0.0122
+        }
+      ]
+    }
+  ],
+  "utilizations_counter_set": {
+    "counter_set": "Performance Utilizations",
+    "template_profile_code": 4,
+    "runs": [
+      {
+        "workload": "alu",
+        "passes": 100,
+        "checksum": 14220.936989367008,
+        "gpu_seconds_from_probe": 0.03377270814962685,
+        "coverage": {
+          "status": "sampled",
+          "workloads_observed": [
+            "burn"
+          ],
+          "passes_observed": 100,
+          "passes_with_counter_samples": 100,
+          "gpu_work_time_ns": 33772580,
+          "sampled_gpu_work_time_ns": 5331497,
+          "counter_sample_intervals_overlapping": 283,
+          "other_active_gpu_time_overlapping_ns": 0,
+          "last_counter_end_minus_last_probe_end_ns": 939241500
+        },
+        "sampled_counter_means": {
+          "ALU Utilization": {
+            "value": 34.629124,
+            "unit": "%",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          },
+          "F32 Utilization": {
+            "value": 11.535233,
+            "unit": "%",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          },
+          "Buffer Load Utilization": {
+            "value": 0.004956,
+            "unit": "%",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          },
+          "Buffer Store Utilization": {
+            "value": 0.109456,
+            "unit": "%",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          },
+          "GPU Read Bandwidth": {
+            "value": 0.020609,
+            "unit": "GB/s",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          },
+          "GPU Write Bandwidth": {
+            "value": 0.075354,
+            "unit": "GB/s",
+            "sampled_time_ns": 5331497,
+            "counter_intervals": 283
+          }
+        }
+      },
+      {
+        "workload": "stream",
+        "passes": 100,
+        "checksum": 822083536.0,
+        "gpu_seconds_from_probe": 0.22521091665839776,
+        "coverage": {
+          "status": "sampled",
+          "workloads_observed": [
+            "stream"
+          ],
+          "passes_observed": 100,
+          "passes_with_counter_samples": 100,
+          "gpu_work_time_ns": 225210622,
+          "sampled_gpu_work_time_ns": 111321000,
+          "counter_sample_intervals_overlapping": 5608,
+          "other_active_gpu_time_overlapping_ns": 104583,
+          "last_counter_end_minus_last_probe_end_ns": 963905334
+        },
+        "sampled_counter_means": {
+          "ALU Utilization": {
+            "value": 1.349792,
+            "unit": "%",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          },
+          "F32 Utilization": {
+            "value": 0.668408,
+            "unit": "%",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          },
+          "Buffer Load Utilization": {
+            "value": 2.668103,
+            "unit": "%",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          },
+          "Buffer Store Utilization": {
+            "value": 5.339051,
+            "unit": "%",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          },
+          "GPU Read Bandwidth": {
+            "value": 29.591045,
+            "unit": "GB/s",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          },
+          "GPU Write Bandwidth": {
+            "value": 29.533325,
+            "unit": "GB/s",
+            "sampled_time_ns": 111321000,
+            "counter_intervals": 5608
+          }
+        }
+      }
+    ]
+  }
+}

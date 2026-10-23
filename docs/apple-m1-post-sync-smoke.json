@@ -1,0 +1,122 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "os_version": "27.0.1",
+    "os_build": "26A434",
+    "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066",
+    "xctrace": "xctrace version 27.1 (27A9275)"
+  },
+  "method": "Fresh M1 CPU Counters CLI record after M6 branch synchronization, then SQLite store and summary query. Xcode guided CPU Bottlenecks remained available and Intel slot TMA remained null. The local full Xcode developer directory was selected for recording. Raw trace stays local.",
+  "command": [
+    "topdown",
+    "apple",
+    "record",
+    "--output",
+    "<new-directory>",
+    "--mode",
+    "counters",
+    "--duration",
+    "8",
+    "--",
+    "/tmp/apple-m1-controls-xcode271",
+    "alu_wide",
+    "6000000000"
+  ],
+  "capture_status": "exported",
+  "capture_environment_gpu_replay_status": "unverified",
+  "capture_json_sha256": "7222f485d74e437ca2e0455e4372f63475a9676af69a691307bc1a5696d30bdd",
+  "profile_json_sha256": "a50cf9482f2f0c8e90fcbbcffcbbdb86cf9b3c1569a0b8be0b91ea3dbf9641b0",
+  "toc_sha256": "7d1575dd16ff5f37ff60fe6dccab628a0cf248abf44a36c5692187b9acbe8f09",
+  "raw_xml_sha256": "85e799e3a676df3826a7afb42db4869b2316bf3b50fc323b8a701c544559e00a",
+  "target_exit_status": "0",
+  "measurement_kind": "apple-guided-bottleneck-intervals",
+  "sample_count": 4062,
+  "valid_cycle_fraction_of_scoped_intervals": 1.0,
+  "apple_bottlenecks": {
+    "cycles": 9008230476,
+    "sample_count": 4062,
+    "weighting": "sampled_core_cycles",
+    "shares": {
+      "delivery": 0.00035006571326522064,
+      "discarded": 7.52652010061049e-05,
+      "processing": 0.1664886922600743,
+      "useful": 0.8330884406426133
+    }
+  },
+  "tma_available": false,
+  "tma": {
+    "Frontend_Bound": null,
+    "Bad_Speculation": null,
+    "Backend_Bound": null,
+    "Retiring": null
+  },
+  "storage": {
+    "backend": "SQLite",
+    "run_id": "50b47d77-169b-4e57-94fa-f4f89e76017d",
+    "stored_result_equals_profile": true,
+    "linux_metric_samples": 0,
+    "labels": {
+      "test_name": "m1-post-sync",
+      "cpu": "Apple M1",
+      "arch": "arm64",
+      "os_version": "27.0.1",
+      "os_build": "26A434",
+      "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066",
+      "xctrace": "xctrace version 27.1 (27A9275)",
+      "collector": "apple",
+      "measurement_kind": "apple-guided-bottleneck-intervals",
+      "time_basis": "capture_metadata"
+    }
+  },
+  "stat_capture": {
+    "command": [
+      "topdown",
+      "apple",
+      "stat",
+      "--output",
+      "<new-directory>",
+      "--",
+      "/tmp/apple-m1-controls-xcode271",
+      "alu_wide",
+      "6000000000"
+    ],
+    "stat_json_sha256": "037e98c0ac10f87fe6ec14b92f0c37a2ca7cf7991219895e39e8fe5ceeca577d",
+    "target_stdout_sha256": "63db49367a5ecbb466a9a41ed720c9cc0e9d4d76867eb819ab3818ca8e73ad67",
+    "target_stdout": "216000000036",
+    "status": "completed",
+    "source": "proc_pid_rusage",
+    "flavor": "RUSAGE_INFO_V6",
+    "scope": {
+      "pid": 47703,
+      "threads": "all",
+      "descendants": false,
+      "window": "process-lifetime",
+      "execution_levels": "user-and-kernel"
+    },
+    "counters": {
+      "instructions": 60025961835,
+      "cycles": 9038143893,
+      "performance_instructions": 59985581056,
+      "performance_cycles": 9022617402,
+      "other_instructions": 40380779,
+      "other_cycles": 15526491
+    },
+    "performance_plus_other_equals_total": true,
+    "performance_cycle_fraction": 0.9982821150909066,
+    "tma_available": false,
+    "tma": {
+      "Frontend_Bound": null,
+      "Bad_Speculation": null,
+      "Backend_Bound": null,
+      "Retiring": null
+    },
+    "environment": {
+      "system": "Darwin",
+      "arch": "arm64",
+      "os_version": "27.0.1",
+      "cpu": "Apple M1",
+      "os_build": "26A434",
+      "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066"
+    }
+  }
+}

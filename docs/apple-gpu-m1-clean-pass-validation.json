@@ -1,0 +1,263 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1 (26A434)",
+    "xcode": "27.1 (27A9275)"
+  },
+  "method": "Checked packaged compute probe with Xcode Performance Limiters, 100 passes and 65,536 items; pass values are overlap-weighted device-wide counter samples.",
+  "capture": {
+    "mode": "compute",
+    "passes": 100,
+    "items": 65536,
+    "probe_source": "packaged",
+    "counter_profile": "Performance Limiters",
+    "checksum_verified": true,
+    "target_exit_status": 0,
+    "probe_process_verified": true,
+    "source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+    "binary_sha256": "93ae438444bacdf18867bc01996ae5bd6f0c1cc1e26db507048ecb0586ee338f",
+    "template_sha256": "936997d41f2a1231623da319e7a5e540d1df04cc7d8be2c2aa19e61ae1753d6c",
+    "toc_sha256": "c4036fddab88d85c0f9cbcd8de3a11d146ed2008886b89213974f817217b8cc2",
+    "counter_xml_sha256": "243a67b76f1b71e110340b3cf8f8f7c718b0b0328acc40fd79837464bcfb52f5",
+    "gpu_xml_sha256": "e2cacd9c528681a8eadd3faabcaad2660fb229fded4d47b34e097807c2732a73",
+    "probe_json_sha256": "68adbb481563b3c7581812b2b795a9e40864528e2fe442c3b032e2457f52cf6f"
+  },
+  "profile_json_sha256": "28a8f0e0ae81e2076b201d0d452994ae19e757500657091750af19f61c52b10a",
+  "probe_coverage": {
+    "selected_pid": 57108,
+    "passes_observed": 100,
+    "passes_with_counter_samples": 100,
+    "sampled_gpu_work_fraction": 0.3186274648538032,
+    "sampled_pass_fraction_min": 0.15575317171865058,
+    "observed_other_activity_fraction_of_sampled_gpu_work": 0.06601202744973234
+  },
+  "required_metric_pass_coverage": {
+    "ALU Limiter": 100,
+    "Buffer Write Limiter": 100,
+    "GPU Read Bandwidth": 100,
+    "Top Performance Limiter": 100
+  },
+  "key_metrics": {
+    "ALU Limiter": {
+      "sampled_mean": 89.208891,
+      "mean_without_observed_other_activity": 89.201641,
+      "per_pass": {
+        "sampled_passes": 100,
+        "unit": "%",
+        "minimum": 82.600716,
+        "p10": 86.521651,
+        "median": 89.195647,
+        "p90": 92.319072,
+        "maximum": 95.66123
+      },
+      "per_pass_without_observed_other_activity": {
+        "sampled_passes": 100,
+        "unit": "%",
+        "minimum": 30.764001,
+        "p10": 86.468175,
+        "median": 89.298514,
+        "p90": 92.466984,
+        "maximum": 100.0
+      }
+    },
+    "F32 Utilization": {
+      "sampled_mean": 14.185343,
+      "mean_without_observed_other_activity": 14.161942,
+      "per_pass": {
+        "sampled_passes": 100,
+        "unit": "%",
+        "minimum": 13.504259,
+        "p10": 13.749147,
+        "median": 14.185635,
+        "p90": 14.662924,
+        "maximum": 14.836295
+      },
+      "per_pass_without_observed_other_activity": {
+        "sampled_passes": 100,
+        "unit": "%",
+        "minimum": 9.171124,
+        "p10": 13.725301,
+        "median": 14.175474,
+        "p90": 14.673177,
+        "maximum": 15.783031
+      }
+    },
+    "GPU Read Bandwidth": {
+      "sampled_mean": 0.445199,
+      "mean_without_observed_other_activity": 0.350646,
+      "per_pass": {
+        "sampled_passes": 100,
+        "unit": "GB/s",
+        "minimum": 0.133985,
+        "p10": 0.255725,
+        "median": 0.333932,
+        "p90": 0.567355,
+        "maximum": 2.72341
+      },
+      "per_pass_without_observed_other_activity": {
+        "sampled_passes": 100,
+        "unit": "GB/s",
+        "minimum": 0.033127,
+        "p10": 0.240979,
+        "median": 0.33031,
+        "p90": 0.465273,
+        "maximum": 2.936694
+      }
+    }
+  },
+  "limitations": [
+    "GPU counters are device-wide, even after excluding intervals with observed other activity.",
+    "Filtered per-pass support can be sparse and is not process-exclusive."
+  ],
+  "alternate_utilizations_capture": {
+    "method": "Same checked packaged compute probe and 100 passes, with Performance Utilizations selected.",
+    "capture": {
+      "mode": "compute",
+      "passes": 100,
+      "items": 65536,
+      "probe_source": "packaged",
+      "counter_profile": "Performance Utilizations",
+      "checksum_verified": true,
+      "target_exit_status": 0,
+      "probe_process_verified": true,
+      "source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+      "binary_sha256": "93ae438444bacdf18867bc01996ae5bd6f0c1cc1e26db507048ecb0586ee338f",
+      "template_sha256": "7fa24c2bb719010f7a8a11d4559c571e360c236b9617c45967165ffc3feba4eb",
+      "toc_sha256": "6b24caddfa97f19318ce0bdc113948b4394b0cd7d30e576657c2067d6286fc07",
+      "counter_xml_sha256": "c219a9f21fd7aed15e517d6979008819fd659020259392f77f4c2da00e7b9c2e",
+      "gpu_xml_sha256": "5ef21c7b9a8290352a61cd4840f2d46ab765d3c0c6f5c0637b314a03edae9193",
+      "probe_json_sha256": "cc7c155223efb4d6ec26da5489c0a540510aabf5fc4df28314d6fa0cd683733d"
+    },
+    "profile_json_sha256": "bd4912f9604b422bb6fc6d382664b7b1c33ec71dee56bd258b0e1bb58ee0f92c",
+    "counter_name_count": 13,
+    "probe_coverage": {
+      "selected_pid": 57285,
+      "passes_observed": 100,
+      "passes_with_counter_samples": 100,
+      "sampled_gpu_work_fraction": 0.241359673215604,
+      "sampled_pass_fraction_min": 0.15419713023720916,
+      "observed_other_activity_fraction_of_sampled_gpu_work": 0.05721960267294771
+    },
+    "required_metric_pass_coverage": {
+      "ALU Utilization": 100,
+      "F32 Utilization": 100,
+      "Buffer Store Utilization": 100,
+      "GPU Read Bandwidth": 100
+    },
+    "key_metrics": {
+      "ALU Utilization": {
+        "sampled_mean": 42.662166,
+        "mean_without_observed_other_activity": 42.75033,
+        "per_pass": {
+          "sampled_passes": 100,
+          "unit": "%",
+          "minimum": 40.826844,
+          "p10": 41.192443,
+          "median": 42.638662,
+          "p90": 43.996654,
+          "maximum": 44.528912
+        },
+        "per_pass_without_observed_other_activity": {
+          "sampled_passes": 100,
+          "unit": "%",
+          "minimum": 40.538277,
+          "p10": 41.192443,
+          "median": 42.670826,
+          "p90": 44.238127,
+          "maximum": 47.196811
+        }
+      },
+      "F32 Utilization": {
+        "sampled_mean": 14.197468,
+        "mean_without_observed_other_activity": 14.231532,
+        "per_pass": {
+          "sampled_passes": 100,
+          "unit": "%",
+          "minimum": 13.587714,
+          "p10": 13.710741,
+          "median": 14.184346,
+          "p90": 14.644054,
+          "maximum": 14.855738
+        },
+        "per_pass_without_observed_other_activity": {
+          "sampled_passes": 100,
+          "unit": "%",
+          "minimum": 13.493769,
+          "p10": 13.710741,
+          "median": 14.204609,
+          "p90": 14.72711,
+          "maximum": 15.730571
+        }
+      },
+      "GPU Read Bandwidth": {
+        "sampled_mean": 0.362958,
+        "mean_without_observed_other_activity": 0.233736,
+        "per_pass": {
+          "sampled_passes": 100,
+          "unit": "GB/s",
+          "minimum": 0.133287,
+          "p10": 0.183762,
+          "median": 0.255713,
+          "p90": 0.716739,
+          "maximum": 2.651389
+        },
+        "per_pass_without_observed_other_activity": {
+          "sampled_passes": 100,
+          "unit": "GB/s",
+          "minimum": 0.043333,
+          "p10": 0.178486,
+          "median": 0.25199,
+          "p90": 0.286423,
+          "maximum": 0.53036
+        }
+      }
+    }
+  },
+  "recomputed_memory_stream_controls": {
+    "method": "Reanalyze earlier checked packaged eight-pass captures with current per-pass summarizer; original means and coverage were unchanged.",
+    "captures": {
+      "memory": {
+        "profile_json_sha256": "542b55c3aaaacdb5f8e44a7dd7cd26f919e37072c92142a8468cb85936e1475d",
+        "counter_xml_sha256": "1ded4ea1336b91c5907ae2a326bebc72f9e6ae744a586fd8a0b272bfde9f3e68",
+        "gpu_xml_sha256": "03f3d7b0459e9c2d8edc7c52dfe4ca48caedb9eb734c4581392dc35b5e4da890",
+        "passes_observed": 8,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.13560518384023684,
+        "metrics": {
+          "Buffer Write Limiter": {
+            "sampled_passes": 8,
+            "clean_sampled_passes": 8,
+            "sampled_pass_median": 98.267397,
+            "clean_sampled_pass_median": 98.827691
+          },
+          "GPU Read Bandwidth": {
+            "sampled_passes": 8,
+            "clean_sampled_passes": 8,
+            "sampled_pass_median": 29.289336,
+            "clean_sampled_pass_median": 29.289336
+          }
+        }
+      },
+      "stream": {
+        "profile_json_sha256": "25a88464c8a82f94292bbcca0b8729f843cef46c2a4d2d6476e2ab5bb8553fb7",
+        "counter_xml_sha256": "8d1f1091943010d68147cb11b21102effefdd817d2bc71efbc317dab8d1b8d23",
+        "gpu_xml_sha256": "c39746258b8741e2bab582d6cb5bce078b6b39386ef5b7c2e7939199be2d3c80",
+        "passes_observed": 8,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.3315712744169658,
+        "metrics": {
+          "Buffer Write Limiter": {
+            "sampled_passes": 8,
+            "clean_sampled_passes": 8,
+            "sampled_pass_median": 97.132362,
+            "clean_sampled_pass_median": 99.448858
+          },
+          "GPU Read Bandwidth": {
+            "sampled_passes": 8,
+            "clean_sampled_passes": 8,
+            "sampled_pass_median": 27.014681,
+            "clean_sampled_pass_median": 26.957254
+          }
+        }
+      }
+    }
+  }
+}

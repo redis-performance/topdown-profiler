@@ -3,6 +3,7 @@
 import hashlib
 import json
 import platform
+import re
 import shlex
 import subprocess
 from collections import Counter
@@ -77,14 +78,32 @@ def _xml(path: Path):
 
 
 def _validate_scope(pid, start_ns, end_ns):
-    if (pid is not None and pid <= 0) or start_ns < 0 or (end_ns is not None and end_ns <= start_ns):
+    if ((pid is not None and (type(pid) is not int or pid <= 0))
+            or type(start_ns) is not int or start_ns < 0
+            or (end_ns is not None and (type(end_ns) is not int or end_ns <= start_ns))):
         raise AppleProfileError("Require positive PID and a nonempty, nonnegative time window.")
 
 
+def _native_uint(text, field):
+    if isinstance(text, str) and text.startswith("-"):
+        raise AppleProfileError(f"Negative {field}; require native uint64")
+    if not isinstance(text, str) or not text or not text.isascii() or not text.isdecimal():
+        raise AppleProfileError(f"Missing or invalid integer {field}; require native uint64")
+    digits = text.lstrip("0") or "0"
+    if len(digits) > 20:
+        raise AppleProfileError(f"{field} exceeds uint64")
+    value = int(digits)
+    if value >= 2**64:
+        raise AppleProfileError(f"{field} exceeds uint64")
+    return value
+
+
 def _run(cmd: list[str], output: Path, name: str, timeout: int):
+    from topdown.collector.apple_runtime import run
+
     _write_json(output / f"{name}.command.json", cmd)
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
+        result = run(cmd, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         for suffix, value in (("stdout", exc.stdout), ("stderr", exc.stderr)):
             if isinstance(value, bytes):
@@ -92,6 +111,15 @@ def _run(cmd: list[str], output: Path, name: str, timeout: int):
             (output / f"{name}.{suffix}").write_text(value or "")
         raise AppleProfileError(f"{name} timed out after {timeout}s; retained partial artifacts in {output}",
                                 code="timeout") from exc
+    except AppleProfileError as exc:
+        for suffix in ["stdout", "stderr"]:
+            value = getattr(exc, suffix, "")
+            if isinstance(value, bytes):
+                value = value.decode(errors="replace")
+            (output / f"{name}.{suffix}").write_text(value or "")
+        if getattr(exc, "cleanup_error", None):
+            (output / f"{name}.cleanup.stderr").write_text(exc.cleanup_error)
+        raise
     except OSError as exc:
         code = "tool_unavailable" if isinstance(exc, FileNotFoundError) else "tool_error"
         raise AppleProfileError(f"Cannot execute {cmd[0]}: {exc}", code=code) from exc
@@ -113,6 +141,8 @@ def doctor() -> dict:
         "arch": platform.machine(),
         "os_version": platform.mac_ver()[0],
         "xctrace": None,
+        "gpudebug": None,
+        "gpu_replay": {"status": "unsupported_host"},
         "templates": [],
         "hardware_access": "unverified",
         "tma": dict.fromkeys(TMA_ROOTS),
@@ -120,17 +150,20 @@ def doctor() -> dict:
     if result["system"] != "Darwin" or result["arch"] != "arm64":
         result["error"] = "Native Apple collection requires macOS on Apple silicon (arm64)."
         return result
+    from topdown.collector.apple_runtime import run
+
     commands = {
         "cpu": ["sysctl", "-n", "machdep.cpu.brand_string"],
         "os_build": ["sysctl", "-n", "kern.osversion"],
         "kernel_uuid": ["sysctl", "-n", "kern.uuid"],
         "xctrace": ["xcrun", "xctrace", "version"],
+        "gpudebug": ["xcrun", "gpudebug", "--version"],
         "templates": ["xcrun", "xctrace", "list", "templates"],
         "developer_tools_security": ["/usr/sbin/DevToolsSecurity", "-status"],
     }
     for key, cmd in commands.items():
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10, check=False)
+            proc = run(cmd, timeout=10)
             if proc.returncode:
                 result[key] = None
                 result.setdefault("errors", {})[key] = proc.stderr.strip() or proc.stdout.strip()
@@ -141,6 +174,23 @@ def doctor() -> dict:
                 result[key] = (proc.stdout or proc.stderr).strip()
         except (OSError, subprocess.TimeoutExpired) as exc:
             result.setdefault("errors", {})[key] = str(exc)
+    result["gpu_replay"] = {
+        "status": "unverified",
+        "reason": "GPU replay access requires a successful native profile; debugger metadata and CPU "
+                  "programmable-counter policy do not verify it.",
+        "next_step": "topdown apple gpu record --output <new-directory>",
+    }
+    chip = (result.get("cpu") or "").split()
+    if (len(chip) >= 2 and chip[0] == "Apple" and chip[1] in ("M1", "M2")
+            and re.search(r"\bxctrace version 27\.1(?:\s|$)", result.get("xctrace") or "")):
+        result["gpu_replay"] = {
+            "status": "known_gpu_generation_limit",
+            "reason": "Xcode 27.1 GPU replay profiling requires Apple M3 / A17 Pro or later; "
+                      "a native M1 profile attempt returned this requirement.",
+            "next_step": "Use Instruments Metal System Trace with Performance Limiters or "
+                         "Performance Utilizations; source checkouts can run "
+                         "examples/apple_gpu/record_instruments.py.",
+        }
     result["programmable_counters"] = {
         "status": "unverified",
         "reason": "Counter access requires a successful native probe; installed templates do not verify access.",
@@ -219,11 +269,16 @@ def parse_profile(path: Path, schema: str, pid: int, start_ns: int = 0, end_ns: 
         raise AppleProfileError(f"Missing or duplicate {schema} columns: {columns}")
     if types["time"] != "sample-time":
         raise AppleProfileError("Unknown time unit; expected Instruments sample-time (nanoseconds).")
+    if any(types.get(name) != name for name in ["thread", "process", "core"]):
+        raise AppleProfileError("Unknown native thread, process or core column type")
+    if schema != "cpu-pmc-value" and types.get("stack") != "tagged-backtrace":
+        raise AppleProfileError("Unknown native stack column type")
     if schema == "cpu-profile" and types["weight"] != "cycle-weight":
         raise AppleProfileError("Unknown CPU Profiler weight; expected cycle-weight.")
     if schema == "time-profile" and types["weight"] != "weight":
         raise AppleProfileError("Unknown Time Profiler weight; expected native weight.")
-    if schema == "cpu-pmc-value" and (types["value"] != "uint64" or types["name"] != "pmc-event-name"):
+    if schema == "cpu-pmc-value" and (types["value"] != "uint64" or types["name"] != "pmc-event-name"
+                                      or types["sample-index"] != "uint64"):
         raise AppleProfileError("Unknown PMC value or event-name type.")
     if fixed and (types["counters-array"] != "pmc-events" or types["weight"] != "any"
                   or types["thread-state"] != "thread-state"):
@@ -231,25 +286,23 @@ def parse_profile(path: Path, schema: str, pid: int, start_ns: int = 0, end_ns: 
 
     def integer(node, field):
         node = resolve(node)
-        try:
-            value = int(node.text)
-        except (AttributeError, TypeError, ValueError) as exc:
-            raise AppleProfileError(f"Missing or invalid integer {field}") from exc
-        if value < 0:
-            raise AppleProfileError(f"Negative {field}")
-        return value
+        return _native_uint(node.text if node is not None else None, field)
 
     for row in table.findall("row"):
         if len(row) != len(columns):
             raise AppleProfileError("Row does not match exported schema")
         cells = {name: resolve(cell) for name, cell in zip(columns, row)}
         process = cells["process"]
+        if process.tag != "process" or cells["time"].tag != "sample-time":
+            raise AppleProfileError("Unknown native process or sample-time representation")
         row_pid = integer(process.find("pid"), "pid")
         timestamp = integer(cells["time"], "time")
         if row_pid != pid or timestamp < start_ns or (end_ns is not None and timestamp >= end_ns):
             excluded += 1
             continue
         thread = cells["thread"]
+        if thread.tag != "thread":
+            raise AppleProfileError("Unknown native thread representation")
         tid = integer(thread.find("tid"), "tid")
         thread_process = resolve(thread.find("process"))
         if thread_process is not None and integer(thread_process.find("pid"), "thread pid") != pid:
@@ -257,10 +310,15 @@ def parse_profile(path: Path, schema: str, pid: int, start_ns: int = 0, end_ns: 
         if fixed and cells["counters-array"].tag == "sentinel":
             unmeasured += 1
             continue
+        if cells["core"].tag != "core":
+            raise AppleProfileError("Unknown native core representation")
         core = integer(cells["core"], "core")
         sample = {"time_ns": timestamp, "pid": pid, "tid": tid, "core": core,
                   "core_label": cells["core"].get("fmt")}
         if schema == "cpu-pmc-value":
+            if (cells["name"].tag != "pmc-event-name" or cells["value"].tag != "uint64"
+                    or cells["sample-index"].tag != "uint64"):
+                raise AppleProfileError("Unknown native PMC event, value or sample-index representation")
             event = cells["name"].get("fmt") or cells["name"].text
             if not event or not event.strip():
                 raise AppleProfileError("Missing PMC event name")
@@ -270,8 +328,13 @@ def parse_profile(path: Path, schema: str, pid: int, start_ns: int = 0, end_ns: 
             if sample["value"] >= 2**64:
                 raise AppleProfileError("PMC value exceeds uint64")
         else:
+            if cells["stack"].tag not in {"tagged-backtrace", "sentinel"}:
+                raise AppleProfileError("Unknown native stack representation")
+            if not fixed and cells["weight"].tag not in ({"weight", "cycle-weight"} if schema == "cpu-profile" else {"weight"}):
+                raise AppleProfileError("Unknown native sample-weight representation")
             frames = []
-            for item in cells["stack"]:
+            entries = cells["stack"] if cells["stack"].tag == "tagged-backtrace" else ()
+            for item in entries:
                 frame = resolve(item)
                 if frame.tag != "frame":
                     continue
@@ -284,8 +347,8 @@ def parse_profile(path: Path, schema: str, pid: int, start_ns: int = 0, end_ns: 
                 if values.tag != "pmc-events" or cells["weight"].tag != "weight":
                     raise AppleProfileError("Unknown fixed-counter array or native timer-weight representation")
                 try:
-                    native_values = [int(value) for value in (values.text or "").split()]
-                except ValueError as exc:
+                    native_values = [_native_uint(value, "fixed-counter") for value in (values.text or "").split()]
+                except AppleProfileError as exc:
                     raise AppleProfileError("Invalid fixed-counter integer") from exc
                 if len(native_values) != len(fixed_events) or any(not 0 <= value < 2**64 for value in native_values):
                     raise AppleProfileError("Require one uint64 value per configured event")
@@ -354,12 +417,14 @@ def parse_apple_bottlenecks(path: Path, pid: int, start_ns: int = 0, end_ns: int
         if len(row) != len(columns):
             raise AppleProfileError("Guided CPU Counters row does not match its schema")
         cells = {name: resolve(cell) for name, cell in zip(columns, row)}
+        if any(cells[name].tag != kind for name, kind in expected.items()):
+            raise AppleProfileError("Unknown guided CPU Counters cell representation")
         try:
-            row_pid = int(resolve(cells["process"].find("pid")).text)
-            timestamp = int(cells["timestamp"].text)
-            duration = int(cells["duration"].text)
-            tid = int(resolve(cells["thread"].find("tid")).text)
-            core = int(cells["core"].text)
+            row_pid = _native_uint(resolve(cells["process"].find("pid")).text, "pid")
+            timestamp = _native_uint(cells["timestamp"].text, "timestamp")
+            duration = _native_uint(cells["duration"].text, "duration")
+            tid = _native_uint(resolve(cells["thread"].find("tid")).text, "tid")
+            core = _native_uint(cells["core"].text, "core")
         except (AttributeError, TypeError, ValueError) as exc:
             raise AppleProfileError("Invalid guided CPU Counters scope") from exc
         if min(row_pid, timestamp, duration, tid, core) < 0 or duration == 0:
@@ -370,7 +435,7 @@ def parse_apple_bottlenecks(path: Path, pid: int, start_ns: int = 0, end_ns: int
         thread_process = resolve(cells["thread"].find("process"))
         if thread_process is not None:
             try:
-                thread_pid = int(resolve(thread_process.find("pid")).text)
+                thread_pid = _native_uint(resolve(thread_process.find("pid")).text, "thread pid")
             except (AttributeError, TypeError, ValueError) as exc:
                 raise AppleProfileError("Invalid guided CPU Counters thread PID") from exc
             if thread_pid != pid:
@@ -380,7 +445,7 @@ def parse_apple_bottlenecks(path: Path, pid: int, start_ns: int = 0, end_ns: int
             raise AppleProfileError(f"Unexpected guided CPU Counters metric {event}")
         try:
             value = Decimal(cells["metric-value"].text)
-            ratio = int(cells["is-ratio"].text)
+            ratio = _native_uint(cells["is-ratio"].text, "is-ratio")
         except (AttributeError, TypeError, ValueError, InvalidOperation) as exc:
             raise AppleProfileError("Invalid guided CPU Counters value") from exc
         if (not value.is_finite() or value < 0 or ratio != (event != "cycle")
@@ -396,13 +461,20 @@ def parse_apple_bottlenecks(path: Path, pid: int, start_ns: int = 0, end_ns: int
         entry[event] = int(value) if event == "cycle" else float(value)
     samples = []
     skipped = 0
+    invalid_cycles = 0
+    invalid_intervals_without_cycle_count = 0
     for entry in groups.values():
         if not all(event in entry for event in ("cycle", *APPLE_BOTTLENECKS)):
             skipped += 1
+            if "cycle" in entry:
+                invalid_cycles += entry["cycle"]
+            else:
+                invalid_intervals_without_cycle_count += 1
             continue
         total = sum(entry[event] for event in APPLE_BOTTLENECKS)
         if entry["cycle"] == 0 or abs(total - 1) > 0.01:
             skipped += 1
+            invalid_cycles += entry["cycle"]
             continue
         entry["shares"] = {event: entry.pop(event) for event in APPLE_BOTTLENECKS}
         entry["cycles"] = entry.pop("cycle")
@@ -419,10 +491,17 @@ def parse_apple_bottlenecks(path: Path, pid: int, start_ns: int = 0, end_ns: int
     by_core = {}
     for row in samples:
         by_core.setdefault(row["core"], []).append(row)
+    valid_cycles = sum(row["cycles"] for row in samples)
     return {
         "schema": "MetricTable", "column_types": types,
         "scope": {"pid": pid, "start_ns": start_ns, "end_ns": end_ns},
         "sample_count": len(samples), "excluded_rows": excluded, "invalid_intervals": skipped,
+        "invalid_cycles_with_known_count": invalid_cycles,
+        "invalid_intervals_without_cycle_count": invalid_intervals_without_cycle_count,
+        "valid_cycle_fraction_of_scoped_intervals": (
+            valid_cycles / (valid_cycles + invalid_cycles)
+            if not invalid_intervals_without_cycle_count else None
+        ),
         "apple_bottlenecks_available": True,
         "apple_bottlenecks": summary(samples),
         "apple_bottlenecks_by_core": [
@@ -555,9 +634,10 @@ def _build_fixed_instrument(output: Path) -> Path:
 def _require_m1_host():
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         raise AppleProfileError("M1 event mode requires an Apple M1 host")
+    from topdown.collector.apple_runtime import run
+
     try:
-        family = int(subprocess.run(["sysctl", "-n", "hw.cpufamily"], capture_output=True, text=True,
-                                    timeout=10, check=True).stdout.strip())
+        family = int(run(["sysctl", "-n", "hw.cpufamily"], timeout=10, check=True).stdout.strip())
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         raise AppleProfileError(f"Cannot verify M1 CPU family: {exc}") from exc
     if family != M1_CPU_FAMILY:
@@ -609,7 +689,8 @@ def record_profile(output: Path, command: list[str], duration: int = 5, mode: st
         metadata["status"] = "exported"
         return profile
     except (AppleProfileError, OSError) as exc:
-        metadata.update(status="failed", error=str(exc))
+        metadata.update(status="interrupted" if isinstance(exc, AppleProfileError) and exc.code == "interrupted" else "failed",
+                        error=str(exc))
         raise
     except KeyboardInterrupt:
         metadata.update(status="interrupted", error="Recording interrupted; target exit is unverified.")
