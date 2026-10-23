@@ -585,6 +585,11 @@ results straddle either limit or show comparable order effects.
 | Stax CPU PET/PMU | Parser, archive, and SQLite paths passed synthetic controls; live kperf capture and counter semantics remain unverified without a root helper | Keep hardware PMU totals and P/E attribution unavailable. The archive importer exposes raw fields with an `unverified` semantics status. |
 | Apple M1 TMA funnel | Event positions, denominators, and P/E formulas remain uncalibrated | Do not report Intel-style slot percentages. |
 
+An independent [M6 Metal control](stax-m6-metal-control.md) also retained 299
+real command-buffer spans and zero CPU samples. It supports the cross-chip
+target-ingestion path while leaving CPU sampling and PMU behavior unverified
+on both hosts.
+
 PR #46 remains a draft M1 pilot. Promotion requires an independently reviewed
 live capture, immutable per-run PMU configuration and conversion provenance,
 native loss accounting, P/E validation, and paired Redis overhead measurements

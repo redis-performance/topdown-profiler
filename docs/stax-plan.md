@@ -5,10 +5,15 @@ criteria below remain required before claiming platform support.
 
 An optional v3 CLI/SQL/MCP integration is available for experimental testing.
 The [Linux VM validation](stax-vm-pilot.md) includes real captures and measured
-overhead; its low-pipeline latency result does not meet the declared budget.
+overhead. A [five-pair follow-up](stax-vm-latency-followup.md) confirmed that
+its low-pipeline latency result does not meet the declared budget; a diagnostic
+main-thread-only prototype also failed the longer-run budget and lost thread
+coverage, so no workaround is adopted.
 The [Intel Linux pilot](stax-linux-pilot.md) remains blocked on that host’s
 permissions. The [M1 pilot](stax-m1-pilot.md) has rootless controls but no
-privileged CPU capture. M6 requires its own host-specific acceptance check.
+privileged CPU capture. The [M6 Metal control](stax-m6-metal-control.md)
+verified rootless target-span ingestion with zero CPU samples; M6 CPU/PMU
+capture requires its own host-specific acceptance check.
 
 The initial source review pins Stax to
 `aedd85e08894fc3250ec975a486544d091e11281` (2026-10-20). That revision writes
@@ -53,7 +58,9 @@ profiles must not be presented as Intel TMA funnels.
   sample quality or overhead requires it.
 - Include a separate latency-sensitive, low-pipeline control. In the
   [Linux VM pilot](stax-vm-pilot.md), pipeline-16 median throughput and PING
-  p99 met the declared budget while pipeline-1 PING p99 exceeded it sharply;
+  p99 met the declared budget while pipeline-1 PING p99 exceeded it sharply.
+  The [longer follow-up](stax-vm-latency-followup.md) measured a 1,434.11%
+  median paired PING p99 increase over five 30-second pairs with pinned Stax;
   that result motivates a host-specific tail check and does not predict M1/M6
   behavior. Report the probe's latency unit and scope separately from the
   main workload's end-to-end latency.
