@@ -39,8 +39,13 @@ def _api(library, name, result_type, argument_types):
     return function
 
 
-def plan(group="controls"):
-    events = EVENT_GROUPS[group]
+def plan(group="controls", swap=None):
+    events = list(EVENT_GROUPS[group])
+    if swap is not None:
+        if len(swap) != 2 or swap[0] == swap[1] or any(name not in events[2:] for name in swap):
+            raise ValueError("Swap two distinct programmable events in the selected group")
+        first, second = (events.index(name) for name in swap)
+        events[first], events[second] = events[second], events[first]
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         raise RuntimeError("Apple silicon host required")
     family = int(subprocess.check_output(["sysctl", "-n", "hw.cpufamily"], text=True).strip())
@@ -93,6 +98,7 @@ def plan(group="controls"):
             raise RuntimeError("Unexpected M1 counter classes, count, or overlapping event assignments")
         return {
             "cpu_family": f"{family:#x}", "group": group, "counter_classes": classes.value,
+            "requested_events": events,
             "configurable_registers": [f"{value:#x}" for value in registers[:count.value]],
             "event_to_counter": dict(zip(events, mapping[:len(events)])),
             "hardware_access_verified": False,
@@ -107,5 +113,11 @@ def plan(group="controls"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--group", choices=EVENT_GROUPS, default="controls")
+    parser.add_argument("--swap", nargs=2, metavar=("FIRST", "SECOND"),
+                        help="test one requested event-order permutation without changing the hardware")
     args = parser.parse_args()
-    print(json.dumps(plan(args.group), indent=2))
+    try:
+        result = plan(args.group, args.swap)
+    except ValueError as exc:
+        parser.error(str(exc))
+    print(json.dumps(result, indent=2))

@@ -1,0 +1,697 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "gpu_cores": 7,
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "The packaged Metal probe ran 100 passes of compute and optimized ALU with 65,536 items per command, under separate M1 Instruments Metal System Trace captures. Profile 3 measured Performance Limiters; profile 4 measured Performance Utilizations. A second profile-4 pair reversed workload order. All probe checksums matched a CPU FMA reference. Means use only sampled counter intervals overlapping labeled GPU work; clean means drop entire intervals with observed other active GPU work.",
+  "counter_scope": "device-wide",
+  "probe_source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+  "probe_binary_sha256": "dcb7da508e6a8107c13db11070b404209d588fec3272dfe18dd65f47bfd485c6",
+  "selected_template_sha256": {
+    "3": "936997d41f2a1231623da319e7a5e540d1df04cc7d8be2c2aa19e61ae1753d6c",
+    "4": "7fa24c2bb719010f7a8a11d4559c571e360c236b9617c45967165ffc3feba4eb"
+  },
+  "measurements": [
+    {
+      "phase": "limiters",
+      "mode": "compute",
+      "profile": 3,
+      "counter_set": "Performance Limiters",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.06665970818721689,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 167426,
+      "sample_intervals": 5320,
+      "probe_coverage": {
+        "selected_pid": 36335,
+        "status": "sampled",
+        "workloads_observed": [
+          "compute"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Limiter": 100,
+          "ALU Utilization": 100,
+          "Buffer Load Utilization": 100,
+          "Buffer Read Limiter": 100,
+          "Buffer Store Utilization": 100,
+          "Buffer Write Limiter": 100,
+          "Compute Occupancy": 100,
+          "F16 Utilization": 100,
+          "F32 Utilization": 100,
+          "Fragment Input Interpolation Limiter": 100,
+          "Fragment Input Interpolation Utilization": 100,
+          "Fragment Occupancy": 100,
+          "GPU Last Level Cache Limiter": 100,
+          "GPU Last Level Cache Utilization": 100,
+          "GPU Read Bandwidth": 100,
+          "GPU Write Bandwidth": 100,
+          "MMU Limiter": 100,
+          "MMU Utilization": 100,
+          "Partial Renders Count": 100,
+          "Texture Cache Limiter": 100,
+          "Texture Filtering Limiter": 100,
+          "Texture Sample Limiter": 100,
+          "Texture Sample Utilization": 100,
+          "Texture Write Limiter": 100,
+          "Texture Write Utilization": 100,
+          "Threadgroup/Imageblock Load Limiter": 100,
+          "Threadgroup/Imageblock Load Utilization": 100,
+          "Threadgroup/Imageblock Store Limiter": 100,
+          "Threadgroup/Imageblock Store Utilization": 100,
+          "Top Performance Limiter": 100,
+          "Total Occupancy": 100,
+          "Vertex Occupancy": 100
+        },
+        "sampled_pass_fraction_min": 0.15268142943407864,
+        "sampled_pass_fraction_median": 0.36230619677611864,
+        "sampled_pass_fraction_max": 0.4602529118136439,
+        "passes_below_10_percent_sampled": 0,
+        "gpu_work_time_ns": 66659539,
+        "sampled_gpu_work_time_ns": 20352874,
+        "sampled_gpu_work_fraction": 0.30532575390297856,
+        "counter_sample_intervals_overlapping": 1055,
+        "other_active_gpu_time_overlapping_ns": 4066876,
+        "other_active_gpu_time_in_counter_samples_ns": 1118500,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.054955383696671044,
+        "last_counter_end_minus_last_probe_end_ns": 993775875
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 89.485482,
+          "unit": "%",
+          "sampled_time_ns": 20352874,
+          "counter_intervals": 1055
+        },
+        "Buffer Write Limiter": {
+          "value": 0.114391,
+          "unit": "%",
+          "sampled_time_ns": 20352874,
+          "counter_intervals": 1055
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.407413,
+          "unit": "GB/s",
+          "sampled_time_ns": 20352874,
+          "counter_intervals": 1055
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Limiter": {
+          "value": 89.715977,
+          "unit": "%",
+          "sampled_time_ns": 19046250,
+          "counter_intervals": 987
+        },
+        "Buffer Write Limiter": {
+          "value": 0.114372,
+          "unit": "%",
+          "sampled_time_ns": 19046250,
+          "counter_intervals": 987
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.319462,
+          "unit": "GB/s",
+          "sampled_time_ns": 19046250,
+          "counter_intervals": 987
+        }
+      },
+      "probe_json_sha256": "38fe82712d95c844cc91f51a41fcddbe52af129c7f7f771ee20dc35b22b8734d",
+      "target_stdout_sha256": "b8a240552d429ea0f4c081482281868c2c0e25d694fd4d2a6ef9462fc43b7a2f",
+      "toc_sha256": "19e72a9cad03873e9c53429b35085cb1f8fb57150953a248c538010c7ba04c53",
+      "counter_xml_sha256": "14eefafd25148dff6e56be572f50e733fd1fb7323b0953c75f674755178d7c05",
+      "gpu_xml_sha256": "7624348874aea0bdd2cc28fbe19911b2b785cd632e7c6083ec3e080696145f2e",
+      "top_limiter": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 20203957,
+        "share_of_top_limiter_samples_percent": 99.2683
+      },
+      "top_limiter_without_observed_other_activity": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 18981625,
+        "share_of_top_limiter_samples_percent": 99.6607
+      },
+      "top_limiter_unparsed_sampled_time_ns": 0
+    },
+    {
+      "phase": "limiters",
+      "mode": "alu",
+      "profile": 3,
+      "counter_set": "Performance Limiters",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.022713916667271405,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 143697,
+      "sample_intervals": 4579,
+      "probe_coverage": {
+        "selected_pid": 36244,
+        "status": "sampled",
+        "workloads_observed": [
+          "alu"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Limiter": 100,
+          "ALU Utilization": 100,
+          "Buffer Load Utilization": 100,
+          "Buffer Read Limiter": 100,
+          "Buffer Store Utilization": 100,
+          "Buffer Write Limiter": 100,
+          "Compute Occupancy": 100,
+          "F16 Utilization": 100,
+          "F32 Utilization": 100,
+          "Fragment Input Interpolation Limiter": 100,
+          "Fragment Input Interpolation Utilization": 100,
+          "Fragment Occupancy": 100,
+          "GPU Last Level Cache Limiter": 100,
+          "GPU Last Level Cache Utilization": 100,
+          "GPU Read Bandwidth": 100,
+          "GPU Write Bandwidth": 100,
+          "MMU Limiter": 100,
+          "MMU Utilization": 100,
+          "Partial Renders Count": 100,
+          "Texture Cache Limiter": 100,
+          "Texture Filtering Limiter": 100,
+          "Texture Sample Limiter": 100,
+          "Texture Sample Utilization": 100,
+          "Texture Write Limiter": 100,
+          "Texture Write Utilization": 100,
+          "Threadgroup/Imageblock Load Limiter": 100,
+          "Threadgroup/Imageblock Load Utilization": 100,
+          "Threadgroup/Imageblock Store Limiter": 100,
+          "Threadgroup/Imageblock Store Utilization": 100,
+          "Top Performance Limiter": 100,
+          "Total Occupancy": 100,
+          "Vertex Occupancy": 100
+        },
+        "sampled_pass_fraction_min": 0.09082322168131948,
+        "sampled_pass_fraction_median": 0.18123496047683207,
+        "sampled_pass_fraction_max": 0.182648401826484,
+        "passes_below_10_percent_sampled": 11,
+        "gpu_work_time_ns": 22692210,
+        "sampled_gpu_work_time_ns": 3572538,
+        "sampled_gpu_work_fraction": 0.15743455573520604,
+        "counter_sample_intervals_overlapping": 194,
+        "other_active_gpu_time_overlapping_ns": 1115040,
+        "other_active_gpu_time_in_counter_samples_ns": 177540,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.049695762508334414,
+        "last_counter_end_minus_last_probe_end_ns": 1068885125
+      },
+      "sampled_counter_means": {
+        "ALU Limiter": {
+          "value": 70.050289,
+          "unit": "%",
+          "sampled_time_ns": 3572538,
+          "counter_intervals": 194
+        },
+        "Buffer Write Limiter": {
+          "value": 0.540991,
+          "unit": "%",
+          "sampled_time_ns": 3572538,
+          "counter_intervals": 194
+        },
+        "GPU Read Bandwidth": {
+          "value": 1.095065,
+          "unit": "GB/s",
+          "sampled_time_ns": 3572538,
+          "counter_intervals": 194
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Limiter": {
+          "value": 71.169766,
+          "unit": "%",
+          "sampled_time_ns": 3380831,
+          "counter_intervals": 183
+        },
+        "Buffer Write Limiter": {
+          "value": 0.530404,
+          "unit": "%",
+          "sampled_time_ns": 3380831,
+          "counter_intervals": 183
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.826602,
+          "unit": "GB/s",
+          "sampled_time_ns": 3380831,
+          "counter_intervals": 183
+        }
+      },
+      "probe_json_sha256": "e1583830d5366715a19def1ddcfc22b54e9ee20da07c516efd27523fac0f5a50",
+      "target_stdout_sha256": "a3e6d040525795f8ba3d3b483ede2bd7e1302cc809b33586b82d5d3a465e4172",
+      "toc_sha256": "952b69db03376f0b76997315fbe5569288a1b40a281f70d946aba2b35484106d",
+      "counter_xml_sha256": "794686a800fe1a60decb2bab7694a2465b421de5fda8e6d011bb124c1564e7d0",
+      "gpu_xml_sha256": "b19ad34278dfdbc8985c9bbf5e1011021977009ccd123d2185ff4b824bc92438",
+      "top_limiter": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 3472955,
+        "share_of_top_limiter_samples_percent": 97.2125
+      },
+      "top_limiter_without_observed_other_activity": {
+        "name": "ALU Limiter",
+        "sampled_time_ns": 3350914,
+        "share_of_top_limiter_samples_percent": 99.1151
+      },
+      "top_limiter_unparsed_sampled_time_ns": 0
+    },
+    {
+      "phase": "utilizations",
+      "mode": "compute",
+      "profile": 4,
+      "counter_set": "Performance Utilizations",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.07585024993750267,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 70915,
+      "sample_intervals": 5455,
+      "probe_coverage": {
+        "selected_pid": 36412,
+        "status": "sampled",
+        "workloads_observed": [
+          "compute"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Utilization": 100,
+          "Buffer Load Utilization": 100,
+          "Buffer Store Utilization": 100,
+          "F16 Utilization": 100,
+          "F32 Utilization": 100,
+          "Fragment Input Interpolation Utilization": 100,
+          "GPU Last Level Cache Utilization": 100,
+          "GPU Read Bandwidth": 100,
+          "GPU Write Bandwidth": 100,
+          "Texture Sample Utilization": 100,
+          "Texture Write Utilization": 100,
+          "Threadgroup/Imageblock Load Utilization": 100,
+          "Threadgroup/Imageblock Store Utilization": 100
+        },
+        "sampled_pass_fraction_min": 0.15393993879348034,
+        "sampled_pass_fraction_median": 0.2833194270714546,
+        "sampled_pass_fraction_max": 0.3821430253495205,
+        "passes_below_10_percent_sampled": 0,
+        "gpu_work_time_ns": 75819624,
+        "sampled_gpu_work_time_ns": 20372085,
+        "sampled_gpu_work_fraction": 0.2686914538114829,
+        "counter_sample_intervals_overlapping": 1043,
+        "other_active_gpu_time_overlapping_ns": 4407790,
+        "other_active_gpu_time_in_counter_samples_ns": 1139835,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.055950826829948924,
+        "last_counter_end_minus_last_probe_end_ns": 1053136042
+      },
+      "sampled_counter_means": {
+        "ALU Utilization": {
+          "value": 42.805592,
+          "unit": "%",
+          "sampled_time_ns": 20372085,
+          "counter_intervals": 1043
+        },
+        "F32 Utilization": {
+          "value": 14.255512,
+          "unit": "%",
+          "sampled_time_ns": 20372085,
+          "counter_intervals": 1043
+        },
+        "Buffer Store Utilization": {
+          "value": 0.114768,
+          "unit": "%",
+          "sampled_time_ns": 20372085,
+          "counter_intervals": 1043
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.395396,
+          "unit": "GB/s",
+          "sampled_time_ns": 20372085,
+          "counter_intervals": 1043
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Utilization": {
+          "value": 42.846193,
+          "unit": "%",
+          "sampled_time_ns": 19109126,
+          "counter_intervals": 979
+        },
+        "F32 Utilization": {
+          "value": 14.25771,
+          "unit": "%",
+          "sampled_time_ns": 19109126,
+          "counter_intervals": 979
+        },
+        "Buffer Store Utilization": {
+          "value": 0.114502,
+          "unit": "%",
+          "sampled_time_ns": 19109126,
+          "counter_intervals": 979
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.273979,
+          "unit": "GB/s",
+          "sampled_time_ns": 19109126,
+          "counter_intervals": 979
+        }
+      },
+      "probe_json_sha256": "4838022d10cb75a982805248de1e7c6a939f5f4fb7f16be0811e947735de2232",
+      "target_stdout_sha256": "70c8a3f5011edfeabd6a0e5930e8faa443b9e4e10cd33297f0408629b64ff303",
+      "toc_sha256": "b90612626525921c3c57740c94a803a864c070ef266750a888e56ba814762a8d",
+      "counter_xml_sha256": "a288b63f65aa766b4472e9d8ee9b344680d363bf5f44db4a77a3cbfa97d14498",
+      "gpu_xml_sha256": "a56e9db2a8bc89b06ad038bb0c2213f256691f51f57676f58e62fbe1d560c0fe"
+    },
+    {
+      "phase": "utilizations",
+      "mode": "alu",
+      "profile": 4,
+      "counter_set": "Performance Utilizations",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.02238879184005782,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 55978,
+      "sample_intervals": 4306,
+      "probe_coverage": {
+        "selected_pid": 36440,
+        "status": "sampled",
+        "workloads_observed": [
+          "alu"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 99,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Utilization": 99,
+          "Buffer Load Utilization": 99,
+          "Buffer Store Utilization": 99,
+          "F16 Utilization": 99,
+          "F32 Utilization": 99,
+          "Fragment Input Interpolation Utilization": 99,
+          "GPU Last Level Cache Utilization": 99,
+          "GPU Read Bandwidth": 99,
+          "GPU Write Bandwidth": 99,
+          "Texture Sample Utilization": 99,
+          "Texture Write Utilization": 99,
+          "Threadgroup/Imageblock Load Utilization": 99,
+          "Threadgroup/Imageblock Store Utilization": 99
+        },
+        "sampled_pass_fraction_min": 0.0,
+        "sampled_pass_fraction_median": 0.1818524922832457,
+        "sampled_pass_fraction_max": 0.18261421377732936,
+        "passes_below_10_percent_sampled": 10,
+        "gpu_work_time_ns": 22389135,
+        "sampled_gpu_work_time_ns": 3571795,
+        "sampled_gpu_work_fraction": 0.15953251432000387,
+        "counter_sample_intervals_overlapping": 193,
+        "other_active_gpu_time_overlapping_ns": 1109582,
+        "other_active_gpu_time_in_counter_samples_ns": 190625,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.053369524286808176,
+        "last_counter_end_minus_last_probe_end_ns": 1063575166
+      },
+      "sampled_counter_means": {
+        "ALU Utilization": {
+          "value": 68.542467,
+          "unit": "%",
+          "sampled_time_ns": 3571795,
+          "counter_intervals": 193
+        },
+        "F32 Utilization": {
+          "value": 63.792483,
+          "unit": "%",
+          "sampled_time_ns": 3571795,
+          "counter_intervals": 193
+        },
+        "Buffer Store Utilization": {
+          "value": 0.516434,
+          "unit": "%",
+          "sampled_time_ns": 3571795,
+          "counter_intervals": 193
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.913147,
+          "unit": "GB/s",
+          "sampled_time_ns": 3571795,
+          "counter_intervals": 193
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Utilization": {
+          "value": 68.647646,
+          "unit": "%",
+          "sampled_time_ns": 3351795,
+          "counter_intervals": 182
+        },
+        "F32 Utilization": {
+          "value": 64.332098,
+          "unit": "%",
+          "sampled_time_ns": 3351795,
+          "counter_intervals": 182
+        },
+        "Buffer Store Utilization": {
+          "value": 0.523802,
+          "unit": "%",
+          "sampled_time_ns": 3351795,
+          "counter_intervals": 182
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.7629,
+          "unit": "GB/s",
+          "sampled_time_ns": 3351795,
+          "counter_intervals": 182
+        }
+      },
+      "probe_json_sha256": "9d9f0839fcdff1bf4da2be1fcbab1d6feecc72fcc8b00d4312c1d3ede9dd929d",
+      "target_stdout_sha256": "3aff58d502bff154afaefcaf30b196a14c498524c57b161ebd76f4aa1904e22a",
+      "toc_sha256": "3b5833b9b09bf8b8d10ef41b147a249f4c71d0553e3e497a9b2cffdf2e354468",
+      "counter_xml_sha256": "1fab2228b264810ec162f302a5d07b801aeb0718d13bb4bfe8f5e666565bcce1",
+      "gpu_xml_sha256": "01ec2a43851fa5f6246ff6ff1aa15af772aa13e11eb16ad0bd9353fbd449e042"
+    },
+    {
+      "phase": "utilizations_reversed",
+      "mode": "alu",
+      "profile": 4,
+      "counter_set": "Performance Utilizations",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.02241245805635117,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 61477,
+      "sample_intervals": 4729,
+      "probe_coverage": {
+        "selected_pid": 36524,
+        "status": "sampled",
+        "workloads_observed": [
+          "alu"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Utilization": 100,
+          "Buffer Load Utilization": 100,
+          "Buffer Store Utilization": 100,
+          "F16 Utilization": 100,
+          "F32 Utilization": 100,
+          "Fragment Input Interpolation Utilization": 100,
+          "GPU Last Level Cache Utilization": 100,
+          "GPU Read Bandwidth": 100,
+          "GPU Write Bandwidth": 100,
+          "Texture Sample Utilization": 100,
+          "Texture Write Utilization": 100,
+          "Threadgroup/Imageblock Load Utilization": 100,
+          "Threadgroup/Imageblock Store Utilization": 100
+        },
+        "sampled_pass_fraction_min": 0.09082280924031261,
+        "sampled_pass_fraction_median": 0.18161181137136723,
+        "sampled_pass_fraction_max": 0.18587821259510767,
+        "passes_below_10_percent_sampled": 13,
+        "gpu_work_time_ns": 22412541,
+        "sampled_gpu_work_time_ns": 3555370,
+        "sampled_gpu_work_fraction": 0.15863306173093003,
+        "counter_sample_intervals_overlapping": 197,
+        "other_active_gpu_time_overlapping_ns": 1195709,
+        "other_active_gpu_time_in_counter_samples_ns": 220417,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.061995516641024706,
+        "last_counter_end_minus_last_probe_end_ns": 1081554250
+      },
+      "sampled_counter_means": {
+        "ALU Utilization": {
+          "value": 69.754036,
+          "unit": "%",
+          "sampled_time_ns": 3555370,
+          "counter_intervals": 197
+        },
+        "F32 Utilization": {
+          "value": 64.712504,
+          "unit": "%",
+          "sampled_time_ns": 3555370,
+          "counter_intervals": 197
+        },
+        "Buffer Store Utilization": {
+          "value": 0.524611,
+          "unit": "%",
+          "sampled_time_ns": 3555370,
+          "counter_intervals": 197
+        },
+        "GPU Read Bandwidth": {
+          "value": 1.015511,
+          "unit": "GB/s",
+          "sampled_time_ns": 3555370,
+          "counter_intervals": 197
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Utilization": {
+          "value": 70.168003,
+          "unit": "%",
+          "sampled_time_ns": 3305412,
+          "counter_intervals": 183
+        },
+        "F32 Utilization": {
+          "value": 65.756429,
+          "unit": "%",
+          "sampled_time_ns": 3305412,
+          "counter_intervals": 183
+        },
+        "Buffer Store Utilization": {
+          "value": 0.535232,
+          "unit": "%",
+          "sampled_time_ns": 3305412,
+          "counter_intervals": 183
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.790972,
+          "unit": "GB/s",
+          "sampled_time_ns": 3305412,
+          "counter_intervals": 183
+        }
+      },
+      "probe_json_sha256": "9f515d3b4d704e74aa1ad95011b66cdc5752b5532c3e302b7217a9deb17794d5",
+      "target_stdout_sha256": "0cf7a6cea66b03a7a6429d2023bcb8f35f1cfda9b963cc0627b846e8da47901d",
+      "toc_sha256": "d1168afbc2b9f79bdb6d138c7fab441ac3a59595015e2dfa640a7b3d85d6b5f5",
+      "counter_xml_sha256": "7445a6ac742815e109f1dd5878a528934d54b991c5d43108c5c150d172527f53",
+      "gpu_xml_sha256": "feb174f83003e51d3560904d6d739e0463eb01900a2ca58296db4b05210afc8b"
+    },
+    {
+      "phase": "utilizations_reversed",
+      "mode": "compute",
+      "profile": 4,
+      "counter_set": "Performance Utilizations",
+      "passes": 100,
+      "items": 65536,
+      "gpu_seconds": 0.07461391657125205,
+      "checksum": 56889.272805809975,
+      "checksum_verified": true,
+      "counter_rows": 70564,
+      "sample_intervals": 5428,
+      "probe_coverage": {
+        "selected_pid": 36538,
+        "status": "sampled",
+        "workloads_observed": [
+          "compute"
+        ],
+        "passes_observed": 100,
+        "passes_with_counter_samples": 100,
+        "passes_with_counter_samples_by_metric": {
+          "ALU Utilization": 100,
+          "Buffer Load Utilization": 100,
+          "Buffer Store Utilization": 100,
+          "F16 Utilization": 100,
+          "F32 Utilization": 100,
+          "Fragment Input Interpolation Utilization": 100,
+          "GPU Last Level Cache Utilization": 100,
+          "GPU Read Bandwidth": 100,
+          "GPU Write Bandwidth": 100,
+          "Texture Sample Utilization": 100,
+          "Texture Write Utilization": 100,
+          "Threadgroup/Imageblock Load Utilization": 100,
+          "Threadgroup/Imageblock Store Utilization": 100
+        },
+        "sampled_pass_fraction_min": 0.15152157970338134,
+        "sampled_pass_fraction_median": 0.2917938172168254,
+        "sampled_pass_fraction_max": 0.4594776822844469,
+        "passes_below_10_percent_sampled": 0,
+        "gpu_work_time_ns": 74537252,
+        "sampled_gpu_work_time_ns": 20432546,
+        "sampled_gpu_work_fraction": 0.2741252924108337,
+        "counter_sample_intervals_overlapping": 1056,
+        "other_active_gpu_time_overlapping_ns": 4816291,
+        "other_active_gpu_time_in_counter_samples_ns": 1214917,
+        "observed_other_activity_fraction_of_sampled_gpu_work": 0.059459893054933044,
+        "last_counter_end_minus_last_probe_end_ns": 976736541
+      },
+      "sampled_counter_means": {
+        "ALU Utilization": {
+          "value": 42.635564,
+          "unit": "%",
+          "sampled_time_ns": 20432546,
+          "counter_intervals": 1056
+        },
+        "F32 Utilization": {
+          "value": 14.192998,
+          "unit": "%",
+          "sampled_time_ns": 20432546,
+          "counter_intervals": 1056
+        },
+        "Buffer Store Utilization": {
+          "value": 0.118465,
+          "unit": "%",
+          "sampled_time_ns": 20432546,
+          "counter_intervals": 1056
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.375676,
+          "unit": "GB/s",
+          "sampled_time_ns": 20432546,
+          "counter_intervals": 1056
+        }
+      },
+      "sampled_counter_means_without_observed_other_activity": {
+        "ALU Utilization": {
+          "value": 42.679469,
+          "unit": "%",
+          "sampled_time_ns": 19082712,
+          "counter_intervals": 987
+        },
+        "F32 Utilization": {
+          "value": 14.208657,
+          "unit": "%",
+          "sampled_time_ns": 19082712,
+          "counter_intervals": 987
+        },
+        "Buffer Store Utilization": {
+          "value": 0.114036,
+          "unit": "%",
+          "sampled_time_ns": 19082712,
+          "counter_intervals": 987
+        },
+        "GPU Read Bandwidth": {
+          "value": 0.288435,
+          "unit": "GB/s",
+          "sampled_time_ns": 19082712,
+          "counter_intervals": 987
+        }
+      },
+      "probe_json_sha256": "264bb509b8da2eb21166f53261ba2e1697fd3a036572e4cc09b41ef8b6798bac",
+      "target_stdout_sha256": "c27e29947af3ab563ba3f10201326261958b4ee2ed3a5a9c17978d9f9de9d2ce",
+      "toc_sha256": "499a74e0225191d035c76a72f1d1cd93556ca59022f297ff7607e5d63755000a",
+      "counter_xml_sha256": "eebac235a0a6664dd9169f895b6cc6a30c872a8696a0a0681696d971bce555e9",
+      "gpu_xml_sha256": "9b4a8f10369de5a3bc8aa67f90a5c8e87dac77f5b5c3742dc2b7202c8e62fe50"
+    }
+  ],
+  "paired_gpu_time_ratios": {
+    "profile_3_compute_over_alu": 2.934751815976643,
+    "profile_4_first_compute_over_alu": 3.387867039872696,
+    "profile_4_reversed_compute_over_alu": 3.329126880400706
+  },
+  "interpretation": "At 65,536 items, all profile-3 passes had counter overlap. Optimized ALU reduced original-command GPU time while clean ALU Limiter fell from 89.72% to 71.17%. In profile 4, clean F32 Utilization rose from 14.26% to 64.33%, repeating at 14.21% versus 65.76% in reversed order. Limiter and utilization have different meanings. At 16,384 items in the separate packaged-probe evidence, the short optimized ALU commands had only 76/100 passes sampled and 23.02% clean ALU Limiter; neither that limiter value nor the time ratio should be generalized across item counts. Native counters remain sampled and device-wide."
+}

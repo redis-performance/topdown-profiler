@@ -3,6 +3,7 @@
 import json
 import os
 import uuid
+from pathlib import Path
 
 import pytest
 
@@ -86,3 +87,89 @@ def test_additive_schema_keeps_existing_linux_samples(postgres_backend, tmp_path
     native = store_apple_result(backend, path)
     assert backend.get_apple_result(native.run_id)
     assert backend.get_samples(linux.run_id)[0].value == 42
+
+
+def test_gpu_jsonb_preserves_native_limiters_and_encoder_pagination(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_integration import check_round_trip
+
+    check_round_trip(postgres_backend, tmp_path)
+
+
+def test_jsonb_measured_m6_profiles_keep_counters_and_coverage(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_integration import check_measured_profiles
+
+    check_measured_profiles(postgres_backend, tmp_path)
+
+
+def test_jsonb_measured_m6_mixed_encoder_profile(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_integration import check_mixed_profile
+
+    check_mixed_profile(postgres_backend, tmp_path)
+
+
+def test_jsonb_preserves_measured_gpu_timeline_units_and_absence(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_timeline_metrics import check_native_timeline_evidence
+
+    check_native_timeline_evidence(postgres_backend, tmp_path)
+
+
+def test_jsonb_preserves_measured_fixed_instruction_snapshots(postgres_backend, tmp_path):
+    from tests.test_apple_fixed_instruction_validation import check_measured_fixed_instruction_storage
+
+    check_measured_fixed_instruction_storage(postgres_backend, tmp_path)
+
+
+def test_jsonb_preserves_measured_dependent_read_gpu_profiles(postgres_backend, tmp_path):
+    from tests.test_apple_gpu_dependent_reads import check_measured_dependent_read_storage
+
+    check_measured_dependent_read_storage(postgres_backend, tmp_path)
+
+
+@pytest.mark.parametrize("failure", ["components", "duplicate-fields", "metadata", "timestamps"])
+def test_inconsistent_apple_imports_fail_before_jsonb_insert(postgres_backend, tmp_path, failure):
+    from topdown.collector.apple import AppleProfileError
+
+    path, original = native_file(tmp_path)
+    if failure == "components":
+        original["counters"].update(performance_instructions=2**64 - 1, other_instructions=1)
+        path.write_text(json.dumps(original))
+    elif failure == "duplicate-fields":
+        path.write_text(path.read_text().replace('"cycles":', '"cycles": 0, "cycles":'))
+    elif failure == "metadata":
+        path = path.rename(tmp_path / "profile.json")
+        (tmp_path / "capture.json").write_text('{"environment":{"invalid":1e999}}')
+    else:
+        original.update(started_at="", ended_at="2026-10-23T10:00:00Z")
+        path.write_text(json.dumps(original))
+    with pytest.raises(AppleProfileError):
+        store_apple_result(postgres_backend, path)
+    assert postgres_backend.list_runs() == []
+    valid, original = native_file(tmp_path)
+    run = store_apple_result(postgres_backend, valid)
+    assert postgres_backend.get_apple_result(run.run_id)["result"] == original
+
+
+def test_trace_context_validation_has_the_same_jsonb_contract(postgres_backend, tmp_path):
+    from topdown.collector.apple import AppleProfileError
+    from topdown.collector.apple_schedule import annotate_scheduling
+    from topdown.collector.apple_trace import parse_trace_profile
+
+    data = Path(__file__).parent / "test_data"
+    result = parse_trace_profile(data / "apple_processor_intervals_m6.xml", data / "apple_processor_gaps_m6.xml", 42)
+    result["measurement_kind"] = "hardware-traced-execution-intervals"
+    annotate_scheduling(result, data / "apple_thread_states_m6.xml")
+    path = tmp_path / "profile.json"
+    path.write_text(json.dumps(result))
+    run = store_apple_result(postgres_backend, path)
+    assert postgres_backend.get_apple_result(run.run_id)["result"] == result
+    result["intervals"][2]["scheduling"]["single_running_core"]["core"] = 99
+    path.write_text(json.dumps(result))
+    with pytest.raises(AppleProfileError):
+        store_apple_result(postgres_backend, path)
+    assert len(postgres_backend.list_runs()) == 1
+
+
+def test_jsonb_preserves_capture_host_labels_across_imports(postgres_backend, tmp_path, monkeypatch):
+    from tests.test_apple_environment import check_import_environment
+
+    check_import_environment(postgres_backend, tmp_path, monkeypatch)

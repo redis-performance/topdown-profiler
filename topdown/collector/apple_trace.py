@@ -4,7 +4,7 @@ from bisect import bisect_left
 from collections import defaultdict
 from pathlib import Path
 
-from topdown.collector.apple import AppleProfileError, TMA_ROOTS, _resolve_ids, _validate_scope, _xml
+from topdown.collector.apple import AppleProfileError, TMA_ROOTS, _native_uint, _resolve_ids, _validate_scope, _xml
 
 INTERVAL_TYPES = {
     "start": "start-time", "duration": "duration", "process": "process", "thread": "thread",
@@ -35,12 +35,9 @@ def _table(path, schema, required):
 
 def _uint(node, tag):
     text = node.text if node is not None else None
-    if node is None or node.tag != tag or not text or not text.isascii() or not text.isdecimal():
+    if node is None or node.tag != tag:
         raise AppleProfileError(f"Require a native {tag} uint64 integer")
-    value = int(text)
-    if value >= 2**64:
-        raise AppleProfileError("Processor Trace integer exceeds uint64")
-    return value
+    return _native_uint(text, tag)
 
 
 def _identity(cells, resolve):

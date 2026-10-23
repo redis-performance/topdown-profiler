@@ -7,8 +7,11 @@ from typing import Annotated, Optional
 import typer
 
 from topdown.collector.apple import AppleProfileError, doctor, export_profile, record_profile
+from topdown.apple_gpu_cli import app as gpu_app
 
 app = typer.Typer(help="Count, capture, export and report native Apple silicon profiles; slot TMA remains unavailable.")
+
+app.add_typer(gpu_app, name="gpu")
 
 
 def _store_capture(output, labels, db, process_name=None):
@@ -182,7 +185,7 @@ def store_result(
 @app.command(name="query")
 def query_result(
     run_id: Annotated[str, typer.Argument(help="Stored Apple run ID")],
-    section: Annotated[str, typer.Option(help="summary, samples, intervals, gaps, channels or leaf_sample_counts")] = "summary",
+    section: Annotated[str, typer.Option(help="summary, samples, intervals, gaps, channels, leaf_sample_counts or encoders")] = "summary",
     offset: Annotated[int, typer.Option(min=0)] = 0,
     limit: Annotated[int, typer.Option(min=1, max=1000)] = 100,
     db: Annotated[Optional[str], typer.Option(help="SQLite database path")] = None,

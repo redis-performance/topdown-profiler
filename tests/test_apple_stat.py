@@ -312,9 +312,11 @@ def test_ffi_retains_integer_precision_and_converts_mach_time():
     assert result["performance_cycles"] == 7
     assert result["other_cycles"] == 2
     assert result["performance_user_time_ns"] == 83
-    assert result["other_user_time_ns"] == 42
+    assert result["other_user_time_ns"] == 41
     assert result["performance_system_time_ns"] == 166
-    assert result["other_system_time_ns"] == 84
+    assert result["other_system_time_ns"] == 83
+    assert result["user_time_mach"] == 3 and result["performance_user_time_mach"] == 2
+    assert result["other_user_time_mach"] == 1 and result["other_system_time_mach"] == 2
 
 
 def test_ffi_falls_back_to_v4_when_v6_is_unavailable():
@@ -515,7 +517,10 @@ def test_existing_pid_final_zombie_snapshot_is_marked_as_exited(tmp_path, captur
     assert result["target_exited"] is True
 
 
-@pytest.mark.parametrize("pid,duration", [(0, 1), (-1, 1), (42, 0), (42, float("nan")), (42, float("inf"))])
+@pytest.mark.parametrize("pid,duration", [
+    (0, 1), (-1, 1), (True, 1), (42.0, 1), ("42", 1), (2**31, 1), (2**32 + 42, 1),
+    (42, 0), (42, True), (42, "1"), (42, float("nan")), (42, float("inf")),
+])
 def test_invalid_pid_interval_does_not_create_output(tmp_path, native_host, pid, duration):
     with pytest.raises(AppleProfileError, match="positive PID"):
         stat_pid(tmp_path / "stat", pid, duration)
@@ -571,3 +576,103 @@ def test_native_zombie_read_includes_short_target_and_keeps_target_output(tmp_pa
     assert result["counters"]["process_exit_mach"] > result["counters"]["process_start_mach"]
     assert (tmp_path / "stat/target.stdout").read_text() == "owned-target\n"
     assert (tmp_path / "stat/target.stderr").read_text() == "stderr\n"
+
+
+@pytest.mark.parametrize("code,expected", [("interrupted", "interrupted"), ("tool_error", "failed")])
+def test_worker_cancellation_is_distinct_from_other_wait_failures(tmp_path, capture, code, expected):
+    capture.wait.side_effect = AppleProfileError("worker stopped", code=code)
+    with patch("topdown.collector.apple_stat._terminate") as terminate:
+        result = stat_process(tmp_path / "stat", [sys.executable])
+    assert result["status"] == expected
+    terminate.assert_called_once_with(capture.process)
+    if code == "interrupted":
+        assert result["exit_code"] == 130 and result["counters"] is not None
+    else:
+        assert result["counters"] is None and "worker stopped" in result["error"]
+
+
+@pytest.mark.parametrize("code,expected", [("interrupted", "interrupted"), ("tool_error", "failed")])
+def test_pid_worker_cancellation_retains_partial_data_without_signaling(tmp_path, capture, code, expected):
+    interval_snapshots(capture)
+    with patch("topdown.collector.apple_stat.sleep", side_effect=AppleProfileError("worker stopped", code=code)), \
+         patch("topdown.collector.apple_stat._terminate") as terminate:
+        result = stat_pid(tmp_path / "stat", 42, 30)
+    assert result["status"] == expected
+    terminate.assert_not_called()
+    capture.launch.assert_not_called()
+    if code == "interrupted":
+        assert result["exit_code"] == 130 and result["counters"]["instructions"] == 200
+    else:
+        assert result["counters"] is None
+
+
+@pytest.mark.parametrize('pid', [True, False, -1, 0, 42.0, '42', 2**31, 2**32 + 42, 10**100])
+def test_native_usage_boundary_rejects_pid_aliases_before_calling_libproc(pid):
+    from topdown.collector.apple_stat import _UsageReader
+
+    reader = _UsageReader.__new__(_UsageReader)
+    with pytest.raises(AppleProfileError, match='native signed pid_t'):
+        reader.read(pid)
+
+
+def test_native_pid_upper_bound_retains_signed_identity():
+    from topdown.collector.apple_stat import _validate_pid
+
+    _validate_pid(1)
+    _validate_pid(2**31 - 1)
+
+
+@pytest.mark.parametrize('options', [{'pid':2**32 + 42}, {'duration_seconds':10**1000}])
+def test_mcp_collection_rejects_native_bounds_before_any_capture(tmp_path, options):
+    from topdown.apple_storage import collect_apple_result
+
+    arguments = {'mode':'stat', 'command':None, 'pid':42, 'duration_seconds':1, **options}
+    output = tmp_path / 'unused'
+    with pytest.raises(AppleProfileError):
+        collect_apple_result(output, **arguments)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize('seconds', [True, '1', 10**1000, 1e100, float('inf'), float('nan'), 0, -1])
+def test_stat_rejects_unsupported_waits_before_opening_native_readers(tmp_path, native_host, seconds):
+    with patch('topdown.collector.apple_stat._UsageReader') as reader:
+        with pytest.raises(AppleProfileError):
+            stat_pid(tmp_path / 'pid', 42, seconds)
+        with pytest.raises(AppleProfileError):
+            stat_process(tmp_path / 'command', [sys.executable], seconds)
+        reader.assert_not_called()
+    assert not (tmp_path / 'pid').exists() and not (tmp_path / 'command').exists()
+
+
+@pytest.mark.asyncio
+async def test_cancelled_setup_never_launches_the_owned_target(tmp_path, capture, monkeypatch):
+    import asyncio
+    import threading
+    from topdown.collector import apple_stat
+    from topdown.collector.apple_runtime import worker
+
+    started, release = threading.Event(), threading.Event()
+    report = apple_stat._report
+    def paused_report(reader):
+        result = report(reader)
+        started.set()
+        assert release.wait(3)
+        return result
+    monkeypatch.setattr(apple_stat, "_report", paused_report)
+    output = tmp_path / "cancelled-setup"
+    task = asyncio.create_task(worker(lambda: stat_process(output, [sys.executable]), capture=True)())
+    try:
+        assert await asyncio.to_thread(started.wait, 2)
+        task.cancel()
+        await asyncio.sleep(0)
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, 3)
+    finally:
+        release.set()
+        await asyncio.gather(task, return_exceptions=True)
+    capture.launch.assert_not_called()
+    capture.process.wait.assert_not_called()
+    retained = json.loads((output / "stat.json").read_text())
+    assert retained["status"] == "interrupted" and retained["exit_code"] == 130
+    assert retained["counters"] is None

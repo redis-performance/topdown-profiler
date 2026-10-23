@@ -1,0 +1,126 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "Use Xcode CPU Counters guided delivery mode. Export MetricTable, require complete cycle, delivery_bandwidth, and delivery_latency rows with the same interval/thread/core/PID; cycle-weight the two ratios on the intended core kind. Compare their sum with root Delivery from an earlier run of the same control, which is not a simultaneous equality check.",
+  "recording_options": {
+    "CPU Counters": {
+      "allEventsAndFormulas": [],
+      "configurationType": {
+        "guided": {}
+      },
+      "countingLevel": "EL0",
+      "pmiEventAliasOrMnemonic": "",
+      "pmiThreshold": 1000000,
+      "processBucketSize": 10,
+      "sampleByTime": true,
+      "selectedCountingMode": {
+        "analysisMode": "bottleneck",
+        "countingMode": "delivery"
+      },
+      "selectedCountingModeDisplayName": "Instruction Delivery Bottlenecks",
+      "useDebuggingInformation": false,
+      "useHighFrequencyForGuidedMode": false,
+      "useHighFrequencyForManualMode": false
+    },
+    "Points of Interest": {
+      "excludeOSLogs": false
+    },
+    "Time Profiler": {
+      "contextSwitchSampling": false,
+      "highFrequencySampling": false,
+      "recordKernelStacks": false,
+      "recordWaitingThreads": false
+    }
+  },
+  "recording_options_sha256": "fb05927fc375aa933a066527aedd7e796742a69d134b218e539b6531563fe9f8",
+  "captures": {
+    "e-branch": {
+      "target_command": [
+        "/usr/sbin/taskpolicy",
+        "-b",
+        "/private/tmp/apple-m1-controls-xcode271",
+        "branch_random",
+        "250000000"
+      ],
+      "target_pid": 33959,
+      "target_exit_status": 0,
+      "target_stdout": "5989831178059145948",
+      "repeated_direct_stdout_matches": true,
+      "binary_sha256": "9991733de73a6129db8480400f97f8cf6bb69aae3bfcd20897465ea6ff60fce0",
+      "toc_sha256": "d8e15a644807a75fee86798391ab947ccb2da9232e328b7da715b9c6d1b51265",
+      "metric_xml_sha256": "9a23e7caa39c0471eb216f649513fccd3a56c0bdcbf1072b0422be0f3366cf96",
+      "primary_core_kind": "E",
+      "primary_core_cycles": 3470877720,
+      "primary_core_cycle_fraction": 0.9994757972221759,
+      "complete_primary_intervals": 4027,
+      "incomplete_intervals": 0,
+      "max_interval_subcategory_sum": 0.8255619120000001,
+      "delivery_bandwidth_share": 0.19523245973889425,
+      "delivery_latency_share": 0.24331152041610973,
+      "delivery_subcategory_sum": 0.43854398015500395,
+      "prior_root_delivery_share": 0.43847046789674626,
+      "prior_root_capture": "docs/apple-m1-tma-calibration.json#captures.e-branch",
+      "difference_from_separate_root_capture_percentage_points": 0.007351225825769081,
+      "prior_root_metric_xml_sha256": "3f1d30a1e3d066b3bf4db5b967e0e2cf72c3d91efb2beab1f35d782b6880855b"
+    },
+    "p-large": {
+      "target_command": [
+        "/private/tmp/apple-m1-icache-xcode271",
+        "200000"
+      ],
+      "target_pid": 34050,
+      "target_exit_status": 0,
+      "target_stdout": "2073005",
+      "repeated_direct_stdout_matches": true,
+      "binary_sha256": "abb8981bc957551df1f7ee3bb4745aa91a415930408b51fbe0c284a0c90b9688",
+      "toc_sha256": "09091e3655975329075bc5b51dfb0e2a14f11485d1d73d3b186acebe489e0a94",
+      "metric_xml_sha256": "6207f57df6d44b63360fd457218562c8558717c8b05852373f9960137addfc31",
+      "primary_core_kind": "P",
+      "primary_core_cycles": 6157199307,
+      "primary_core_cycle_fraction": 0.9990002357828707,
+      "complete_primary_intervals": 2698,
+      "incomplete_intervals": 0,
+      "max_interval_subcategory_sum": 0.964344941,
+      "delivery_bandwidth_share": 0.00010295812349867908,
+      "delivery_latency_share": 0.7336755839242082,
+      "delivery_subcategory_sum": 0.7337785420477069,
+      "prior_root_delivery_share": 0.7282425194598707,
+      "prior_root_capture": "docs/apple-m1-tma-calibration.json#captures.p-large",
+      "difference_from_separate_root_capture_percentage_points": 0.5536022587836142,
+      "prior_root_metric_xml_sha256": "7109ad23e278989bf6cab7db614d34aad0a2ec4b57c447454751c563a7d7cd84"
+    },
+    "e-large": {
+      "target_command": [
+        "/usr/sbin/taskpolicy",
+        "-b",
+        "/private/tmp/apple-m1-icache-xcode271",
+        "200000"
+      ],
+      "target_pid": 34112,
+      "target_exit_status": 0,
+      "target_stdout": "2073005",
+      "repeated_direct_stdout_matches": true,
+      "binary_sha256": "abb8981bc957551df1f7ee3bb4745aa91a415930408b51fbe0c284a0c90b9688",
+      "toc_sha256": "b64d7663025970037cc732d78ba301dca19044b5c0d21a686dd9eb63db61fe90",
+      "metric_xml_sha256": "684b3b4782c93a118d36fb8c473ff89c845a15be4e8ba7872f5e01087f01cc51",
+      "primary_core_kind": "E",
+      "primary_core_cycles": 6301214556,
+      "primary_core_cycle_fraction": 0.9997109085534741,
+      "complete_primary_intervals": 7719,
+      "incomplete_intervals": 0,
+      "max_interval_subcategory_sum": 0.96031903,
+      "delivery_bandwidth_share": 0.00011024046097578573,
+      "delivery_latency_share": 0.4794435076019743,
+      "delivery_subcategory_sum": 0.4795537480629501,
+      "prior_root_delivery_share": 0.47792125224081156,
+      "prior_root_capture": "docs/apple-m1-tma-calibration.json#captures.e-large",
+      "difference_from_separate_root_capture_percentage_points": 0.16324958221385355,
+      "prior_root_metric_xml_sha256": "21a56c436827009120f5e1e1d8d868a6f5580cf344df09388eee359251bf8f7b"
+    }
+  },
+  "interpretation": "Both delivery subcategories were exported in all three M1 controls. E random branch split Delivery into 19.52% bandwidth and 24.33% latency; large executed NOP streams were nearly all delivery latency (73.37% P, 47.94% E) with about 0.01% delivery bandwidth. Their sums differed from separate root Delivery captures by 0.007, 0.554 and 0.163 percentage points respectively. These are Apple-native cycle shares and separate-run comparisons, not Intel slot-TMA children proven on the same intervals."
+}

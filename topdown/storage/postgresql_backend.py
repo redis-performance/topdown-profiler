@@ -138,6 +138,31 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
         row = self._get_conn().execute("SELECT document FROM apple_results WHERE run_id = %s", (run_id,)).fetchone()
         return row["document"] if row else None
 
+    def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
+                              offset: int = 0, limit: int = 100) -> dict | None:
+        if not _is_valid_uuid(run_id):
+            return None
+        row = self._get_conn().execute("""
+            SELECT (a.document - 'result') || jsonb_build_object(
+                       'result', (a.document->'result') - %(omit)s::text[]) AS document,
+                   CASE WHEN jsonb_typeof(a.document->'result'->%(section)s::text) = 'array'
+                       THEN jsonb_array_length(a.document->'result'->%(section)s::text) END AS total,
+                   CASE WHEN jsonb_typeof(a.document->'result'->%(section)s::text) = 'array' THEN (
+                       SELECT COALESCE(jsonb_agg(value ORDER BY ordinality), '[]'::jsonb) FROM (
+                           SELECT value, ordinality
+                           FROM jsonb_array_elements(a.document->'result'->%(section)s::text) WITH ORDINALITY
+                           WHERE ordinality > %(offset)s AND ordinality <= %(end)s
+                           ORDER BY ordinality
+                       ) page
+                   ) END AS rows
+            FROM apple_results a WHERE a.run_id = %(run_id)s
+        """, {"run_id": run_id, "omit": list(omit_fields), "section": section,
+              "offset": min(offset, 2**63 - 1), "end": min(offset + limit, 2**63 - 1)}).fetchone()
+        if row is None:
+            return None
+        return {"metadata": row["document"]["metadata"], "result": row["document"]["result"],
+                "rows": row["rows"], "total": row["total"]}
+
     def list_runs(
         self,
         process_name: str | None = None,

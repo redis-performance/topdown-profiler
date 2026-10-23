@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from topdown.collector.apple import AppleProfileError, TMA_ROOTS, _run, _sha256, _write_json
+from topdown.collector.apple_environment import capture_environment
 
 STALL_NAMES = {"Core Block Slot", "M$ Stall", "DRAM Stall"}
 
@@ -244,14 +245,14 @@ def sample_soc(output: Path, duration: float = 1) -> dict:
     """Read cluster/system firmware context in a bounded native worker."""
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         raise AppleProfileError("Native SoC firmware observations require macOS on Apple silicon")
-    if not math.isfinite(duration) or not 0 < duration <= 300:
+    if type(duration) not in (int, float) or not 0 < duration <= 300:
         raise AppleProfileError("Require a finite duration greater than zero and at most 300 seconds")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     result = {
         "schema_version": 1, "measurement_kind": "native-soc-firmware-state-observations",
         "started_at": datetime.now(timezone.utc).isoformat(), "collector_sha256": _sha256(Path(__file__)),
-        "environment": {"system": platform.system(), "arch": platform.machine(), "os_version": platform.mac_ver()[0]},
+        "environment": capture_environment(),
         "scope": "system-and-cluster; all processes, no PID attribution", "duration_seconds": duration,
         "source": "IOReport native state channels; value=IOReportStateGetResidency; units retained per channel",
         "clock": time.get_clock_info("monotonic").implementation,
@@ -286,8 +287,11 @@ def sample_soc(output: Path, duration: float = 1) -> dict:
                       status="completed", exit_code=0)
     except (AppleProfileError, OSError, ValueError, KeyError, TypeError) as exc:
         result["error"] = str(exc)
-        if isinstance(exc, AppleProfileError) and exc.code == "timeout":
-            result.update(status="timeout", exit_code=5)
+        if isinstance(exc, AppleProfileError):
+            if exc.code == "timeout":
+                result.update(status="timeout", exit_code=5)
+            elif exc.code == "interrupted":
+                result.update(status="interrupted", exit_code=130)
     except KeyboardInterrupt:
         result.update(status="interrupted", exit_code=130)
     finally:

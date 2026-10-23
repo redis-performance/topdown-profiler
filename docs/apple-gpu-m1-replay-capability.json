@@ -1,0 +1,78 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "Capture a valid four-pass packaged Metal compute trace on this M1, then run the packaged GPU replay profiler against it. The native gpudebug session starts, rejects profiling as requiring Apple M3 / A17 Pro or later, and the owned session is terminated. Raw trace stays local.",
+  "probe_source_sha256": "da9260233b4e1ebd16764d070e56c5c7bffb427192d055f8cbc9ff028a93adf0",
+  "probe_binary_sha256": "93ae438444bacdf18867bc01996ae5bd6f0c1cc1e26db507048ecb0586ee338f",
+  "probe_result_sha256": "43a5b5dcd6017cfc283277659ae1575dee4dfde40e5287171d56f6ca45bfb3a5",
+  "probe_result": {
+    "device": "Apple M1",
+    "mode": "compute",
+    "passes": 4,
+    "items": 16384,
+    "checksum": 8336.906823405065,
+    "expected_checksum": 8336.906823405065,
+    "checksum_verified": true
+  },
+  "trace_manifest": {
+    "files": 15,
+    "bytes": 376586,
+    "sha256": "76167b4bcbd3616d1ec08b6e01f1dc6ff667b07ffccb88126b2e5901f1035010"
+  },
+  "replay_attempt": {
+    "commands": [
+      [
+        "xcrun",
+        "gpudebug",
+        "-t",
+        "/private/tmp/topdown-m1-replay-capability-20261023/compute.gputrace",
+        "--timeout",
+        "180",
+        "-c",
+        "profile"
+      ],
+      [
+        "xcrun",
+        "gpudebug",
+        "-s",
+        "98",
+        "-c",
+        "profile run --gpu-state default --exec overlapping"
+      ],
+      [
+        "xcrun",
+        "gpudebug",
+        "--terminate",
+        "98"
+      ]
+    ],
+    "stdout_sha256": [
+      "359f9866f9fa2418397985489bdd2f3ec378b7a131b6144e3415135f85741c55",
+      "8ab9e5823537ccf29f5fdfee8c26186c11e48d83fa3996c55a5c7f175813d1c2",
+      "dce24058d54627beb98b622dd01a92221c4c91675fbf567cd4971a8511efab1e"
+    ],
+    "stderr_sha256": [
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "error": "GPU profiling requires Apple M3 / A17 Pro or later",
+    "error_stream": "stdout",
+    "owned_session_id": "98",
+    "owned_session_terminated": true,
+    "profile_json_created": false
+  },
+  "doctor_after_fix": {
+    "doctor_json_sha256": "cd2ebf446a2719a20b6ef09a6011498f39ca599818fc6ae328c0ec38a90a729a",
+    "gpu_replay": {
+      "status": "known_gpu_generation_limit",
+      "reason": "Xcode 27.1 GPU replay profiling requires Apple M3 / A17 Pro or later; a native M1 profile attempt returned this requirement.",
+      "next_step": "Use Instruments Metal System Trace with Performance Limiters or Performance Utilizations; source checkouts can run examples/apple_gpu/record_instruments.py."
+    },
+    "programmable_counters_status": "unverified"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "Same 200,000,000-iteration dependent integer division control recorded once on intended P cores and once through taskpolicy -b on intended E cores, with Xcode guided CPU Counters and the 1,000 us custom calibration package in the same trace.",
+  "control_source": "examples/apple-m1-divide.c",
+  "control_source_sha256": "d2615cf4a54070ed4a169d9a654c7090c5ed1b7b10d19bfe9ddddb9414aaef04",
+  "control_binary_sha256": "28456b549dee7900603b9c83f9461ab22361e2669b754dac23c6d090563cb6fa",
+  "native_udiv_present": true,
+  "expected_stdout": "7025442979035151187",
+  "calibration_package_source_sha256": "a6ad90fa51be3e6ce8dab9086ef63fbfe1f5f1974375d42ace4f3bccd687d99b",
+  "captures": {
+    "p": {
+      "target_command": [
+        "/tmp/topdown-apple-m1-divide-20261023",
+        "200000000"
+      ],
+      "target_pid": 27776,
+      "target_exit_status": 0,
+      "target_stdout": "7025442979035151187",
+      "intended_core_cycle_fraction": 0.9992222513134104,
+      "guided_shares": {
+        "delivery": 0.0003461361263443498,
+        "discarded": 0.00021352138380860132,
+        "processing": 0.9054152228240726,
+        "useful": 0.09403860670043902
+      },
+      "toc_sha256": "a53cbcd15d7a9f085e902290bdc93ea15754be97ba0233d472835be2f66fb584",
+      "counter_xml_sha256": "1f1115c4a867723e4d5ad57ebbbf85e247d1b2cd3b3cf5501a1e113bfad1fc24",
+      "metric_xml_sha256": "4025d02ef662759765e08ed82a2945b9a5bcf4a9e5e729544255c0308c63bfa7",
+      "formula_validation": {
+        "raw_samples_with_active_cycles": 761,
+        "matched_intervals": 699,
+        "unmatched_raw_samples": 62,
+        "guided_intervals": 1105,
+        "unmatched_guided_intervals": 406,
+        "guided_sampled_cycles": 2399592609,
+        "matched_guided_cycles": 2010618733,
+        "matched_guided_cycle_fraction": 0.8379000358056196,
+        "unmatched_guided_intervals_by_reason": {
+          "active_cycle_count_mismatch": 61,
+          "no_raw_counter_sample_at_end_time": 345
+        },
+        "unmatched_guided_cycles_by_reason": {
+          "active_cycle_count_mismatch": 97600502,
+          "no_raw_counter_sample_at_end_time": 291373374
+        },
+        "max_absolute_difference_percentage_points": {
+          "useful": 9.994551714020972e-08,
+          "processing": 9.971319325785544e-08,
+          "discarded": 9.994693532713449e-08,
+          "delivery": 9.99583659851628e-08
+        },
+        "matches_exported_rounding": true
+      },
+      "alternative_width_negative_control": {
+        "assumed_width": 4,
+        "matched_intervals": 697,
+        "median_absolute_difference_percentage_points": 9.38854659746389,
+        "minimum_absolute_difference_percentage_points": 9.285484913744382
+      }
+    },
+    "e": {
+      "target_command": [
+        "/usr/sbin/taskpolicy",
+        "-b",
+        "/tmp/topdown-apple-m1-divide-20261023",
+        "200000000"
+      ],
+      "target_pid": 27804,
+      "target_exit_status": 0,
+      "target_stdout": "7025442979035151187",
+      "intended_core_cycle_fraction": 0.9995569480392363,
+      "guided_shares": {
+        "delivery": 0.0004873161024231076,
+        "discarded": 0.00022991021261878686,
+        "processing": 0.8981895464278482,
+        "useful": 0.10111614870810619
+      },
+      "toc_sha256": "a0b610b7a75c66c2941dafdea71666e35cb54b88de95f7aef5bae4abe7ffcf6b",
+      "counter_xml_sha256": "9701a34462fdcac2420cf7efcbd52a09fc0971eb52a80fbd04e832a92905b548",
+      "metric_xml_sha256": "6a8846b8e2d45a45c0d91e22bdd7627f3decf43224bf8e5373b04d72250ee1fd",
+      "formula_validation": {
+        "raw_samples_with_active_cycles": 2657,
+        "matched_intervals": 1612,
+        "unmatched_raw_samples": 1045,
+        "guided_intervals": 5311,
+        "unmatched_guided_intervals": 3699,
+        "guided_sampled_cycles": 4466823703,
+        "matched_guided_cycles": 2147791795,
+        "matched_guided_cycle_fraction": 0.4808320045309834,
+        "unmatched_guided_intervals_by_reason": {
+          "active_cycle_count_mismatch": 1031,
+          "no_raw_counter_sample_at_end_time": 2668
+        },
+        "unmatched_guided_cycles_by_reason": {
+          "active_cycle_count_mismatch": 765999089,
+          "no_raw_counter_sample_at_end_time": 1553032819
+        },
+        "max_absolute_difference_percentage_points": {
+          "useful": 9.996605626616528e-08,
+          "processing": 9.995261285311585e-08,
+          "discarded": 9.999237838962836e-08,
+          "delivery": 9.978644514735932e-08
+        },
+        "matches_exported_rounding": true
+      },
+      "alternative_width_negative_control": {
+        "assumed_width": 8,
+        "matched_intervals": 1610,
+        "median_absolute_difference_percentage_points": 5.043417076745564,
+        "minimum_absolute_difference_percentage_points": 2.8399311468158346
+      }
+    }
+  },
+  "interpretation": "Both P- and E-core captures completed with the same deterministic output. About 90% of Xcode guided sampled cycles were labeled Processing, versus about 16.7% and 0.013% in prior P/E wide-ALU controls. The candidate equations reproduce all four exported ratios only on exact-joined intervals (83.79% P, 48.08% E guided sampled cycles), adding an integer-division control without proving Intel slot-TMA equivalence or native selector identity."
+}

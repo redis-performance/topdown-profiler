@@ -1,0 +1,537 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-21"
+  },
+  "source": "docs/apple-m1-tma-calibration.json",
+  "method": "For each process/thread/core, compare a raw PMU vector at time T with all valid guided intervals whose end times lie after the previous raw vector and at or before T. Require every interval start to lie after the previous raw time and the sum of guided cycles to equal raw active cycles. Compare candidate ratios from that raw vector with cycle-weighted native guided ratios; keep cycle-mismatched windows separate. This tests aggregation of sampled intervals, not whole-run hardware TMA.",
+  "captures": {
+    "branch": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "de928d100a97aae48f8a0c496cbe58271e4f1edcf5404cf6554d7cad5ba57c3a",
+      "metric_xml_sha256": "fa411aded0a3bef095e3e2c37554ce512463183b29e0f061dc6813afd36fd148",
+      "exact_join_guided_cycle_fraction": 0.8929461462780484,
+      "windows_with_guided_intervals": 3051,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 110,
+      "cycle_aligned_windows": 2941,
+      "cycle_aligned_multi_interval_windows": 267,
+      "windows_matching_exported_rounding": 2941,
+      "guided_cycles_in_cycle_aligned_windows": 9375472874,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.964077186453908,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.994502447874254e-08,
+        "processing": 9.998973401688743e-08,
+        "discarded": 9.997844774289888e-08,
+        "delivery": 9.995032579368512e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "alu": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "6b7fd024aa74aadd014c15d6e744a01653caed3f45f28d770e3dad1d41f84140",
+      "metric_xml_sha256": "6fe506681155982284aa889dc308124b0f32cd6bf05e76f5f26ad3f6810f3fb4",
+      "exact_join_guided_cycle_fraction": 0.8947314206485721,
+      "windows_with_guided_intervals": 2835,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 97,
+      "cycle_aligned_windows": 2738,
+      "cycle_aligned_multi_interval_windows": 249,
+      "windows_matching_exported_rounding": 2738,
+      "guided_cycles_in_cycle_aligned_windows": 8696342853,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9659561668110701,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.993192939816709e-08,
+        "processing": 9.99585886285459e-08,
+        "discarded": 9.990954726150247e-08,
+        "delivery": 9.998763160162889e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "memory": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "9d3b976d5c20ec0546af6e13d3534dbab89cc060b4c957bd7de971829bfa8196",
+      "metric_xml_sha256": "07a6236f236ac0569c872120232f96ca6caea99dd2c84218eee41fc11b894021",
+      "exact_join_guided_cycle_fraction": 0.8978540583529449,
+      "windows_with_guided_intervals": 4409,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 96,
+      "cycle_aligned_windows": 4313,
+      "cycle_aligned_multi_interval_windows": 399,
+      "windows_matching_exported_rounding": 4313,
+      "guided_cycles_in_cycle_aligned_windows": 13681915392,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9781124811661077,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.994854596739877e-08,
+        "processing": 9.996869998474267e-08,
+        "discarded": 9.999855295217148e-08,
+        "delivery": 9.998384267869906e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-alu": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "b5792f8392743f8290b326f8608c564f442e3bece5d78a860d0535b312968ada",
+      "metric_xml_sha256": "9eb415878d41239e7f41cbbdce8a2528c41edbfb3c63e967f900b99b75226e96",
+      "exact_join_guided_cycle_fraction": 0.4926512905779004,
+      "windows_with_guided_intervals": 4071,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 485,
+      "cycle_aligned_windows": 3586,
+      "cycle_aligned_multi_interval_windows": 1769,
+      "windows_matching_exported_rounding": 3586,
+      "guided_cycles_in_cycle_aligned_windows": 5241927956,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8727737163095768,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.996274918933068e-08,
+        "processing": 9.978816042935392e-08,
+        "discarded": 9.999891675892096e-08,
+        "delivery": 9.97590565710027e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-memory": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "36a7d52aae4bf8243e7f550ff9b8e90b20d1d15c6c08e6b163f9ff127097676d",
+      "metric_xml_sha256": "8fb606839dfdd62c77bc436c00d5a4514a8801966dd263bdaad97947e70ff2ca",
+      "exact_join_guided_cycle_fraction": 0.5048052304613261,
+      "windows_with_guided_intervals": 11075,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 1246,
+      "cycle_aligned_windows": 9829,
+      "cycle_aligned_multi_interval_windows": 4625,
+      "windows_matching_exported_rounding": 9829,
+      "guided_cycles_in_cycle_aligned_windows": 14583714986,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8801578475273509,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.998894928177349e-08,
+        "processing": 9.995096972303941e-08,
+        "discarded": 9.996757363404132e-08,
+        "delivery": 9.993947943515158e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-branch": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "262a9d26e48384c110011b024ec997b69b602c8f848ecd66625cffb1ecfa13f4",
+      "metric_xml_sha256": "3f1d30a1e3d066b3bf4db5b967e0e2cf72c3d91efb2beab1f35d782b6880855b",
+      "exact_join_guided_cycle_fraction": 0.5059938566189989,
+      "windows_with_guided_intervals": 2583,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 178,
+      "cycle_aligned_windows": 2405,
+      "cycle_aligned_multi_interval_windows": 1173,
+      "windows_matching_exported_rounding": 2405,
+      "guided_cycles_in_cycle_aligned_windows": 3204235355,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9226312018547934,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.984262028250868e-08,
+        "processing": 9.996198439311821e-08,
+        "discarded": 9.980976600765246e-08,
+        "delivery": 9.982786819406897e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-hot": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "907f28a991ddc7136670208de792f70cae3b97c291846231b447bbfd714c54c6",
+      "metric_xml_sha256": "8c097403a76a96d20f98b84160be786051dbdffebec87a2386453f70d75c57da",
+      "exact_join_guided_cycle_fraction": 0.8902054384775867,
+      "windows_with_guided_intervals": 2082,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 95,
+      "cycle_aligned_windows": 1987,
+      "cycle_aligned_multi_interval_windows": 179,
+      "windows_matching_exported_rounding": 1987,
+      "guided_cycles_in_cycle_aligned_windows": 6310047472,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.953490032417574,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.996823369107233e-08,
+        "processing": 9.986728780694215e-08,
+        "discarded": 4.855199575715119e-09,
+        "delivery": 9.996470916665001e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-large": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "bc00a0e0cb388d251b2bbd068c30246cc96a666e927e48f0f933d76f53811c8c",
+      "metric_xml_sha256": "7109ad23e278989bf6cab7db614d34aad0a2ec4b57c447454751c563a7d7cd84",
+      "exact_join_guided_cycle_fraction": 0.8957137499513551,
+      "windows_with_guided_intervals": 1899,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 66,
+      "cycle_aligned_windows": 1833,
+      "cycle_aligned_multi_interval_windows": 167,
+      "windows_matching_exported_rounding": 1833,
+      "guided_cycles_in_cycle_aligned_windows": 5821765016,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9647264063607613,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.994903793497656e-08,
+        "processing": 9.999912515558047e-08,
+        "discarded": 3.2456379250866974e-08,
+        "delivery": 9.995719807420755e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-large": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "1e4ac2ead1586fea17f7f08fd9ed904afdfbbe6c358bcf4eff6b66980c6f0a79",
+      "metric_xml_sha256": "21a56c436827009120f5e1e1d8d868a6f5580cf344df09388eee359251bf8f7b",
+      "exact_join_guided_cycle_fraction": 0.49575153631685415,
+      "windows_with_guided_intervals": 4215,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 550,
+      "cycle_aligned_windows": 3665,
+      "cycle_aligned_multi_interval_windows": 1792,
+      "windows_matching_exported_rounding": 3665,
+      "guided_cycles_in_cycle_aligned_windows": 5440655984,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8659175633813446,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.993396110630215e-08,
+        "processing": 9.997285600102628e-08,
+        "discarded": 7.604819551865205e-08,
+        "delivery": 9.995975158716419e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-hot": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "bf54c09767963ca48f8c55b1b89745d2885cef6f01a1f1ff93834e41e1c8c1ec",
+      "metric_xml_sha256": "7c8d3413730148015bf9997b624432deab33e4d589da50bafb1492ca19057d0b",
+      "exact_join_guided_cycle_fraction": 0.4909323040124681,
+      "windows_with_guided_intervals": 8568,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 1130,
+      "cycle_aligned_windows": 7438,
+      "cycle_aligned_multi_interval_windows": 3634,
+      "windows_matching_exported_rounding": 7437,
+      "guided_cycles_in_cycle_aligned_windows": 11388678804,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8609870112843224,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.998513128550712e-08,
+        "processing": 9.995906991402178e-08,
+        "discarded": 0.7097168525866554,
+        "delivery": 0.7097169540217885
+      },
+      "matches_exported_rounding": false,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-branch-nop": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "6e0d1c2eec53ac8cd3376d04c156c6d27f7ba3a953b67e8e4db2482ee916f9ff",
+      "metric_xml_sha256": "4b82503ee91999f88d07ab87e93d34ac67c1b85f64d1f33ffa560f840984e192",
+      "exact_join_guided_cycle_fraction": 0.8943442946783021,
+      "windows_with_guided_intervals": 2870,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 88,
+      "cycle_aligned_windows": 2782,
+      "cycle_aligned_multi_interval_windows": 263,
+      "windows_matching_exported_rounding": 2782,
+      "guided_cycles_in_cycle_aligned_windows": 8840249351,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9691761956607474,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.999437944330225e-08,
+        "processing": 9.99093952129898e-08,
+        "discarded": 1.6129031443767872e-08,
+        "delivery": 9.99998639450439e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-branch-nop": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "f1a9822a83c4d17bd3455bd4704c48a0b20eb8b103d70537bebda12403bfab43",
+      "metric_xml_sha256": "cac22e347b6821afec01b589ba641de2ebc21a48fb05df3b17e2548b1ff06fd6",
+      "exact_join_guided_cycle_fraction": 0.4937430778057315,
+      "windows_with_guided_intervals": 3558,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 450,
+      "cycle_aligned_windows": 3108,
+      "cycle_aligned_multi_interval_windows": 1515,
+      "windows_matching_exported_rounding": 3107,
+      "guided_cycles_in_cycle_aligned_windows": 4617530799,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8627029226844591,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.98948701536051e-08,
+        "processing": 9.989871219789916e-08,
+        "discarded": 3.9689604300236354,
+        "delivery": 3.9689604812830073
+      },
+      "matches_exported_rounding": false,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-branch-nop8": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "c6c0c6bcc6bf5a72e7edb819c1a97e4f033df4d9a0ebb426f18b91c952a87ab6",
+      "metric_xml_sha256": "ae330c2575f1bd1657d103648c926597f6ec4fc6926a69f961d106922aefb6ea",
+      "exact_join_guided_cycle_fraction": 0.8923716473658821,
+      "windows_with_guided_intervals": 2119,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 66,
+      "cycle_aligned_windows": 2053,
+      "cycle_aligned_multi_interval_windows": 190,
+      "windows_matching_exported_rounding": 2053,
+      "guided_cycles_in_cycle_aligned_windows": 6522734212,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9676654965524253,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.998632755081616e-08,
+        "processing": 9.996289480492458e-08,
+        "discarded": 9.990885341260025e-08,
+        "delivery": 9.989488125583534e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-branch-nop16": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "86db5d4b202c589693a941836adce9ccb8c5ad6f3e549848ccb5531dac89f696",
+      "metric_xml_sha256": "7f4f7eaa93326a2b6dcfdf3b56a2bfd7675cb3e0e7b2e43cdeb833f7cb880c21",
+      "exact_join_guided_cycle_fraction": 0.8921241959611081,
+      "windows_with_guided_intervals": 2186,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 71,
+      "cycle_aligned_windows": 2115,
+      "cycle_aligned_multi_interval_windows": 195,
+      "windows_matching_exported_rounding": 2115,
+      "guided_cycles_in_cycle_aligned_windows": 6721642263,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9672010009124027,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.998497862984124e-08,
+        "processing": 9.987509795550512e-08,
+        "discarded": 9.999709948971258e-08,
+        "delivery": 9.998458727622506e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "p-simd": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "43077b92263c723160623574a818c2be211335e8eb6f4b2a7279051b00dfb238",
+      "metric_xml_sha256": "df2e065ad0eba83f56254b01c46d8817d835e6d32dda1f74eb65965d8c408dc4",
+      "exact_join_guided_cycle_fraction": 0.8946759118704286,
+      "windows_with_guided_intervals": 941,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 22,
+      "cycle_aligned_windows": 919,
+      "cycle_aligned_multi_interval_windows": 88,
+      "windows_matching_exported_rounding": 919,
+      "guided_cycles_in_cycle_aligned_windows": 2919934887,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9726401632969207,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.957514812697355e-08,
+        "processing": 9.977668691263375e-08,
+        "discarded": 9.976294095669503e-08,
+        "delivery": 9.992910038698202e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e-simd": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "f356c84aaa921bc6f80ba93d281264a75925c0f08c9ede97cee283546d3eec1b",
+      "metric_xml_sha256": "e22df042a835c94f687599e9e7e3e832b5297d3b772a57cb124dde31c713c1e4",
+      "exact_join_guided_cycle_fraction": 0.5019354774236663,
+      "windows_with_guided_intervals": 1441,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 94,
+      "cycle_aligned_windows": 1347,
+      "cycle_aligned_multi_interval_windows": 660,
+      "windows_matching_exported_rounding": 1347,
+      "guided_cycles_in_cycle_aligned_windows": 1844172819,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.9196309465919748,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.985817728264124e-08,
+        "processing": 9.993921246120863e-08,
+        "discarded": 9.992772608220844e-08,
+        "delivery": 9.993921280586633e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    }
+  },
+  "summary": {
+    "P": {
+      "capture_count": 9,
+      "cycle_aligned_windows": 21681,
+      "cycle_aligned_multi_interval_windows": 1997,
+      "windows_matching_exported_rounding": 21681,
+      "guided_cycle_fraction_range": [
+        0.953490032417574,
+        0.9781124811661077
+      ],
+      "exact_join_guided_cycle_fraction_range": [
+        0.8902054384775867,
+        0.8978540583529449
+      ],
+      "cycle_mismatch_windows": 711
+    },
+    "E": {
+      "capture_count": 7,
+      "cycle_aligned_windows": 31378,
+      "cycle_aligned_multi_interval_windows": 15168,
+      "windows_matching_exported_rounding": 31376,
+      "guided_cycle_fraction_range": [
+        0.8609870112843224,
+        0.9226312018547934
+      ],
+      "exact_join_guided_cycle_fraction_range": [
+        0.4909323040124681,
+        0.5059938566189989
+      ],
+      "cycle_mismatch_windows": 4133
+    }
+  },
+  "exceptions": [
+    {
+      "capture": "e-hot",
+      "core": 1,
+      "raw_window_end_ns": 650963208,
+      "guided_interval_cycles": [
+        63827,
+        847311
+      ],
+      "candidate_discarded": 0,
+      "guided_weighted_discarded": 0.0070971685258665535,
+      "reason": "The positive Discarded share in one guided subinterval is hidden when raw events are summed before the nonnegative clamp."
+    },
+    {
+      "capture": "e-branch-nop",
+      "core": 0,
+      "raw_window_end_ns": 658051791,
+      "guided_interval_cycles": [
+        172083,
+        311526
+      ],
+      "candidate_discarded": 0,
+      "guided_weighted_discarded": 0.03968960430023635,
+      "reason": "The positive Discarded share in one guided subinterval is hidden when raw events are summed before the nonnegative clamp."
+    }
+  ],
+  "independent_divide_control": {
+    "p": {
+      "counter_xml_sha256": "1f1115c4a867723e4d5ad57ebbbf85e247d1b2cd3b3cf5501a1e113bfad1fc24",
+      "metric_xml_sha256": "4025d02ef662759765e08ed82a2945b9a5bcf4a9e5e729544255c0308c63bfa7",
+      "exact_join_guided_cycle_fraction": 0.8379000358056196,
+      "windows_with_guided_intervals": 756,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 115,
+      "cycle_aligned_windows": 641,
+      "cycle_aligned_multi_interval_windows": 56,
+      "windows_matching_exported_rounding": 641,
+      "guided_cycles_in_cycle_aligned_windows": 2027520537,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.8449436497660091,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.994551575243094e-08,
+        "processing": 9.971319325785544e-08,
+        "discarded": 9.994693532713449e-08,
+        "delivery": 9.995836598517338e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    },
+    "e": {
+      "counter_xml_sha256": "9701a34462fdcac2420cf7efcbd52a09fc0971eb52a80fbd04e832a92905b548",
+      "metric_xml_sha256": "6a8846b8e2d45a45c0d91e22bdd7627f3decf43224bf8e5373b04d72250ee1fd",
+      "exact_join_guided_cycle_fraction": 0.4808320045309834,
+      "windows_with_guided_intervals": 2650,
+      "windows_with_boundary_straddle": 0,
+      "windows_with_cycle_mismatch": 604,
+      "cycle_aligned_windows": 2046,
+      "cycle_aligned_multi_interval_windows": 975,
+      "windows_matching_exported_rounding": 2046,
+      "guided_cycles_in_cycle_aligned_windows": 3350183063,
+      "guided_cycle_fraction_in_cycle_aligned_windows": 0.7500146156988368,
+      "max_absolute_difference_percentage_points": {
+        "useful": 9.996605626616528e-08,
+        "processing": 9.989655769260253e-08,
+        "discarded": 9.995318105298127e-08,
+        "delivery": 9.978644514735932e-08
+      },
+      "matches_exported_rounding": true,
+      "windows_with_overlapping_guided_intervals": 0
+    }
+  },
+  "mixed_core_control": {
+    "counter_xml_sha256": "43e86387390677cccc89fde15e459b47d9a3bbe1fef08bd923bdcca9e0daa176",
+    "metric_xml_sha256": "315d6e9da2dee0272886f095808c8b915bfe1eaafaf9b23e9b88cd42050c99ad",
+    "exact_join_guided_cycle_fraction": 0.816719065482323,
+    "windows_with_guided_intervals": 3545,
+    "windows_with_boundary_straddle": 0,
+    "windows_with_overlapping_guided_intervals": 0,
+    "windows_with_cycle_mismatch": 183,
+    "cycle_aligned_windows": 3362,
+    "cycle_aligned_multi_interval_windows": 819,
+    "windows_matching_exported_rounding": 3362,
+    "guided_cycles_in_cycle_aligned_windows": 8075483015,
+    "guided_cycle_fraction_in_cycle_aligned_windows": 0.9518501503952568,
+    "max_absolute_difference_percentage_points": {
+      "useful": 9.999694405848913e-08,
+      "processing": 9.998741556938029e-08,
+      "discarded": 9.999325726965918e-08,
+      "delivery": 9.998790684306869e-08
+    },
+    "matches_exported_rounding": true,
+    "core_kind_validation": {
+      "guided_threads_observed_on_both_core_kinds": 2,
+      "exact_joins": {
+        "E": {
+          "guided_intervals": 2320,
+          "guided_cycles": 1638768517,
+          "matched_intervals": 759,
+          "matched_guided_cycles": 824460461,
+          "matched_guided_cycle_fraction": 0.5030975714064196
+        },
+        "P": {
+          "guided_intervals": 2437,
+          "guided_cycles": 6845217131,
+          "matched_intervals": 1962,
+          "matched_guided_cycles": 6104572369,
+          "matched_guided_cycle_fraction": 0.8918011294856032
+        }
+      },
+      "cycle_aligned_windows": {
+        "E": {
+          "guided_cycles": 1638768517,
+          "guided_cycles_in_cycle_aligned_windows": 1471138121,
+          "guided_cycle_fraction_in_cycle_aligned_windows": 0.8977095335545795,
+          "cycle_aligned_windows": 1287,
+          "windows_matching_exported_rounding": 1287
+        },
+        "P": {
+          "guided_cycles": 6845217131,
+          "guided_cycles_in_cycle_aligned_windows": 6604344894,
+          "guided_cycle_fraction_in_cycle_aligned_windows": 0.9648116002180326,
+          "cycle_aligned_windows": 2075,
+          "windows_matching_exported_rounding": 2075
+        }
+      },
+      "guided_core_kind_transitions_observed": 12,
+      "alternative_width_useful_error_by_core_kind": {
+        "E": {
+          "assumed_width": 8,
+          "matched_intervals": 759,
+          "median_absolute_difference_percentage_points": 7.128459340662455,
+          "minimum_absolute_difference_percentage_points": 6.714119942841842
+        },
+        "P": {
+          "assumed_width": 4,
+          "matched_intervals": 1962,
+          "median_absolute_difference_percentage_points": 83.33230676454055,
+          "minimum_absolute_difference_percentage_points": 1.031976788372093
+        }
+      }
+    }
+  }
+}

@@ -165,7 +165,7 @@ def test_invalid_worker_payload_is_never_a_success(tmp_path, native_host, change
     assert (tmp_path / "out/ioreport.stdout").exists()
 
 
-@pytest.mark.parametrize("duration", [0, -1, 301, float("inf"), float("nan")])
+@pytest.mark.parametrize("duration", [0, -1, 301, True, False, "1", 10**1000, 1e100, float("inf"), float("nan")])
 def test_invalid_interval_never_creates_output(tmp_path, native_host, duration):
     with pytest.raises(AppleProfileError, match="duration"):
         sample_soc(tmp_path / "out", duration)

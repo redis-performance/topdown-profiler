@@ -134,6 +134,50 @@ class SQLiteBackend(SqlNodeQueries, StorageBackend):
         row = self._get_conn().execute("SELECT document FROM apple_results WHERE run_id = ?", (run_id,)).fetchone()
         return json.loads(row["document"]) if row else None
 
+    def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
+                              offset: int = 0, limit: int = 100) -> dict | None:
+        params = {"run_id": run_id, "path": "$.result." + section if section is not None else None,
+                  "offset": min(offset, 2**63 - 1), "end": min(offset + limit, 2**63 - 1)}
+        paths = []
+        for index, field in enumerate(omit_fields):
+            name = f"omit{index}"
+            paths.append(":" + name)
+            params[name] = "$.result." + field
+        projection = "json_remove(a.document, " + ", ".join(paths) + ")" if paths else "a.document"
+        try:
+            row = self._get_conn().execute(f"""
+                SELECT {projection} AS document,
+                       json_type(a.document, :path) AS section_type,
+                       json_array_length(a.document, :path) AS total,
+                       CASE WHEN json_type(a.document, :path) = 'array' THEN
+                           CASE WHEN EXISTS (
+                               SELECT 1 FROM json_each(a.document, :path)
+                               WHERE key >= :offset AND key < :end AND type NOT IN ('object', 'array')
+                           ) THEN json_object('full', json_extract(a.document, :path))
+                           ELSE json_object('rows', json('[' || COALESCE((
+                               SELECT group_concat(value, ',') FROM (
+                                   SELECT value FROM json_each(a.document, :path)
+                                   WHERE key >= :offset AND key < :end ORDER BY key
+                               )
+                           ), '') || ']')) END
+                       END AS page
+                FROM apple_results a WHERE a.run_id = :run_id
+            """, params).fetchone()
+        except sqlite3.OperationalError as exc:
+            if "no such function" not in str(exc):
+                raise
+            return super().get_apple_result_page(run_id, omit_fields, section, offset, limit)
+        if row is None:
+            return None
+        document = json.loads(row["document"])
+        rows = None
+        if row["section_type"] == "array":
+            page = json.loads(row["page"])
+            # json_each coerces scalar uint64 values to REAL; extract their array text intact instead.
+            rows = page["full"][offset:offset + limit] if "full" in page else page["rows"]
+        return {"metadata": document["metadata"], "result": document["result"], "rows": rows,
+                "total": row["total"] if rows is not None else None}
+
     def list_runs(
         self,
         process_name: str | None = None,

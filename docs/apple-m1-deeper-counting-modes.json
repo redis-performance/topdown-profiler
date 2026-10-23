@@ -1,0 +1,206 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "method": "Select each counting mode advertised by the M1 CPU Counters trace, export MetricTable, and verify target completion, expected named integer events, is-ratio=0, complete same-scope rows, and no overlapping intervals per thread/core. Sum integer values only over complete primary P-core intervals. Repeat workload directly to confirm its deterministic stdout.",
+  "captures": {
+    "discarded": {
+      "counting_mode": "discarded_sampling",
+      "target_command": [
+        "/private/tmp/apple-m1-controls-xcode271",
+        "branch_random",
+        "500000000"
+      ],
+      "target_pid": 34421,
+      "target_exit_status": 0,
+      "target_stdout": "6923268303682308596",
+      "repeated_direct_stdout_matches": true,
+      "recording_options": {
+        "CPU Counters": {
+          "allEventsAndFormulas": [],
+          "configurationType": {
+            "guided": {}
+          },
+          "countingLevel": "EL0",
+          "pmiEventAliasOrMnemonic": "",
+          "pmiThreshold": 1000000,
+          "processBucketSize": 10,
+          "sampleByTime": true,
+          "selectedCountingMode": {
+            "analysisMode": "bottleneck",
+            "countingMode": "discarded_sampling"
+          },
+          "selectedCountingModeDisplayName": "Discarded Sampling",
+          "useDebuggingInformation": false,
+          "useHighFrequencyForGuidedMode": false,
+          "useHighFrequencyForManualMode": false
+        },
+        "Points of Interest": {
+          "excludeOSLogs": false
+        },
+        "Time Profiler": {
+          "contextSwitchSampling": false,
+          "highFrequencySampling": false,
+          "recordKernelStacks": false,
+          "recordWaitingThreads": false
+        }
+      },
+      "recording_options_sha256": "10c1f9e3347e752c336ac572a4ac1cd64166405bb980bb381f9721354696c8ac",
+      "binary_sha256": "9991733de73a6129db8480400f97f8cf6bb69aae3bfcd20897465ea6ff60fce0",
+      "toc_sha256": "2087423ae49e53932dcff87dca3c9cec55724047b35c7cd95b34e4df99ea4cb8",
+      "metric_xml_sha256": "cc45dc36ebfe6a49b4b438e34dffc203faa48e7a7eea08bcf3d8364b40c03e6e",
+      "event_names": [
+        "cycle",
+        "discarded_branch",
+        "discarded_cond_branch",
+        "discarded_memory",
+        "discarded_other_branch"
+      ],
+      "all_events_are_integer_counts": true,
+      "ratio_flag_all_zero": true,
+      "complete_primary_p_core_intervals": 3380,
+      "all_complete_intervals": 3726,
+      "overlapping_same_thread_core_intervals": 0,
+      "sampled_primary_p_core_totals": {
+        "cycle": 6935261060,
+        "discarded_branch": 249573259,
+        "discarded_cond_branch": 249572215,
+        "discarded_memory": 95,
+        "discarded_other_branch": 1044
+      },
+      "branch_subcount_equality_intervals": 3380
+    },
+    "discarded_indirect": {
+      "counting_mode": "discarded_indirect_sampling",
+      "target_command": [
+        "/private/tmp/apple-m1-controls-xcode271",
+        "branch_random",
+        "500000000"
+      ],
+      "target_pid": 34628,
+      "target_exit_status": 0,
+      "target_stdout": "6923268303682308596",
+      "repeated_direct_stdout_matches": true,
+      "recording_options": {
+        "CPU Counters": {
+          "allEventsAndFormulas": [],
+          "configurationType": {
+            "guided": {}
+          },
+          "countingLevel": "EL0",
+          "pmiEventAliasOrMnemonic": "",
+          "pmiThreshold": 1000000,
+          "processBucketSize": 10,
+          "sampleByTime": true,
+          "selectedCountingMode": {
+            "analysisMode": "bottleneck",
+            "countingMode": "discarded_indirect_sampling"
+          },
+          "selectedCountingModeDisplayName": "Discarded Indirect Sampling",
+          "useDebuggingInformation": false,
+          "useHighFrequencyForGuidedMode": false,
+          "useHighFrequencyForManualMode": false
+        },
+        "Points of Interest": {
+          "excludeOSLogs": false
+        },
+        "Time Profiler": {
+          "contextSwitchSampling": false,
+          "highFrequencySampling": false,
+          "recordKernelStacks": false,
+          "recordWaitingThreads": false
+        }
+      },
+      "recording_options_sha256": "4650c08760d96c09469fc55bd254c826018ed1811711f8fe7a8f5cd533c4d7f5",
+      "binary_sha256": "9991733de73a6129db8480400f97f8cf6bb69aae3bfcd20897465ea6ff60fce0",
+      "toc_sha256": "7fbab0b06c45b495df79010f5de501c6d29cfcc6202b96a233f6403b4619460e",
+      "metric_xml_sha256": "8424862445a250c3b703c67099fe41cab5c40b702af3193c92b4bca6e66a0150",
+      "event_names": [
+        "cycle",
+        "discarded_call",
+        "discarded_indirect_branch",
+        "discarded_return"
+      ],
+      "all_events_are_integer_counts": true,
+      "ratio_flag_all_zero": true,
+      "complete_primary_p_core_intervals": 3189,
+      "all_complete_intervals": 3524,
+      "overlapping_same_thread_core_intervals": 0,
+      "sampled_primary_p_core_totals": {
+        "cycle": 6933855372,
+        "discarded_call": 495,
+        "discarded_indirect_branch": 1026,
+        "discarded_return": 137
+      },
+      "branch_subcount_equality_intervals": 3185
+    },
+    "l1d": {
+      "counting_mode": "l1d_miss_sampling",
+      "target_command": [
+        "/private/tmp/apple-m1-controls-xcode271",
+        "memory",
+        "70000000",
+        "8388608"
+      ],
+      "target_pid": 34526,
+      "target_exit_status": 0,
+      "target_stdout": "6691501",
+      "repeated_direct_stdout_matches": true,
+      "recording_options": {
+        "CPU Counters": {
+          "allEventsAndFormulas": [],
+          "configurationType": {
+            "guided": {}
+          },
+          "countingLevel": "EL0",
+          "pmiEventAliasOrMnemonic": "",
+          "pmiThreshold": 1000000,
+          "processBucketSize": 10,
+          "sampleByTime": true,
+          "selectedCountingMode": {
+            "analysisMode": "bottleneck",
+            "countingMode": "l1d_miss_sampling"
+          },
+          "selectedCountingModeDisplayName": "L1D Miss Sampling",
+          "useDebuggingInformation": false,
+          "useHighFrequencyForGuidedMode": false,
+          "useHighFrequencyForManualMode": false
+        },
+        "Points of Interest": {
+          "excludeOSLogs": false
+        },
+        "Time Profiler": {
+          "contextSwitchSampling": false,
+          "highFrequencySampling": false,
+          "recordKernelStacks": false,
+          "recordWaitingThreads": false
+        }
+      },
+      "recording_options_sha256": "9cd535dfb099d32d90e2938ea898e6d1b567186811adf7a5f414a3553c75fea6",
+      "binary_sha256": "9991733de73a6129db8480400f97f8cf6bb69aae3bfcd20897465ea6ff60fce0",
+      "toc_sha256": "868a618da3405e91538624064ffc96b84e32f846ed16e56db4e860a2b310bc54",
+      "metric_xml_sha256": "392210799edb9efa64a6b57bafacb6aaa2b8c28baf9433a17124c82046808be1",
+      "event_names": [
+        "cycle",
+        "l1d_load_miss",
+        "l1d_store_miss",
+        "l1d_tlb_miss"
+      ],
+      "all_events_are_integer_counts": true,
+      "ratio_flag_all_zero": true,
+      "complete_primary_p_core_intervals": 6130,
+      "all_complete_intervals": 6454,
+      "overlapping_same_thread_core_intervals": 0,
+      "sampled_primary_p_core_totals": {
+        "cycle": 15633206750,
+        "l1d_load_miss": 76167883,
+        "l1d_store_miss": 18141988,
+        "l1d_tlb_miss": 76900813
+      }
+    }
+  },
+  "interpretation": "The modes provide diagnostic event counts, not percentage children of Apple CPU Bottlenecks. On random branches, discarded_branch equals discarded_cond_branch plus discarded_other_branch in every sampled P-core interval; discarded_indirect_branch equals discarded_call plus discarded_return in 3185/3189 intervals and should not be treated as an exact partition. L1D mode reports load, store and TLB miss counts on the pointer-chase control. These sums cover sampled intervals, not a whole-run census or Intel slot-TMA shares."
+}

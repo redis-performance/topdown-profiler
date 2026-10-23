@@ -397,7 +397,8 @@ def query(
             if json_output or csv_output:
                 emit_note(f"Native Apple results require 'topdown apple query {run.run_id}'; Linux TMA output is unavailable.")
                 raise typer.Exit(1)
-            console.print(f"Native Apple result. Use 'topdown apple query {run.run_id}' or 'topdown apple report --run-id {run.run_id}'.")
+            report_command = 'gpu report' if run.labels.get('processor') == 'gpu' else 'report'
+            console.print(f"Native Apple result. Use 'topdown apple query {run.run_id}' or 'topdown apple {report_command} --run-id {run.run_id}'.")
             return
         metrics = backend.get_aggregated_metrics(run.run_id)
         if not metrics:
@@ -521,7 +522,7 @@ def compare(
             if json_output:
                 emit_note("Native Apple results require 'topdown apple query'; Linux TMA comparisons are unavailable.")
                 raise typer.Exit(1)
-            console.print("Native Apple results require 'topdown apple query' or 'topdown apple report'; Linux TMA comparisons are unavailable.")
+            console.print("Native Apple results require 'topdown apple query', 'topdown apple report' or 'topdown apple gpu report'; Linux TMA comparisons are unavailable.")
             return
         metrics_a = backend.get_aggregated_metrics(found_a.run_id)
         metrics_b = backend.get_aggregated_metrics(found_b.run_id)

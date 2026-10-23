@@ -1,0 +1,262 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-23"
+  },
+  "control": {
+    "command": [
+      "apple-m1-controls",
+      "branch_random",
+      "700000000"
+    ],
+    "binary_sha256": "68d7ef4c239bc8e46d6545aac6d9358aeaaec834458a5a818c22b0ad52d20a7b",
+    "source_sha256": "4258df5c18adeccd13f2353e5b750800469c8e499f97e7a05e8aa4dc7e7950bd"
+  },
+  "permutation": "Swapped RETIRE_UOP with MAP_DISPATCH_BUBBLE, or CORE_ACTIVE_CYCLE with MAP_INT_UOP, in custom package requested pmc-events; all other requested events and workload arguments were unchanged.",
+  "measurements": [
+    {
+      "configuration": "standalone_original",
+      "custom_package_sha256": "92f55cbf1a63b0fd151da5a66b4e0bffd149fd2d44f2a96a62c932e60baf530c",
+      "toc_sha256": "20f2d446d2a337d0395796426e19a5f2e79646201c8620af098368710471dd68",
+      "counter_xml_sha256": "dda1c7cafa52a3c5eb57a1bedb57433c23a7ff0b0c1968e509bccff695436a31",
+      "requested_pmc_events": "\"FIXED_CYCLES\" \"FIXED_INSTRUCTIONS\" \"RETIRE_UOP\" \"MAP_DISPATCH_BUBBLE\" \"MAP_STALL\" \"MAP_REWIND\" \"MAP_STALL_DISPATCH\" \"MAP_INT_UOP\" \"MAP_LDST_UOP\" \"MAP_SIMD_UOP\"",
+      "target_exit_status": 0,
+      "samples_with_counter_vector": 3119,
+      "native_vector_sums": [
+        8848994106,
+        5436606116,
+        5404317430,
+        2657497539,
+        507062,
+        1413496797,
+        222006,
+        18691775690,
+        1938531,
+        305508
+      ],
+      "native_vector_per_billion_fixed_cycles": [
+        1000000000,
+        614375606,
+        610726752,
+        300316342,
+        57302,
+        159735308,
+        25088,
+        2112305135,
+        219068,
+        34525
+      ]
+    },
+    {
+      "configuration": "standalone_swapped",
+      "custom_package_sha256": "f45cd5c8f53a81c32e7f39ef478d7c215205aa10698286ac44967b4592012c2d",
+      "toc_sha256": "f4d6af6d5dcacbf96dbb15dc897130c74639ac8480a3c839100e4b3924edc583",
+      "counter_xml_sha256": "f4f4a8707832aee707542de91a795eaa4f99a2d73f612b064771e2c93f5fdc1e",
+      "requested_pmc_events": "\"FIXED_CYCLES\" \"FIXED_INSTRUCTIONS\" \"MAP_DISPATCH_BUBBLE\" \"RETIRE_UOP\" \"MAP_STALL\" \"MAP_REWIND\" \"MAP_STALL_DISPATCH\" \"MAP_INT_UOP\" \"MAP_LDST_UOP\" \"MAP_SIMD_UOP\"",
+      "target_exit_status": 0,
+      "samples_with_counter_vector": 3093,
+      "native_vector_sums": [
+        8834268245,
+        5429380342,
+        2656298849,
+        5401845404,
+        444796,
+        1413127289,
+        192559,
+        18685896518,
+        1657587,
+        352635
+      ],
+      "native_vector_per_billion_fixed_cycles": [
+        1000000000,
+        614581784,
+        300681253,
+        611464952,
+        50349,
+        159959744,
+        21797,
+        2115160645,
+        187631,
+        39917
+      ]
+    },
+    {
+      "configuration": "guided_original",
+      "custom_package_sha256": "a6ad90fa51be3e6ce8dab9086ef63fbfe1f5f1974375d42ace4f3bccd687d99b",
+      "toc_sha256": "033e95f5f189a91a2bdf8780734f2f87c712205232cfc44c49ba3eae5f13eb3b",
+      "counter_xml_sha256": "7e0f632e4ddc84ce77b2bae5b6c666b8028f2a7aeffe24832df31192e9c2de25",
+      "requested_pmc_events": "\"FIXED_CYCLES\" \"FIXED_INSTRUCTIONS\" \"RETIRE_UOP\" \"MAP_DISPATCH_BUBBLE\" \"MAP_STALL\" \"MAP_REWIND\" \"CORE_ACTIVE_CYCLE\" \"MAP_INT_UOP\" \"MAP_LDST_UOP\" \"MAP_SIMD_UOP\"",
+      "target_exit_status": 0,
+      "samples_with_counter_vector": 3095,
+      "native_vector_sums": [
+        8893695127,
+        5480334025,
+        8877579002,
+        1421851210,
+        898325,
+        18797768687,
+        2145198,
+        5436074946,
+        386336,
+        2675248615,
+        0,
+        0
+      ],
+      "native_vector_per_billion_fixed_cycles": [
+        1000000000,
+        616204395,
+        998187916,
+        159871818,
+        101007,
+        2113606147,
+        241204,
+        611227939,
+        43439,
+        300802825,
+        0,
+        0
+      ],
+      "metric_xml_sha256": "a43818e06d0a3e8196b2e7ed1121fac8591c57114642df3b1a2887661680c42b",
+      "guided_formula_check": {
+        "raw_samples_with_active_cycles": 3086,
+        "matched_intervals": 2875,
+        "unmatched_raw_samples": 211,
+        "guided_intervals": 4855,
+        "unmatched_guided_intervals": 1980,
+        "matched_guided_cycle_fraction": 0.8455134796887716,
+        "max_absolute_difference_percentage_points": {
+          "useful": 9.997620925572548e-08,
+          "processing": 9.995101602728131e-08,
+          "discarded": 9.999475691913062e-08,
+          "delivery": 9.994868266360868e-08
+        },
+        "matches_exported_rounding": true
+      }
+    },
+    {
+      "configuration": "guided_swapped",
+      "custom_package_sha256": "27c0a65ec1af0175a27c24f51a9b25afda6f3a17dd975f5bd4b01f51863b4944",
+      "toc_sha256": "b70f83a0fda79dca49a54c7efbdc9e92b7c86abb8a339bd927764b4baa120249",
+      "counter_xml_sha256": "4c3876fe4535665eeed201fb43fb852be777f6555f149fdb46ad960f4c5eabc3",
+      "requested_pmc_events": "\"FIXED_CYCLES\" \"FIXED_INSTRUCTIONS\" \"MAP_DISPATCH_BUBBLE\" \"RETIRE_UOP\" \"MAP_STALL\" \"MAP_REWIND\" \"CORE_ACTIVE_CYCLE\" \"MAP_INT_UOP\" \"MAP_LDST_UOP\" \"MAP_SIMD_UOP\"",
+      "target_exit_status": 0,
+      "samples_with_counter_vector": 3084,
+      "native_vector_sums": [
+        8880881438,
+        5474107714,
+        8865020538,
+        1420044596,
+        456283,
+        18787598466,
+        2114815,
+        5429676185,
+        382431,
+        2667813678,
+        0,
+        0
+      ],
+      "native_vector_per_billion_fixed_cycles": [
+        1000000000,
+        616392388,
+        998214040,
+        159899060,
+        51378,
+        2115510560,
+        238131,
+        611389334,
+        43062,
+        300399650,
+        0,
+        0
+      ],
+      "metric_xml_sha256": "82f874c642dfd9f64901a69519294ffcca5682e48c2f8ac7b0c6508e570161e3",
+      "guided_formula_check": {
+        "raw_samples_with_active_cycles": 3076,
+        "matched_intervals": 2859,
+        "unmatched_raw_samples": 217,
+        "guided_intervals": 4646,
+        "unmatched_guided_intervals": 1787,
+        "matched_guided_cycle_fraction": 0.8424245979993015,
+        "max_absolute_difference_percentage_points": {
+          "useful": 9.988228855117853e-08,
+          "processing": 9.999138698025406e-08,
+          "discarded": 9.999812644601036e-08,
+          "delivery": 9.997757066670943e-08
+        },
+        "matches_exported_rounding": true
+      }
+    },
+    {
+      "configuration": "guided_active_int_swapped",
+      "custom_package_sha256": "14385065f54d16752bda333df3f89f2ce8cbd36453f717613912dd0d3ff9b6be",
+      "toc_sha256": "7d551952512b8f3f7d5a12f101970deb27f4dd9aefea19468869fb6d237ce86b",
+      "counter_xml_sha256": "3fa6adbfde6a90dc50670f21a4f4a8e3411331cf0386e083eb4b40fcbcffdcf6",
+      "requested_pmc_events": "\"FIXED_CYCLES\" \"FIXED_INSTRUCTIONS\" \"RETIRE_UOP\" \"MAP_DISPATCH_BUBBLE\" \"MAP_STALL\" \"MAP_REWIND\" \"MAP_INT_UOP\" \"CORE_ACTIVE_CYCLE\" \"MAP_LDST_UOP\" \"MAP_SIMD_UOP\"",
+      "target_exit_status": 0,
+      "samples_with_counter_vector": 3100,
+      "native_vector_sums": [
+        8801152183,
+        5423873600,
+        8785021100,
+        1407148760,
+        479432,
+        18601441796,
+        1879736,
+        5379889759,
+        364671,
+        2646738328,
+        0,
+        0
+      ],
+      "native_vector_per_billion_fixed_cycles": [
+        1000000000,
+        616268585,
+        998167162,
+        159882335,
+        54474,
+        2113523481,
+        213578,
+        611271075,
+        41434,
+        300726345,
+        0,
+        0
+      ],
+      "metric_xml_sha256": "b4710d3b1814f7a5fb01a2b1224fc1af2946fc35607d7f12cff7a77278424a20",
+      "guided_formula_check": {
+        "raw_samples_with_active_cycles": 3095,
+        "matched_intervals": 2882,
+        "unmatched_raw_samples": 213,
+        "guided_intervals": 4825,
+        "unmatched_guided_intervals": 1943,
+        "matched_guided_cycle_fraction": 0.8358731891159328,
+        "max_absolute_difference_percentage_points": {
+          "useful": 9.999792521808715e-08,
+          "processing": 9.99686905787806e-08,
+          "discarded": 9.999722716536041e-08,
+          "delivery": 9.998201155880793e-08
+        },
+        "matches_exported_rounding": true
+      }
+    }
+  ],
+  "rejected_configuration": {
+    "change": "Reverse the eight requested programmable events after the two fixed events.",
+    "custom_package_sha256": "c31e070cc7fc6b25c1498c24feddb9216af7d89761f31b366aad83cb5d2e4c24",
+    "kpep_plan_error": "KPEP rejected RETIRE_UOP: code=12, event_error=128",
+    "xctrace_error": "Error for event RETIRE_UOP: conflicting events",
+    "usable_counter_data": false
+  },
+  "interpretation": [
+    "Standalone custom package: vector positions 2 and 3 exchanged their workload-normalized signatures when the requested order was swapped.",
+    "Guided CPU Counters template plus custom package: both valid permutations changed TOC pmc-events metadata but did not exchange raw vector positions. All three guided captures reproduced the four Xcode ratios on matched intervals.",
+    "Requested pmc-events order in the trace TOC does not certify combined-template vector position labels. Other positions and event semantics remain inferred."
+  ],
+  "limitations": [
+    "These are one original and up to two permuted captures per collection mode, on one M1 host.",
+    "The exported vectors contain no per-position names. Matching signatures supports but does not independently certify native selector identity.",
+    "Guided interval formula checks apply only to matched sampled cycles and do not establish Intel slot TMA."
+  ]
+}

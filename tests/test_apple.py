@@ -191,7 +191,7 @@ def test_doctor_does_not_collect_or_change_settings():
          patch("subprocess.run", side_effect=fake) as mock:
         result = doctor()
     assert result["hardware_access"] == "unverified"
-    assert len(mock.call_args_list) == 6
+    assert len(mock.call_args_list) == 7
     assert all("record" not in call.args[0] and "-enable" not in call.args[0] for call in mock.call_args_list)
 
 

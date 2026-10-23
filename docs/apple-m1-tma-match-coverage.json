@@ -1,0 +1,389 @@
+{
+  "host": {
+    "cpu": "Apple M1",
+    "macos": "27.0.1",
+    "xcode": "27.1 (27A9275)",
+    "capture_date_utc": "2026-10-21"
+  },
+  "source": "docs/apple-m1-tma-calibration.json",
+  "method": "Recheck sixteen saved M1 same-trace controls with examples/apple-m1-validate-tma.py. Classify every valid guided interval without an exact raw join by whether a raw counter vector exists at its end time and thread/core; compare active-cycle counts only for equal scope. These categories diagnose join coverage, not hardware counter loss.",
+  "captures": {
+    "branch": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "de928d100a97aae48f8a0c496cbe58271e4f1edcf5404cf6554d7cad5ba57c3a",
+      "metric_xml_sha256": "fa411aded0a3bef095e3e2c37554ce512463183b29e0f061dc6813afd36fd148",
+      "raw_samples_with_active_cycles": 3055,
+      "matched_intervals": 2788,
+      "unmatched_raw_samples": 267,
+      "guided_intervals": 3473,
+      "unmatched_guided_intervals": 685,
+      "guided_sampled_cycles": 9724815612,
+      "matched_guided_cycles": 8683736624,
+      "matched_guided_cycle_fraction": 0.8929461462780484,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 267,
+        "no_raw_counter_sample_at_end_time": 418
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 387743419,
+        "no_raw_counter_sample_at_end_time": 653335569
+      },
+      "matches_exported_rounding": true
+    },
+    "alu": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "6b7fd024aa74aadd014c15d6e744a01653caed3f45f28d770e3dad1d41f84140",
+      "metric_xml_sha256": "6fe506681155982284aa889dc308124b0f32cd6bf05e76f5f26ad3f6810f3fb4",
+      "raw_samples_with_active_cycles": 2839,
+      "matched_intervals": 2589,
+      "unmatched_raw_samples": 250,
+      "guided_intervals": 3219,
+      "unmatched_guided_intervals": 630,
+      "guided_sampled_cycles": 9002833826,
+      "matched_guided_cycles": 8055118299,
+      "matched_guided_cycle_fraction": 0.8947314206485721,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 250,
+        "no_raw_counter_sample_at_end_time": 380
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 426040021,
+        "no_raw_counter_sample_at_end_time": 521675506
+      },
+      "matches_exported_rounding": true
+    },
+    "memory": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "9d3b976d5c20ec0546af6e13d3534dbab89cc060b4c957bd7de971829bfa8196",
+      "metric_xml_sha256": "07a6236f236ac0569c872120232f96ca6caea99dd2c84218eee41fc11b894021",
+      "raw_samples_with_active_cycles": 4416,
+      "matched_intervals": 4011,
+      "unmatched_raw_samples": 405,
+      "guided_intervals": 4944,
+      "unmatched_guided_intervals": 933,
+      "guided_sampled_cycles": 13988079751,
+      "matched_guided_cycles": 12559254173,
+      "matched_guided_cycle_fraction": 0.8978540583529449,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 400,
+        "no_raw_counter_sample_at_end_time": 533
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 633882751,
+        "no_raw_counter_sample_at_end_time": 794942827
+      },
+      "matches_exported_rounding": true
+    },
+    "e-alu": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "b5792f8392743f8290b326f8608c564f442e3bece5d78a860d0535b312968ada",
+      "metric_xml_sha256": "9eb415878d41239e7f41cbbdce8a2528c41edbfb3c63e967f900b99b75226e96",
+      "raw_samples_with_active_cycles": 4078,
+      "matched_intervals": 2257,
+      "unmatched_raw_samples": 1821,
+      "guided_intervals": 6979,
+      "unmatched_guided_intervals": 4722,
+      "guided_sampled_cycles": 6006056161,
+      "matched_guided_cycles": 2958891319,
+      "matched_guided_cycle_fraction": 0.4926512905779004,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 1816,
+        "no_raw_counter_sample_at_end_time": 2906
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 1230097057,
+        "no_raw_counter_sample_at_end_time": 1817067785
+      },
+      "matches_exported_rounding": true
+    },
+    "e-memory": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "36a7d52aae4bf8243e7f550ff9b8e90b20d1d15c6c08e6b163f9ff127097676d",
+      "metric_xml_sha256": "8fb606839dfdd62c77bc436c00d5a4514a8801966dd263bdaad97947e70ff2ca",
+      "raw_samples_with_active_cycles": 11085,
+      "matched_intervals": 6224,
+      "unmatched_raw_samples": 4861,
+      "guided_intervals": 18203,
+      "unmatched_guided_intervals": 11979,
+      "guided_sampled_cycles": 16569431298,
+      "matched_guided_cycles": 8364335585,
+      "matched_guided_cycle_fraction": 0.5048052304613261,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 4718,
+        "no_raw_counter_sample_at_end_time": 7261
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 3257047775,
+        "no_raw_counter_sample_at_end_time": 4948047938
+      },
+      "matches_exported_rounding": true
+    },
+    "e-branch": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "262a9d26e48384c110011b024ec997b69b602c8f848ecd66625cffb1ecfa13f4",
+      "metric_xml_sha256": "3f1d30a1e3d066b3bf4db5b967e0e2cf72c3d91efb2beab1f35d782b6880855b",
+      "raw_samples_with_active_cycles": 2589,
+      "matched_intervals": 1396,
+      "unmatched_raw_samples": 1193,
+      "guided_intervals": 4143,
+      "unmatched_guided_intervals": 2747,
+      "guided_sampled_cycles": 3472931924,
+      "matched_guided_cycles": 1757282218,
+      "matched_guided_cycle_fraction": 0.5059938566189989,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 1183,
+        "no_raw_counter_sample_at_end_time": 1564
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 832400841,
+        "no_raw_counter_sample_at_end_time": 883248865
+      },
+      "matches_exported_rounding": true
+    },
+    "p-hot": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "907f28a991ddc7136670208de792f70cae3b97c291846231b447bbfd714c54c6",
+      "metric_xml_sha256": "8c097403a76a96d20f98b84160be786051dbdffebec87a2386453f70d75c57da",
+      "raw_samples_with_active_cycles": 2086,
+      "matched_intervals": 1907,
+      "unmatched_raw_samples": 179,
+      "guided_intervals": 2404,
+      "unmatched_guided_intervals": 497,
+      "guided_sampled_cycles": 6617843142,
+      "matched_guided_cycles": 5891239956,
+      "matched_guided_cycle_fraction": 0.8902054384775867,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 179,
+        "no_raw_counter_sample_at_end_time": 318
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 286774068,
+        "no_raw_counter_sample_at_end_time": 439829118
+      },
+      "matches_exported_rounding": true
+    },
+    "p-large": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "bc00a0e0cb388d251b2bbd068c30246cc96a666e927e48f0f933d76f53811c8c",
+      "metric_xml_sha256": "7109ad23e278989bf6cab7db614d34aad0a2ec4b57c447454751c563a7d7cd84",
+      "raw_samples_with_active_cycles": 1903,
+      "matched_intervals": 1736,
+      "unmatched_raw_samples": 167,
+      "guided_intervals": 2165,
+      "unmatched_guided_intervals": 429,
+      "guided_sampled_cycles": 6034628033,
+      "matched_guided_cycles": 5405299305,
+      "matched_guided_cycle_fraction": 0.8957137499513551,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 167,
+        "no_raw_counter_sample_at_end_time": 262
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 284968768,
+        "no_raw_counter_sample_at_end_time": 344359960
+      },
+      "matches_exported_rounding": true
+    },
+    "e-large": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "1e4ac2ead1586fea17f7f08fd9ed904afdfbbe6c358bcf4eff6b66980c6f0a79",
+      "metric_xml_sha256": "21a56c436827009120f5e1e1d8d868a6f5580cf344df09388eee359251bf8f7b",
+      "raw_samples_with_active_cycles": 4221,
+      "matched_intervals": 2370,
+      "unmatched_raw_samples": 1851,
+      "guided_intervals": 7322,
+      "unmatched_guided_intervals": 4952,
+      "guided_sampled_cycles": 6283110788,
+      "matched_guided_cycles": 3114861826,
+      "matched_guided_cycle_fraction": 0.49575153631685415,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 1840,
+        "no_raw_counter_sample_at_end_time": 3112
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 1377284583,
+        "no_raw_counter_sample_at_end_time": 1790964379
+      },
+      "matches_exported_rounding": true
+    },
+    "e-hot": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "bf54c09767963ca48f8c55b1b89745d2885cef6f01a1f1ff93834e41e1c8c1ec",
+      "metric_xml_sha256": "7c8d3413730148015bf9997b624432deab33e4d589da50bafb1492ca19057d0b",
+      "raw_samples_with_active_cycles": 8573,
+      "matched_intervals": 4780,
+      "unmatched_raw_samples": 3793,
+      "guided_intervals": 14918,
+      "unmatched_guided_intervals": 10138,
+      "guided_sampled_cycles": 13227468771,
+      "matched_guided_cycles": 6493791720,
+      "matched_guided_cycle_fraction": 0.4909323040124681,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 3739,
+        "no_raw_counter_sample_at_end_time": 6399
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 2833987892,
+        "no_raw_counter_sample_at_end_time": 3899689159
+      },
+      "matches_exported_rounding": true
+    },
+    "p-branch-nop": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "6e0d1c2eec53ac8cd3376d04c156c6d27f7ba3a953b67e8e4db2482ee916f9ff",
+      "metric_xml_sha256": "4b82503ee91999f88d07ab87e93d34ac67c1b85f64d1f33ffa560f840984e192",
+      "raw_samples_with_active_cycles": 2875,
+      "matched_intervals": 2612,
+      "unmatched_raw_samples": 263,
+      "guided_intervals": 3255,
+      "unmatched_guided_intervals": 643,
+      "guided_sampled_cycles": 9121405778,
+      "matched_guided_cycles": 8157677217,
+      "matched_guided_cycle_fraction": 0.8943442946783021,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 263,
+        "no_raw_counter_sample_at_end_time": 380
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 423745525,
+        "no_raw_counter_sample_at_end_time": 539983036
+      },
+      "matches_exported_rounding": true
+    },
+    "e-branch-nop": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "f1a9822a83c4d17bd3455bd4704c48a0b20eb8b103d70537bebda12403bfab43",
+      "metric_xml_sha256": "cac22e347b6821afec01b589ba641de2ebc21a48fb05df3b17e2548b1ff06fd6",
+      "raw_samples_with_active_cycles": 3564,
+      "matched_intervals": 2003,
+      "unmatched_raw_samples": 1561,
+      "guided_intervals": 6238,
+      "unmatched_guided_intervals": 4235,
+      "guided_sampled_cycles": 5352399624,
+      "matched_guided_cycles": 2642710264,
+      "matched_guided_cycle_fraction": 0.4937430778057315,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 1547,
+        "no_raw_counter_sample_at_end_time": 2688
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 1112477530,
+        "no_raw_counter_sample_at_end_time": 1597211830
+      },
+      "matches_exported_rounding": true
+    },
+    "p-branch-nop8": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "c6c0c6bcc6bf5a72e7edb819c1a97e4f033df4d9a0ebb426f18b91c952a87ab6",
+      "metric_xml_sha256": "ae330c2575f1bd1657d103648c926597f6ec4fc6926a69f961d106922aefb6ea",
+      "raw_samples_with_active_cycles": 2124,
+      "matched_intervals": 1932,
+      "unmatched_raw_samples": 192,
+      "guided_intervals": 2406,
+      "unmatched_guided_intervals": 474,
+      "guided_sampled_cycles": 6740691112,
+      "matched_guided_cycles": 6015201632,
+      "matched_guided_cycle_fraction": 0.8923716473658821,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 192,
+        "no_raw_counter_sample_at_end_time": 282
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 316995197,
+        "no_raw_counter_sample_at_end_time": 408494283
+      },
+      "matches_exported_rounding": true
+    },
+    "p-branch-nop16": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "86db5d4b202c589693a941836adce9ccb8c5ad6f3e549848ccb5531dac89f696",
+      "metric_xml_sha256": "7f4f7eaa93326a2b6dcfdf3b56a2bfd7675cb3e0e7b2e43cdeb833f7cb880c21",
+      "raw_samples_with_active_cycles": 2190,
+      "matched_intervals": 1995,
+      "unmatched_raw_samples": 195,
+      "guided_intervals": 2481,
+      "unmatched_guided_intervals": 486,
+      "guided_sampled_cycles": 6949581583,
+      "matched_guided_cycles": 6199889882,
+      "matched_guided_cycle_fraction": 0.8921241959611081,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 195,
+        "no_raw_counter_sample_at_end_time": 291
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 282192015,
+        "no_raw_counter_sample_at_end_time": 467499686
+      },
+      "matches_exported_rounding": true
+    },
+    "p-simd": {
+      "selected_core_kind": "P",
+      "counter_xml_sha256": "43077b92263c723160623574a818c2be211335e8eb6f4b2a7279051b00dfb238",
+      "metric_xml_sha256": "df2e065ad0eba83f56254b01c46d8817d835e6d32dda1f74eb65965d8c408dc4",
+      "raw_samples_with_active_cycles": 945,
+      "matched_intervals": 857,
+      "unmatched_raw_samples": 88,
+      "guided_intervals": 1067,
+      "unmatched_guided_intervals": 210,
+      "guided_sampled_cycles": 3002071061,
+      "matched_guided_cycles": 2685880664,
+      "matched_guided_cycle_fraction": 0.8946759118704286,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 88,
+        "no_raw_counter_sample_at_end_time": 122
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 142169961,
+        "no_raw_counter_sample_at_end_time": 174020436
+      },
+      "matches_exported_rounding": true
+    },
+    "e-simd": {
+      "selected_core_kind": "E",
+      "counter_xml_sha256": "f356c84aaa921bc6f80ba93d281264a75925c0f08c9ede97cee283546d3eec1b",
+      "metric_xml_sha256": "e22df042a835c94f687599e9e7e3e832b5297d3b772a57cb124dde31c713c1e4",
+      "raw_samples_with_active_cycles": 1448,
+      "matched_intervals": 777,
+      "unmatched_raw_samples": 671,
+      "guided_intervals": 2306,
+      "unmatched_guided_intervals": 1529,
+      "guided_sampled_cycles": 2005340105,
+      "matched_guided_cycles": 1006551343,
+      "matched_guided_cycle_fraction": 0.5019354774236663,
+      "unmatched_guided_intervals_by_reason": {
+        "active_cycle_count_mismatch": 662,
+        "no_raw_counter_sample_at_end_time": 867
+      },
+      "unmatched_guided_cycles_by_reason": {
+        "active_cycle_count_mismatch": 497669867,
+        "no_raw_counter_sample_at_end_time": 501118895
+      },
+      "matches_exported_rounding": true
+    }
+  },
+  "summary": {
+    "capture_count": 16,
+    "matched_intervals": 40234,
+    "guided_intervals": 85523,
+    "matched_guided_cycle_fraction_by_intended_core_kind": {
+      "E": {
+        "min": 0.4909323040124681,
+        "max": 0.5059938566189989,
+        "captures": 7
+      },
+      "P": {
+        "min": 0.8902054384775867,
+        "max": 0.8978540583529449,
+        "captures": 9
+      }
+    },
+    "unmatched_guided_intervals_by_reason": {
+      "active_cycle_count_mismatch": 17506,
+      "no_raw_counter_sample_at_end_time": 27783
+    },
+    "unmatched_guided_cycles_by_reason": {
+      "active_cycle_count_mismatch": 14325477270,
+      "no_raw_counter_sample_at_end_time": 19781489272
+    }
+  }
+}

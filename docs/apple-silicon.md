@@ -84,6 +84,18 @@ topdown list --label test_name=apple-fixed
 Each import creates a new run. Apple runs appear in the common run list and
 support the same label filters, with `collector=apple` and `measurement_kind`
 labels. SQLite stores the native document as JSON text; PostgreSQL uses JSONB.
+
+New `stat` and `soc` captures include the native chip model, OS build and kernel
+UUID, so stored M1 and M6 runs can be selected by their recorded `cpu` labels.
+These fields come from the capture host's `sysctlbyname` API without launching
+another process or requiring Instruments. Unavailable metadata is recorded as
+an error alongside the fields that were read successfully; it does not prevent
+counter collection.
+
+Imports retain the recorded host identity, including when imported on Linux or
+a different Mac. Recorded hardware/tool fields take precedence over conflicting
+user labels. User labels can fill fields absent from older artifacts; import
+never fills missing provenance from the current host.
 Unsigned counters, including values above 2^53, remain integers through storage
 and Python/MCP serialization. Clients must also handle large JSON integers
 without converting them to floating point.
@@ -92,7 +104,18 @@ The importer retains source scope, native M1 bottleneck shares, unmeasured rows,
 trace gaps, and null Intel TMA fields. It does not create floating-point Linux
 metric rows. Capture timestamps are used when available; otherwise the run is
 explicitly labeled `time_basis=import_time`, with unknown capture duration.
-The source SHA-256 and import timestamp are retained. A failed automatic capture
+The source SHA-256 and import timestamp are retained. Imports verify that
+performance/other-core instruction, cycle and raw Mach-time pairs add up exactly,
+and that PID interval counts agree with their before/after snapshots. Converted
+nanoseconds retain their native timebase and documented rounding. SoC channel/state identities,
+units, totals and any reported shares must agree; zero observations retain null
+shares. XML exports require known native column/cell types and unsigned integer
+values; PID and nanosecond-window arguments must be integers. Trace gap counts must match the markers for each thread and interval.
+Scheduling coverage, Running spans and core assignments must agree with each
+other; missing core attribution never becomes an assumed core. Duplicate JSON
+fields, non-finite numbers and invalid supplied timestamps
+are rejected before insertion, including in capture metadata. UTC timestamps
+ending in `Z` are supported across Python 3.10–3.13. A failed automatic capture
 is not stored; database errors leave capture artifacts available for retry with
 `apple store`.
 
@@ -115,11 +138,20 @@ and pass the run ID to `get_apple_hotspots`. `stat` accepts either an existing
 PID or a command; Instruments modes launch a command and require whole seconds.
 `soc` has system/cluster scope and accepts neither PID nor command. MCP capture
 duration is capped at 300 seconds; launched `stat` commands use it as a timeout.
+Native captures run in one worker so profiling sessions remain serialized, while
+read-only Apple tools use a separate worker pool to keep the server responsive.
+Cancelling a queued capture prevents it from starting. Cancelling an active
+capture stops its owned work, retains partial artifacts and skips automatic
+storage; PID observation never signals the observed process.
 
 The MCP server must run on macOS to collect, and resolves executable/file paths
 on that host. Imports, database queries, and reports can run on other supported
 OSes. The summary omits bulk arrays; use `section=samples`, `intervals`, `gaps`,
-`channels`, or `leaf_sample_counts` to page through the relevant native data.
+`channels`, `leaf_sample_counts`, or GPU `encoders` to page through the relevant native data.
+SQLite and PostgreSQL project summaries and native array pages inside the
+database, avoiding full-document loads into the server for each small query.
+The complete document remains available for reporting and provenance, and
+pages retain original order, native integer precision and their full-array total.
 `list_profiling_runs` discovers both Linux and Apple runs. Linux metric
 comparisons and funnels continue to operate on Linux TMA rows.
 
@@ -173,6 +205,72 @@ the broader `other` label. The selected flavor is recorded in `source`, and olde
 systems fall back to V4 without these fields. These counts do not reveal per-core
 pipeline slots or programmable events.
 
+New captures preserve `user_time_mach`, `system_time_mach` and their available
+performance/other-group counterparts, alongside `source.mach_timebase`.
+Nanosecond values are floored independently from each native counter. The
+remainder is subtracted in Mach units before conversion so an idle group's
+converted time stays monotonic. Converted split sums can differ from the
+aggregate by 1 ns; interval differences can carry either sign of that rounding.
+Instructions, cycles and raw Mach-time pairs still add up exactly. Import checks
+the conversion and before/after evidence instead of silently adjusting counters.
+
+### M6 counted-instruction control
+
+The [counted ARM loop](../examples/apple-counted-loop.c) executes one `add`, one
+`subs`, and one conditional branch per iteration, and verifies its output.
+[Recorded M6 validation](apple-m6-fixed-instruction-validation.json) includes
+48 full-process captures and 48 startup-barrier intervals across four iteration
+counts, default/background QoS requests, and a balanced repeated order.
+The interval starts after executable initialization and includes the loop plus
+its small I/O protocol. Counts still include user and kernel work.
+
+| Iterations | Planned loop instructions | Full-process median, default QoS | Interval median, default QoS |
+|---|---:|---:|---:|
+| 0 | 0 | 10,882,834.5 | 20,620 |
+| 1,000,000 | 3,000,000 | 13,950,805 | 3,020,863.5 |
+| 10,000,000 | 30,000,000 | 40,890,899 | 30,031,992.5 |
+| 100,000,000 | 300,000,000 | 311,065,217 | 300,072,853 |
+
+Each median uses six trials. Subtracting the zero-loop interval median gives
+ratios of 1.00008–1.00160 relative to planned loop instructions across the
+nonzero sizes and both QoS requests. This supports the fixed-accounting path for
+these controls and illustrates startup overhead. It is not a calibration of
+programmable events, per-core width, or TMA shares. QoS is a scheduling request,
+not a core pin; native performance/other counts and all raw times remain in the
+evidence. Frequency, scheduling and background activity were uncontrolled.
+
+Run the validation from a source checkout on Apple silicon with Xcode:
+
+```sh
+python3 examples/apple-validate-fixed-instructions.py --output /tmp/m6-fixed-check-001
+# Each trial retains its full-process stat.json and paired interval.json.
+topdown apple store /tmp/m6-fixed-check-001/trial-01-default-1000000/interval.json \
+  --process counted-loop --label test_name=m6-fixed-interval
+```
+
+The runner retains source/binary hashes, compiler logs, disassembly and native
+results. The same control exposed a false counter-decrease error caused by
+rounding a derived remainder; the raw-time conversion above fixes it without
+discarding the valid interval.
+
+The [M1 paired check](apple-m1-fixed-instruction-validation.json) repeats the
+same control after that fix. Three default-QoS 100-million-iteration runs minus
+zero-loop baselines yielded 299,951,004–300,105,777 instructions against the
+300-million planned loop instructions; three background-QoS pairs yielded
+300,790,586–301,529,498. Every native V6 capture completed with exact
+performance/other instruction, cycle and raw Mach-time partitions, and null
+Intel TMA. Default runs were performance-core dominant; background runs were
+other-core dominant. Separate-run startup variation can make a small
+per-core-kind *difference* negative without any cumulative counter decrease.
+The result checks process accounting within startup variation, not slot-TMA.
+A further 16-case startup-barrier run used the same M6 validation script on M1.
+After subtracting the zero-loop interval median, the instruction ratio to the
+planned loop was 1.00021–1.00109 for default QoS and 0.99997–1.00392 for
+background QoS across one, ten, and 100 million iterations. These intervals
+remove most startup work but still include the short measurement protocol and
+kernel activity. The raw-result hash, native counter splits and per-case counts
+are retained in the M1 evidence file.
+
 ## Xcode's four-category M1 bottlenecks
 
 On the tested M1, Xcode 27.1's standard CPU Counters template records four
@@ -181,7 +279,9 @@ Apple describes these in [Addressing CPU bottlenecks](https://developer.apple.co
 `topdown apple record --mode counters` reads Xcode's `MetricTable` intervals,
 checks that each has all four ratios plus a cycle count, and reports shares
 weighted by the cycles in valid intervals. The JSON includes per-core breakdowns
-and the count of incomplete or inconsistent intervals. A legacy `cpu-pmc-value`
+and the count of incomplete or inconsistent intervals. It also reports the
+valid fraction of scoped sampled cycles when every invalid interval has a cycle
+count; otherwise that fraction is `null`. A legacy `cpu-pmc-value`
 table remains supported where Xcode exports one. This is an Apple-native
 four-category analysis; the `tma` object remains null because the Intel slot
 classification and Apple's formulas have not been shown equivalent.
@@ -212,6 +312,16 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 
 The tested host still has Command Line Tools selected, so these commands set
 `DEVELOPER_DIR` for one process without changing the system-wide selection.
+After the shared M6 GPU and host-provenance changes, a fresh M1 wide-ALU CLI
+capture still exported 4,062 valid guided intervals and left all Intel `tma`
+roots null. SQLite stored the profile unchanged, retained the recorded M1,
+kernel and Xcode labels, and created zero Linux metric samples. Its command,
+hashes, cycle-weighted shares and round-trip check are in
+[the post-sync M1 smoke](apple-m1-post-sync-smoke.json).
+The same binary also completed a fresh `apple stat` run through
+`RUSAGE_INFO_V6`: performance-core cycles were 99.83% of its process-lifetime
+total, the `other` remainder reconciled exactly, and Intel TMA remained null.
+That count and its source hash are in the same smoke artifact.
 After the user accepted Xcode's license, the guided probe returned
 `counters_present`; the earlier CLI rejected this Xcode version because it
 looked only for `cpu-pmc-value`. Controlled Xcode captures yielded:
@@ -304,6 +414,42 @@ in [M1 Xcode validation](apple-m1-xcode27-validation.json). Apple's [Processor T
 requirements](https://developer.apple.com/documentation/xcode/analyzing-cpu-usage-with-processor-trace)
 start at M4 for Mac recording, so Processor Trace cannot supply a hardware
 execution trace on this M1.
+Fresh Instruction Delivery captures broadened that check. All three exported
+complete cycle, Delivery Bandwidth, and Delivery Latency intervals on the
+intended M1 core kind:
+
+| Control | Bandwidth | Latency | Sum | Root Delivery in an earlier run |
+|---|---:|---:|---:|---:|
+| E-core random branch | 19.52% | 24.33% | 43.85% | 43.85% |
+| P-core large executed NOP stream | 0.01% | 73.37% | 73.38% | 72.82% |
+| E-core large executed NOP stream | 0.01% | 47.94% | 47.96% | 47.79% |
+
+The differences from the separate root captures were 0.007, 0.554, and
+0.163 percentage points, respectively. The large instruction streams were
+classified almost entirely as Delivery Latency in this mode, while the random
+branch control split its Delivery share between Bandwidth and Latency. These
+are Apple-native cycle ratios from separate recordings; they do not prove
+same-interval parent/child equality or Intel slot-TMA equivalence. The
+recording options, commands, checksums, XML hashes, and complete interval
+counts are in [M1 delivery subcategories](apple-m1-delivery-subcategories.json).
+Three other modes advertised by this M1's CPU Counters trace exported
+`MetricTable` rows, but their values were integer counts with `is-ratio=0`:
+
+| Mode and control | Sampled P-core intervals | Selected native counts |
+|---|---:|---|
+| Discarded sampling, random branch | 3,380 | 249,573,259 incorrectly predicted branches; 249,572,215 conditional and 1,044 other |
+| Discarded indirect sampling, random branch | 3,189 | 1,026 incorrectly predicted indirect branches; 495 indirect calls; 137 returns |
+| L1D miss sampling, pointer chase | 6,130 | 76,167,883 load misses; 18,141,988 store misses; 76,900,813 L1D TLB misses |
+
+The Discarded branch count equaled conditional plus other in every sampled
+interval. Indirect branch did not equal calls plus returns in four of 3,189
+intervals, so those names do not establish another additive split. All rows
+in these captures had complete event sets and no overlapping same-thread/core
+intervals. These counts are totals over sampled intervals, not a whole-run
+census or shares of the four bottleneck categories. They expose mechanisms
+without filling the missing Apple Processing breakdown or Intel slot-TMA
+mapping. Recording options, checksums and XML hashes are in
+[M1 deeper counting modes](apple-m1-deeper-counting-modes.json).
 Apple's [CPU counter subsystem overview](https://github.com/apple-oss-distributions/xnu/blob/main/doc/observability/cpu_counters.md)
 identifies KPC as the manager of configurable core counters; Monotonic and
 Recount expose fixed instructions/cycles. Those fixed-counter paths cannot
@@ -557,6 +703,27 @@ retains raw positions without assigning unverified event names. Run
 `python3 examples/apple-m1-kpep-plan.py --group calibration` to check that
 the eight programmable events fit distinct hardware counters; that KPEP
 assignment is not the combined trace's raw vector order.
+Use `python3 examples/apple-m1-kpep-plan.py --group calibration --swap RETIRE_UOP MAP_DISPATCH_BUBBLE`
+to check one proposed pairwise event-order change without enabling counters.
+
+An [M1 event-order experiment](apple-m1-event-order-experiment.json) tested the
+TOC metadata directly. Swapping requested `RETIRE_UOP` and
+`MAP_DISPATCH_BUBBLE` exchanged the normalized signatures at vector positions
+2 and 3 in a standalone custom capture (611/300 million to 301/611 million
+per billion fixed cycles). With the guided CPU Counters template added, the
+TOC requested order changed, but the positions corresponding to those
+signatures stayed at 7 and 9 (611/301 million versus 611/300 million).
+The unchanged position equations still matched 2,859 guided intervals to
+export rounding, covering 84.24% of guided sampled cycles. One capture per
+configuration cannot certify every selector, but it directly shows that the
+combined trace's `pmc-events` list does not label the exported vector order.
+A second feasible guided permutation swapped requested `CORE_ACTIVE_CYCLE` and
+`MAP_INT_UOP`; the corresponding normalized vector positions 2 and 5 again
+stayed near 998 million and 2.11 billion per billion fixed cycles, and 2,882
+matched intervals reproduced the guided ratios. Reversing all eight requested
+programmable events failed KPEP planning and Xcode capture with a conflicting
+`RETIRE_UOP` assignment. Event-order experiments therefore need a feasibility
+check before recording; the artifact preserves this failed case too.
 
 Let `A` be active cycles, `W` an assumed peak width of eight P-core or four
 E-core uops per cycle, and `M` the sum of `MAP_INT_UOP`, `MAP_LDST_UOP`, and
@@ -570,11 +737,57 @@ four Apple categories on this host:
 | Discarded | `max(0, M - RETIRE_UOP + W × MAP_REWIND) / (W × A)` |
 | Delivery | `max(MAP_DISPATCH_BUBBLE / A, 1 - Useful - Processing - Discarded)` |
 
-Each `MetricTable` interval ends at the corresponding raw PMU sample time.
-Matching by end time, thread, core, and active-cycle count joined 40,234
+Some `MetricTable` intervals end at a raw PMU sample time. Matching by end
+time, thread, core, and active-cycle count joined 40,234
 intervals across sixteen same-trace controls. All four equations reproduced
 every matched Xcode ratio to its nine-decimal fractional export precision;
 the largest absolute difference was below 0.0000001 percentage points.
+Those matches covered 89.0–89.8% of valid guided sampled cycles in nine
+P-core controls and 49.1–50.6% in seven E-core controls. Across all sixteen,
+27,783 valid guided intervals had no raw counter vector at the exact interval
+end time, and 17,506 had a vector for the same time, thread, and core but a
+different active-cycle count. None failed only because of a thread/core
+disagreement at the same time. The [join-coverage diagnostics](apple-m1-tma-match-coverage.json)
+retain per-control counts, sampled cycles, and verified source XML hashes.
+These categories describe what the two Instruments exports can join; they do
+not establish why samples differ or how many hardware events were lost. The
+exact-join result validates individual-interval equations only where both
+exports match, especially on E cores.
+Consecutive raw vectors give a second, wider check. For each thread and core,
+the validator groups guided intervals whose end times fall between two raw
+sample times, requires their starts to stay inside that window, and compares
+their summed cycles with the raw active-cycle count. Across the same sixteen
+controls, 53,059 windows met that cycle check, including 17,165 with multiple
+guided intervals. They covered 95.3–97.8% of guided sampled cycles in the nine
+P-core controls and 86.1–92.3% in the seven E-core controls. Applying the
+candidate equations to each raw vector reproduced the cycle-weighted guided
+categories to export rounding in 53,057 of those windows. The two exceptions
+were E-core windows whose individual guided intervals had positive Discarded
+shares but whose summed raw events fell below the nonnegative clamp; their
+weighted guided Discarded shares were 0.71% and 3.97%. Another 4,844 windows
+had guided-cycle totals different from raw active cycles and are excluded.
+This explains much of the low exact-join coverage as split guided intervals,
+while retaining the evidence that aggregate raw events cannot always recover
+the per-interval classification. Counts, errors, exceptions, and XML hashes are
+in [the window validation](apple-m1-tma-window-validation.json).
+A paired E-core ALU control then requested 500 µs instead of 1,000 µs in the
+custom instrument package. Xcode warned that the requested 500,000 ns differed
+from its configured 1,000,000 ns sampling period. Both captures still had a
+1,000,083 ns median gap between raw vectors on the same thread and core.
+The exact-match guided-cycle coverage was 45.77% at the 500 µs request and
+46.35% at 1,000 µs; all matched equations remained within export rounding.
+One capture per setting supports no broader rate claim, but changing this
+custom package setting did not recover the missing E-core joins in this test.
+The [sampling-rate control](apple-m1-sampling-rate-control.json) includes the
+source and XML hashes, effective gap distribution, Xcode warning and validator
+output.
+Turning on Xcode's `useHighFrequencyForGuidedMode` option in a second short
+E-core ALU pair requested a 100,000 ns period and produced the same binding
+warning against a configured 1,000,000 ns period. Both option settings had
+a 1,000,042 ns median raw-vector gap; exact-join coverage was 47.70% with the
+option and 47.32% without it. This pair also did not recover the missing joins.
+The recording-options JSON hashes, output checksums, XML hashes and validator
+results are in the same control artifact.
 The controls included P/E ALU, branch, pointer chase, SIMD, compact and large
 executed NOP streams, and random branches mixed with 8, 16, or 64 NOPs per
 iteration. Another 17,757 active raw samples had no complete matching guided
@@ -590,6 +803,46 @@ Its guided cycles split 80.7% P and 19.3% E. Applying the width for each
 matched interval's actual core reproduced all four shares for another 2,721
 intervals to export precision. This supports keeping P/E denominators
 separate within one process; the overall CLI summary remains cycle-weighted.
+The window check covered 95.19% of this mixed process's guided sampled cycles
+in 3,362 cycle-aligned raw windows, including 819 with multiple guided
+intervals; every window matched export rounding with its own core width. Exact
+single-interval joins covered 81.67%. The mixed result and XML hashes are in
+[the window validation](apple-m1-tma-window-validation.json).
+Both worker threads had guided samples on both P and E cores, with twelve
+observed transitions between core kinds. Split by core
+kind, exact joins covered 89.18% of P-core guided cycles and 50.31% of E-core
+guided cycles. Cycle-aligned windows raised that coverage to 96.48% and 89.77%;
+all 2,075 P windows and 1,287 E windows matched export rounding. The validator
+now reports these per-kind counts so migration cannot mask weaker E-core join
+coverage in the combined number.
+As a negative control on the same exact joins, using an eight-wide denominator
+on E cores changed Useful by a median 7.13 percentage points; using a four-wide
+denominator on P cores changed it by a median 83.33 points. This tests the
+candidate formula's width choice against Xcode's exported ratios, but does not
+prove a physical slot width or Intel TMA equivalence.
+
+A new [dependent integer-division control](../examples/apple-m1-divide.c)
+adds an instruction class absent from the sixteen controls. The optimized
+binary contains `udiv`, and separate intended P/E captures returned the same
+checksum. Xcode classified 90.54% of sampled P-core cycles and 89.82% of
+sampled E-core cycles as Processing, compared with 16.67% and 0.013% in the
+earlier wide-ALU controls. The candidate equations reproduced every category
+to export rounding on 699 P-core and 1,612 E-core exact joins, covering
+83.79% and 48.08% of guided sampled cycles. [The divide evidence](apple-m1-divide-control.json)
+contains the source/binary and XML hashes, core fractions, native shares and
+join diagnostics. This expands the empirical workload range but leaves the
+event labels and Intel slot classification unproved.
+The window check also reproduced the division control's cycle-weighted guided
+ratios in all 641 P-core and 2,046 E-core cycle-aligned windows, including 56
+and 975 windows with multiple guided intervals. Those aligned windows covered
+84.49% and 75.00% of its guided sampled cycles, respectively; the other
+windows remain outside that comparison. The results and source XML hashes are
+included in [the window validation](apple-m1-tma-window-validation.json).
+On the division control's exact joins, swapping the width denominator changed
+Useful by a median 9.39 percentage points on the intended P capture and 5.04
+points on the intended E capture. This independently checks the width choice
+for another instruction class; the [division artifact](apple-m1-divide-control.json)
+records its match counts and XML hashes.
 
 The nonnegative clamp matters: a plain `M - RETIRE_UOP` term produces a
 strongly negative Discarded value for eliminated NOPs. In the 16-NOP mixed
@@ -630,7 +883,16 @@ Export the trace's `counters-profile` and `MetricTable` tables with
 `xcrun xctrace export --xpath`, then pass both XML files and the launched PID
 to [apple-m1-validate-tma.py](../examples/apple-m1-validate-tma.py). The
 validator joins interval end times to PMU samples and fails if any matched
-category differs beyond Xcode's export rounding.
+category differs beyond Xcode's export rounding. It rejects duplicate raw
+match keys and reports unmatched raw samples, unmatched guided intervals, and
+the fraction of guided sampled cycles represented by matched intervals, plus
+whether unmatched guided intervals lacked an exact-time vector or disagreed
+on active-cycle count. A successful formula check applies only to that
+matched fraction.
+In a fresh M1 branch control on 2026-10-23, 2,875 of 4,855 guided intervals
+matched 3,086 active raw samples and represented 84.55% of guided sampled
+cycles. The equations matched Xcode's export rounding on those joined
+intervals; 1,980 guided intervals remained outside the formula check.
 
 ### What Intel slot-TMA still needs
 
@@ -1201,3 +1463,17 @@ suggestions were not treated as evidence. Calls/outputs are retained locally in
 `.local-runs/cpu-perf/`. Actual implementation/review was one sequential Codex
 session; exact serving model and token costs are unknown. No independent agent,
 optimization population, performance acceptance, upstream PR or publication is claimed.
+
+## Native GPU profiling
+
+`topdown apple gpu record --output /tmp/gpu-001 --mode alu --store` captures a
+checksum-verified Metal control, profiles its replay and stores native encoder
+counters. Use `topdown apple gpu report --run-id RUN_ID` to rank its costs and
+limiters, or `apple query RUN_ID --section encoders` for paginated raw counters.
+Existing `.gputrace` captures use `apple gpu profile`. Replay requires full Xcode
+and Apple M3/A17 Pro or later; stored GPU reports work on any supported OS.
+
+MCP exposes `collect_apple_gpu_profile`, `profile_apple_gpu_trace` and
+`get_apple_gpu_report`, alongside the shared import/query tools. See the
+[GPU guide](apple-gpu-experiment.md#cli-database-and-mcp) for commands, native
+limiter interpretation, M6 measurements and the separate M1 Instruments path.
