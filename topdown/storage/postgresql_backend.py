@@ -8,6 +8,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from topdown.storage.base import StorageBackend, escape_like, window_hours
+from topdown.apple_json import TEXT_KEY, decode_document, encode_document
 from topdown.storage.models import Run, Sample
 from topdown.storage.schema import POSTGRESQL_SCHEMA
 from topdown.storage.sql_queries import SqlNodeQueries
@@ -114,7 +115,7 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
         return self._row_to_run(row)
 
     def insert_apple_result(self, run: Run, document: dict) -> str:
-        payload = json.dumps(document, allow_nan=False)
+        payload = encode_document(document)
         kind = document["result"]["measurement_kind"]
         conn = self._get_conn()
         try:
@@ -136,15 +137,16 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
         if not _is_valid_uuid(run_id):
             return None
         row = self._get_conn().execute("SELECT document FROM apple_results WHERE run_id = %s", (run_id,)).fetchone()
-        return row["document"] if row else None
+        return decode_document(row["document"]) if row else None
 
     def get_apple_result_page(self, run_id: str, omit_fields: tuple[str, ...], section: str | None = None,
                               offset: int = 0, limit: int = 100) -> dict | None:
         if not _is_valid_uuid(run_id):
             return None
         row = self._get_conn().execute("""
-            SELECT (a.document - 'result') || jsonb_build_object(
-                       'result', (a.document->'result') - %(omit)s::text[]) AS document,
+            SELECT CASE WHEN a.encoded THEN NULL ELSE (a.document - 'result') || jsonb_build_object(
+                       'result', (a.document->'result') - %(omit)s::text[]) END AS document,
+                   CASE WHEN a.encoded THEN a.document->>%(text_key)s END AS encoded_document,
                    CASE WHEN jsonb_typeof(a.document->'result'->%(section)s::text) = 'array'
                        THEN jsonb_array_length(a.document->'result'->%(section)s::text) END AS total,
                    CASE WHEN jsonb_typeof(a.document->'result'->%(section)s::text) = 'array' THEN (
@@ -155,11 +157,23 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
                            ORDER BY ordinality
                        ) page
                    ) END AS rows
-            FROM apple_results a WHERE a.run_id = %(run_id)s
+            FROM (
+                SELECT document, jsonb_typeof(document->%(text_key)s) = 'string'
+                       AND document - %(text_key)s = '{}'::jsonb AS encoded
+                FROM apple_results WHERE run_id = %(run_id)s
+            ) a
         """, {"run_id": run_id, "omit": list(omit_fields), "section": section,
+              "text_key": TEXT_KEY,
               "offset": min(offset, 2**63 - 1), "end": min(offset + limit, 2**63 - 1)}).fetchone()
         if row is None:
             return None
+        if row["encoded_document"] is not None:
+            document = decode_document({TEXT_KEY: row["encoded_document"]})
+            result = document["result"]
+            rows = result.get(section) if section is not None else None
+            return {"metadata": document["metadata"], "result": {k: v for k, v in result.items() if k not in omit_fields},
+                    "total": len(rows) if isinstance(rows, list) else None,
+                    "rows": rows[offset:offset + limit] if isinstance(rows, list) else None}
         return {"metadata": row["document"]["metadata"], "result": row["document"]["result"],
                 "rows": row["rows"], "total": row["total"]}
 

@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import stat
 
+from topdown.apple_json import unicode_scalars
+
 
 def _json_object(pairs):
     result = {}
@@ -35,7 +37,10 @@ class NativeJSONDecoder(json.JSONDecoder):
 
     def raw_decode(self, source, idx=0):
         try:
-            return super().raw_decode(source, idx)
+            value, end = super().raw_decode(source, idx)
+            if not unicode_scalars(value):
+                raise ValueError("Native Apple JSON requires valid Unicode scalar values")
+            return value, end
         except RecursionError as exc:
             raise ValueError("Apple JSON exceeds the parser nesting limit") from exc
 
