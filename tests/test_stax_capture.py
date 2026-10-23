@@ -174,6 +174,15 @@ def test_missing_tools_and_macos_helper_are_explicit(tmp_path, monkeypatch):
     assert not (tmp_path / "capture").exists()
 
 
+def test_doctor_retains_host_identity_without_inferring_pmu_access(monkeypatch):
+    environment = {"system": "Darwin", "arch": "arm64", "cpu": "Apple M6", "kernel_uuid": "test-kernel"}
+    monkeypatch.setattr("topdown.collector.apple_environment.capture_environment", lambda: environment)
+    result = stax.doctor()
+    assert result["environment"] == environment
+    assert result["pmu_availability"] == "unverified"
+    assert result["permissions_verified"] is False
+
+
 def test_command_timeout_reaps_process(fake_stax, monkeypatch):
     env = {**os.environ, "STAX_SERVER_SOCKET": str(fake_stax / "owned.sock"), "STAX_SERVER_WS_BIND": "127.0.0.1:0"}
     monkeypatch.setenv("STAX_TEST_MODE", "hang")

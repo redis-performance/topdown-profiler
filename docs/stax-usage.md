@@ -5,6 +5,12 @@ shared run/label workflow. These results use separate SQL documents and never
 create Linux slot-TMA rows. Existing Apple Instruments and Metal replay commands
 remain available.
 
+On Apple hosts, capture metadata records the native chip name, macOS version,
+OS build and kernel UUID. Stored runs use those recorded values as labels, so
+M1 and M6 captures can be selected separately. Import never probes the importing
+computer to fill missing hardware identity; a bare archive's `aarch64` provenance
+does not identify an Apple chip or establish PMU access.
+
 Capture is experimental. Functional checks have run on a Linux aarch64 VM and
 the [M6 Metal target-span control](stax-m6-metal-control.md). Privileged M1/M6
 CPU capture acceptance remains pending. Measure overhead on the workload being
