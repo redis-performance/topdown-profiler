@@ -1,0 +1,51 @@
+{
+  "cpu_family": "0x1b588bb3",
+  "fixed_counter_count": 2,
+  "requested_events": [
+    "L1D_CACHE_MISS_LD",
+    "BRANCH_MISPRED_NONSPEC"
+  ],
+  "stax_order": {
+    "force_before_add": false,
+    "classes": 2,
+    "event_errors": {
+      "L1D_CACHE_MISS_LD": {
+        "return_code": 0,
+        "event_error": 0
+      },
+      "BRANCH_MISPRED_NONSPEC": {
+        "return_code": 13,
+        "event_error": 0
+      }
+    },
+    "event_to_configurable_counter": {
+      "L1D_CACHE_MISS_LD": 0
+    },
+    "event_to_sample_index": {
+      "L1D_CACHE_MISS_LD": 2
+    }
+  },
+  "forced_first": {
+    "force_before_add": true,
+    "classes": 2,
+    "event_errors": {
+      "L1D_CACHE_MISS_LD": {
+        "return_code": 0,
+        "event_error": 0
+      },
+      "BRANCH_MISPRED_NONSPEC": {
+        "return_code": 0,
+        "event_error": 0
+      }
+    },
+    "event_to_configurable_counter": {
+      "L1D_CACHE_MISS_LD": 0,
+      "BRANCH_MISPRED_NONSPEC": 3
+    },
+    "event_to_sample_index": {
+      "L1D_CACHE_MISS_LD": 2,
+      "BRANCH_MISPRED_NONSPEC": 5
+    }
+  },
+  "hardware_access_verified": false
+}

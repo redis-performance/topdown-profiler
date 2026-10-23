@@ -11,6 +11,9 @@ They add no runtime dependencies and do not invoke `sudo` or change host setting
 The tested M6 rejects programmable events. Intel slot-TMA equivalence has not
 been established for the Apple categories.
 
+The optional [Stax M1 pilot](stax-m1-pilot.md) evaluates sampled CPU stacks and
+thread waits against these native captures.
+
 ## Check support and view function hotspots
 
 ```sh

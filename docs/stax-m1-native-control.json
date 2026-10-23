@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-23",
+  "host": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "os_version": "27.0.1",
+    "cpu": "Apple M1",
+    "os_build": "26A434",
+    "kernel_uuid": "1F15A5DA-11D6-39EE-88D2-153E2F90F066"
+  },
+  "redis_revision": "d85b5f4c2cc597da78989bc48d6b38b895c186f6",
+  "redis_binary_sha256": "a5ca88abc09c74b1e5e6dde6619b29b976fb69215e40b554272e5f60b871b155",
+  "workload": {
+    "tool": "redis-benchmark",
+    "commands": [
+      "SET",
+      "GET"
+    ],
+    "requests_per_command": 30000000,
+    "clients": 50,
+    "pipeline": 16,
+    "warmup_requests_per_command": 1000000,
+    "transport": "private Unix socket",
+    "elapsed_seconds": 22.814357750001363,
+    "reported": [
+      {
+        "test": "SET",
+        "rps": "2242320.00",
+        "avg_latency_ms": "0.310",
+        "min_latency_ms": "0.072",
+        "p50_latency_ms": "0.311",
+        "p95_latency_ms": "0.359",
+        "p99_latency_ms": "0.431",
+        "max_latency_ms": "1.703"
+      },
+      {
+        "test": "GET",
+        "rps": "3183023.75",
+        "avg_latency_ms": "0.206",
+        "min_latency_ms": "0.056",
+        "p50_latency_ms": "0.207",
+        "p95_latency_ms": "0.271",
+        "p99_latency_ms": "0.327",
+        "max_latency_ms": "1.007"
+      }
+    ]
+  },
+  "native_stat": {
+    "api": "proc_pid_rusage",
+    "flavor": "RUSAGE_INFO_V6",
+    "window": "35-second PID observation started 0.5 s before the benchmark; includes idle tail",
+    "observed_duration_ns": 35009255792,
+    "target_exited": false,
+    "counters_available": true,
+    "tma_available": false,
+    "counters": {
+      "instructions": 349636130111,
+      "cycles": 69575181942,
+      "user_time_ns": 19903714042,
+      "system_time_ns": 2793263709,
+      "user_time_mach": 477689137,
+      "system_time_mach": 67038329,
+      "performance_instructions": 349410646953,
+      "performance_cycles": 69381063099,
+      "other_instructions": 225483158,
+      "other_cycles": 194118843,
+      "performance_user_time_ns": 19851406333,
+      "performance_system_time_ns": 2751517500,
+      "performance_user_time_mach": 476433752,
+      "performance_system_time_mach": 66036420,
+      "other_user_time_mach": 1255385,
+      "other_system_time_mach": 1001909,
+      "other_user_time_ns": 52307708,
+      "other_system_time_ns": 41746208
+    },
+    "raw_stat_sha256": "39b69b183831c3a4d75d6002d821a566f16fc142df62d99cf10cb36878cfcbb6"
+  },
+  "stax_capture_performed": false
+}
