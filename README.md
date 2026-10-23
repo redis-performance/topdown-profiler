@@ -637,6 +637,8 @@ topdown version         Show version
 
 ## Development
 
+Planned work: [Stax pilot and optional macOS/Linux sampling integration](docs/stax-plan.md).
+
 ```bash
 git clone https://github.com/redis-performance/topdown-profiler.git
 cd topdown-profiler
