@@ -56,12 +56,18 @@ class PostgreSQLBackend(SqlNodeQueries, StorageBackend):
 
     def initialize(self) -> None:
         conn = self._get_conn()
-        with conn.cursor() as cur:
-            for statement in POSTGRESQL_SCHEMA.split(";"):
-                statement = statement.strip()
-                if statement:
-                    cur.execute(statement)
-        conn.commit()
+        try:
+            # IF NOT EXISTS still races on PostgreSQL's catalog during concurrent first use.
+            conn.execute("SELECT pg_advisory_xact_lock(hashtext('topdown-profiler schema'), hashtext(current_schema()))")
+            with conn.cursor() as cur:
+                for statement in POSTGRESQL_SCHEMA.split(";"):
+                    statement = statement.strip()
+                    if statement:
+                        cur.execute(statement)
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
 
     def insert_run(self, run: Run) -> str:
         conn = self._get_conn()
