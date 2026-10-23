@@ -125,7 +125,8 @@ def detect_format(lines: list[str], delimiter: str = ",") -> CsvFormat:
     # Extended format: toplev -x, --no-desc produces 10 columns
     # timestamp, area, value, unit, description, sample, stddev, multiplex, bottleneck, idle
     if ncols >= 8 and has_timestamp:
-        if ncols >= 11 and PERCENT_RE.match(cols[3].strip()) and not PERCENT_RE.match(cols[2].strip()):
+        cpu_column = cols[1].strip() in {"core", "atom", "cpu_core", "cpu_atom"} or CPU_RE.match(cols[1].strip())
+        if ncols >= 11 and (cpu_column or PERCENT_RE.match(cols[3].strip())) and not PERCENT_RE.match(cols[2].strip()):
             return CsvFormat.EXTENDED_CPU_11COL
         return CsvFormat.EXTENDED_10COL
 

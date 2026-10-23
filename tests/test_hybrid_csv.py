@@ -31,6 +31,11 @@ def test_numeric_extended_cpu_retains_cpu_id():
     assert row.metric_name == "Frontend_Bound" and row.value == 37.9
 
 
+def test_headerless_unavailable_value_keeps_group_columns():
+    row = parse_output(CAPTURE.splitlines()[1].replace("37.9", "<not counted>"))[0]
+    assert row.metric_name == "Frontend_Bound" and row.cpu_group == "core" and row.unit == "% Slots"
+
+
 def test_quoted_description_and_bottleneck_column():
     text = CAPTURE.replace(",% Slots,,frontend", ',% Slots,"description, with comma",frontend')
     text = text.replace(",100.0,,", ",100.0,*,")
