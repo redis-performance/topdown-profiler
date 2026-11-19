@@ -7,6 +7,10 @@
       "env": {
         "TOPDOWN_DB_PATH": "~/.topdown/data.db"
       }
+    },
+    "cpu-perf": {
+      "command": "uvx",
+      "args": ["cpu-perf==0.1.1"]
     }
   }
 }
